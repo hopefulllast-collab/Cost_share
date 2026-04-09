@@ -1,0 +1,31 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# Uploads (user content - don't track in git)
+uploads/signatures/*
+uploads/clearances/*
+!uploads/signatures/.gitkeep
+!uploads/clearances/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node modules (for Vercel CLI)
+node_modules/
+
+# Vercel local
+.vercel/
+
+# SQL data dumps (contains sensitive user data)
+# Keep schema but not the full dump with data
+config/dmu_cost_sharing_full.sql
