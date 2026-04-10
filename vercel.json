@@ -1,39 +1,10 @@
 {
-  "functions": {
-    "api/**/*.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "index.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "setup.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "logout.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "forgot_password.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "process_forgot_password.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "process_reset_password.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "reset_password.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "modules/**/*.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "includes/**/*.php": {
-      "runtime": "vercel-community/php@0.7.1"
-    },
-    "config/**/*.php": {
-      "runtime": "vercel-community/php@0.7.1"
+  "builds": [
+    {
+      "src": "**/*.php",
+      "use": "vercel-community/php@0.7.1"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/assets/(.*)",
