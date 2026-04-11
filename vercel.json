@@ -7,6 +7,7 @@
     { "src": "process_forgot_password.php", "use": "vercel-php@0.9.0" },
     { "src": "process_reset_password.php", "use": "vercel-php@0.9.0" },
     { "src": "reset_password.php", "use": "vercel-php@0.9.0" },
+    { "src": "test_tidb.php", "use": "vercel-php@0.9.0" },
     { "src": "api/*.php", "use": "vercel-php@0.9.0" },
     { "src": "modules/**/*.php", "use": "vercel-php@0.9.0" }
   ],
