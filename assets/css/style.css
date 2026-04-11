@@ -1429,3 +1429,56 @@ body.mobile-layout #chat-window {
     bottom: 135px !important;
     z-index: 1045 !important;
 }
+/* =========================================
+   17. GLOBAL FILTER GRIDS & BUTTONS
+   ========================================= */
+.filter-grid, form[style*='display:grid'], form[style*='display: grid'] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+    align-items: flex-end !important;
+}
+
+.filter-grid > div, form[style*='display:grid'] > div, form[style*='display: grid'] > div {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 140px !important;
+    min-width: 140px !important;
+}
+
+.filter-grid label, form[style*='display:grid'] label, form[style*='display: grid'] label {
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 6px !important;
+    white-space: nowrap !important;
+}
+
+.filter-grid input, .filter-grid select, form[style*='display:grid'] input, form[style*='display:grid'] select, form[style*='display: grid'] input, form[style*='display: grid'] select {
+    height: 40px !important;
+    padding: 0 12px !important;
+    border: 1.5px solid var(--dash-border) !important;
+    border-radius: var(--dash-radius-sm) !important;
+    font-size: 0.88rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Fix Button Container & Buttons */
+.filter-grid > div[style*='span 2'], form[style*='display:grid'] > div[style*='span 2'], form[style*='display: grid'] > div[style*='span 2'] {
+    flex-direction: row !important;
+    flex: 0 0 auto !important; /* Stop stretching */
+    gap: 10px !important;
+    width: auto !important;
+}
+
+.filter-grid button, form[style*='display:grid'] button, form[style*='display: grid'] button {
+    height: 40px !important;
+    padding: 0 20px !important;
+    flex: unset !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    font-size: 0.85rem !important;
+}
+
+.filter-grid > div:last-child, form[style*='display:grid'] > div:last-child, form[style*='display: grid'] > div:last-child { flex-direction: row !important; flex: 0 0 auto !important; width: auto !important; gap: 10px !important; justify-content: flex-start !important; } 
+
