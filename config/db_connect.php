@@ -41,8 +41,10 @@ try {
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
     
-    // Enable strict SSL verification for TiDB Cloud if needed (Docker will handle the CA automatically)
+    // Enable strict SSL verification for TiDB Cloud Serverless
+    // In Docker (Debian), the system CA path is /etc/ssl/certs/ca-certificates.crt
     if ($host !== 'localhost' && $host !== '127.0.0.1') {
+        $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/ssl/certs/ca-certificates.crt';
         $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
     }
     
