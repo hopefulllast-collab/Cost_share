@@ -46,6 +46,9 @@ try {
         if ($ca_cert && file_exists($ca_cert)) {
             $options[PDO::MYSQL_ATTR_SSL_CA] = $ca_cert;
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        } else {
+            // Serverless (Vercel): Enable SSL without local CA file
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
         }
     }
     
