@@ -82,7 +82,7 @@ $sql = "SELECT s.student_id, s.first_name, s.last_name, s.sex, s.batch, s.status
         JOIN departments d ON s.department_id = d.id
         WHERE $where_sql
         GROUP BY s.user_id, s.student_id, s.first_name, s.last_name, s.sex, s.batch, s.status, d.name
-        ORDER BY d.name, st.academic_year DESC, s.batch, s.first_name";
+        ORDER BY d.name, MAX(st.academic_year) DESC, s.batch, s.first_name";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
