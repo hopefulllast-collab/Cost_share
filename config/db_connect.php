@@ -48,6 +48,9 @@ try {
         $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
     }
     
+    // Disable strict ONLY_FULL_GROUP_BY mode session-wide to ensure existing queries work on TiDB
+    $options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))";
+    
     $pdo = new PDO($dsn, $username, $password, $options);
 } catch(PDOException $e) {
     die("Connection failed: " . $e->getMessage());
