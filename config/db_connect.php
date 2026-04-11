@@ -44,10 +44,18 @@ try {
     if ($use_ssl === 'true') {
         $ca_cert = getenv('DB_SSL_CA') ?: '';
         if ($ca_cert && file_exists($ca_cert)) {
+            // Custom CA certificate provided
             $options[PDO::MYSQL_ATTR_SSL_CA] = $ca_cert;
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
         } else {
-            // Serverless (Vercel): Enable SSL without local CA file
+            // Serverless (Vercel/Linux): Use system CA bundle
+            $systemCa = '/etc/ssl/certs/ca-certificates.crt';
+            if (file_exists($systemCa)) {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = $systemCa;
+            } else {
+                // Fallback: enable SSL without specific CA
+                $options[PDO::MYSQL_ATTR_SSL_CA] = true;
+            }
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
         }
     }
