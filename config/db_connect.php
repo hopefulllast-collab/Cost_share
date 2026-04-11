@@ -40,24 +40,32 @@ try {
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
     
-    // TiDB Cloud requires SSL connection
-    if ($use_ssl === 'true') {
-        $ca_cert = getenv('DB_SSL_CA') ?: '';
-        if ($ca_cert && file_exists($ca_cert)) {
-            // Custom CA certificate provided
-            $options[PDO::MYSQL_ATTR_SSL_CA] = $ca_cert;
-            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
-        } else {
-            // Serverless (Vercel/Linux): Use system CA bundle
-            $systemCa = '/etc/ssl/certs/ca-certificates.crt';
-            if (file_exists($systemCa)) {
-                $options[PDO::MYSQL_ATTR_SSL_CA] = $systemCa;
-            } else {
-                // Fallback: enable SSL without specific CA
-                $options[PDO::MYSQL_ATTR_SSL_CA] = true;
+    // Auto-detect SSL: if not localhost, enable SSL (TiDB Cloud requires it)
+    $need_ssl = ($use_ssl === 'true') || ($host !== 'localhost' && $host !== '127.0.0.1');
+    
+    if ($need_ssl) {
+        // Try system CA certificate paths (Linux/Vercel)
+        $ca_paths = [
+            getenv('DB_SSL_CA') ?: '',
+            '/etc/ssl/certs/ca-certificates.crt',
+            '/etc/pki/tls/certs/ca-bundle.crt',
+            '/etc/ssl/ca-bundle.pem',
+        ];
+        
+        $ca_found = false;
+        foreach ($ca_paths as $ca) {
+            if ($ca && file_exists($ca)) {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = $ca;
+                $ca_found = true;
+                break;
             }
-            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
         }
+        
+        if (!$ca_found) {
+            // Last resort: set empty SSL_CA to still force SSL mode
+            $options[PDO::MYSQL_ATTR_SSL_CA] = '';
+        }
+        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
     }
     
     $pdo = new PDO($dsn, $username, $password, $options);
