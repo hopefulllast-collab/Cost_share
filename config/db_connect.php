@@ -41,10 +41,10 @@ try {
     
     // If NOT localhost, enable SSL (TiDB Cloud requires it)
     if ($host !== 'localhost' && $host !== '127.0.0.1') {
-        // Use bundled ISRG Root X1 certificate (TiDB Cloud uses Let's Encrypt)
-        $bundledCa = __DIR__ . '/ca-cert.pem';
-        $options[PDO::MYSQL_ATTR_SSL_CA] = $bundledCa;
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        // Vercel runs on AWS Lambda (Amazon Linux 2)
+        // AL2 stores certificates at /etc/pki/tls/certs/ca-bundle.crt
+        $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/pki/tls/certs/ca-bundle.crt';
+        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
     }
     
     $pdo = new PDO($dsn, $username, $password, $options);
