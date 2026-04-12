@@ -274,7 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                                 <tr>
                                     <th data-en="Department" data-am="ትምህርት ክፍል">Department</th>
                                     <th data-en="Year" data-am="ዓመት">Year</th>
-                                    <th data-en="Batch" data-am="ቡድን">Batch</th>
+                                    <th data-en="Batch" data-am="የጥናት አመት">Batch</th>
                                     <th data-en="Sem" data-am="ሴሚስተር">Semester</th>
                                     <th data-en="Cr.Hrs" data-am="ክ.ሰዓት">Credit Hour</th>
                                     <th data-en="Min" data-am="ዝቅተኛ ክ.ሰዓት">Minimum Credit Hour</th>
@@ -282,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                                     <th data-en="Sem Min" data-am="ሴሚስተር ዝ.ዝ.ሰዓት">Semester Minimum Credit Hour</th>
                                     <th data-en="Sem Max" data-am="ሴሚስተር ከ.ከ.ሰዓት">Semester Maximum Credit Hour</th>
                                     <th data-en="Status" data-am="ሁኔታ">Status</th>
-                                    <th data-en="Action" data-am="አስተካክል/አስወግድ">Action</th>
+                                    <th data-en="Action" data-am="ድርጊት">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
