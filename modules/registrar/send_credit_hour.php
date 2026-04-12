@@ -28,22 +28,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
 
     // Validation
     if (empty($dept_id) || empty($ac_year) || empty($batch) || empty($semester) || empty($credit_hour)) {
-        $error = "<span data-en='All fields are required.' data-am='áˆáˆ‰áˆ áˆ˜áˆµáŠ®á‰½ á‹«áˆµáˆáˆáŒ‹áˆ‰á¢'>All fields are required.</span>";
+        $error = "<span data-en='All fields are required.' data-am='ሁሉንም የግድ መሙላት አለብዎት'>All fields are required.</span>";
     } elseif ($min_credit < 1 || $max_credit < 1) {
-        $error = "Course Min and Max credit hour must be at least 1.";
+        $error = "<span data-en='Course Min and Max credit hour must be at least 1.' data-am='የኮርሱ ዝቅተኛ እና ከፍተኛ ክሬዲት ሰዓት ቢያንስ 1 መሆን አለበት'>Course Min and Max credit hour must be at least 1.</span>";
     } elseif ($min_credit > $max_credit) {
-        $error = "Course Minimum credit hour cannot be greater than Maximum.";
+        $error = "<span data-en='Course Minimum credit hour cannot be greater than Maximum.' data-am='የኮርሱ ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Course Minimum credit hour cannot be greater than Maximum.</span>";
     } elseif ($sem_min_credit > $sem_max_credit) {
-        $error = "Semester Minimum credit hour cannot be greater than Maximum.";
+        $error = "<span data-en='Semester Minimum credit hour cannot be greater than Maximum.' data-am='የሴሚስተር ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Semester Minimum credit hour cannot be greater than Maximum.</span>";
     } elseif ($credit_hour < $sem_min_credit || $credit_hour > $sem_max_credit) {
-        $error = "Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).";
+        $error = "<span data-en='Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).' data-am='ጠቅላላ የክፍያ ክሬዲት ሰዓት ($credit_hour) በሴሚስተር ዝቅተኛ ($sem_min_credit) እና ከፍተኛ ($sem_max_credit) መካከል መሆን አለበት'>Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).</span>";
     } else {
         // Check Duplicate (ignore academic_year so one combination of dept+batch+sem exists)
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM courses 
                                WHERE department_id = ? AND batch = ? AND semester = ?");
         $stmt->execute([$dept_id, $batch, $semester]);
         if ($stmt->fetchColumn() > 0) {
-            $error = "<span data-en='Credit hour already exists for this combination. Please edit the existing record.' data-am='áˆˆá‹šáˆ… áŒ¥áˆáˆ¨á‰µ áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ áŠ áˆµá‰€á‹µáˆž áŠ áˆˆá¢ á‹«áˆ‰á‰µáŠ• á‹­á‰€á‹­áˆ©á¢'>Credit hour already exists for this combination.</span>";
+            $error = "<span data-en='Credit hour already exists for this combination. Please edit the existing record.' data-am='ለዚህ ጥምረት የክሬዲት ሰዓት ቀድሞውኑ አለ። እባክዎ ያለውን መዝገብ ያርትዑ'>Credit hour already exists for this combination.</span>";
         } else {
             // Insert
             try {
@@ -79,12 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
                 }
 
                 $pdo->commit();
-                $_SESSION['flash_success'] = "<span data-en='Credit hour sent successfully to Department Head.' data-am='áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ áˆˆá‹²á“áˆ­á‰µáˆ˜áŠ•á‰µ áŠƒáˆ‹áŠ á‰ á‰°áˆ³áŠ« áˆáŠ”á‰³ á‰°áˆáŠ³áˆá¢'>Credit hour sent successfully to Department Head.</span>";
+                $_SESSION['flash_success'] = "<span data-en='Credit hour sent successfully to Department Head.' data-am='የክሬዲት ሰዓት ለዲፓርትመንት ኃላፊ በተሳካ ሁኔታ ተልኳል።'>Credit hour sent successfully to Department Head.</span>";
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } catch (PDOException $e) {
                 $pdo->rollBack();
-                $error = "<span data-en='Database Error: " . $e->getMessage() . "' data-am='á‹¨á‹áˆ‚á‰¥ áŒŽá‰³ áˆµáˆ…á‰°á‰µ: " . $e->getMessage() . "'>Database Error: " . $e->getMessage() . "</span>";
+                $error = "<span data-en='Database Error: " . $e->getMessage() . "' data-am='የውሂብ ጎታ ስህተት: " . $e->getMessage() . "'>Database Error: " . $e->getMessage() . "</span>";
             }
         }
     }
@@ -101,25 +101,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_credit_hour'])) {
     $sem_max_credit = (int) $_POST['semester_max_credits'];
 
     if (empty($ac_year) || empty($credit_hour)) {
-        $error = "<span data-en='All fields are required.' data-am='áˆáˆ‰áˆ áˆ˜áˆµáŠ®á‰½ á‹«áˆµáˆáˆáŒ‹áˆ‰á¢'>All fields are required.</span>";
+        $error = "<span data-en='All fields are required.' data-am='ሁሉንም የግድ መሙላት አለብዎት'>All fields are required.</span>";
     } elseif ($min_credit < 1 || $max_credit < 1) {
-        $error = "Course Min and Max credit hour must be at least 1.";
+        $error = "<span data-en='Course Min and Max credit hour must be at least 1.' data-am='የኮርስ ዝቅተኛ እና ከፍተኛ ክሬዲት ሰዓት ቢያንስ 1 መሆን አለበት'>Course Min and Max credit hour must be at least 1.</span>";
     } elseif ($min_credit > $max_credit) {
-        $error = "Course Minimum credit hour cannot be greater than Maximum.";
+        $error = "<span data-en='Course Minimum credit hour cannot be greater than Maximum.' data-am='የኮርስ ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Course Minimum credit hour cannot be greater than Maximum.</span>";
     } elseif ($sem_min_credit > $sem_max_credit) {
-        $error = "Semester Minimum credit hour cannot be greater than Maximum.";
+        $error = "<span data-en='Semester Minimum credit hour cannot be greater than Maximum.' data-am='የሴሚስተር ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Semester Minimum credit hour cannot be greater than Maximum.</span>";
     } elseif ($credit_hour < $sem_min_credit || $credit_hour > $sem_max_credit) {
-        $error = "Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).";
+        $error = "<span data-en='Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).' data-am='ጠቅላላ የክፍያ ክሬዲት ሰዓት ($credit_hour) በሴሚስተር ዝቅተኛ ($sem_min_credit) እና ከፍተኛ ($sem_max_credit) መካከል መሆን አለበት'>Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).</span>";
     } else {
         try {
             $pdo->prepare("UPDATE courses 
                            SET academic_year = ?, credit_hours = ?, min_credit_hours = ?, max_credit_hours = ?, semester_min_credits = ?, semester_max_credits = ?, rate_status = 'Pending_Dept' 
                            WHERE id = ?")->execute([$ac_year, $credit_hour, $min_credit, $max_credit, $sem_min_credit, $sem_max_credit, $id]);
-            $_SESSION['flash_success'] = "<span data-en='Credit hour updated and sent to Department Head.' data-am='áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ á‰°áˆµá‰°áŠ«áŠ­áˆáˆ áŠ¥áŠ•á‹²áˆáˆ áˆˆá‹²á“áˆ­á‰µáˆ˜áŠ•á‰µ áŠƒáˆ‹áŠ á‰°áˆáŠ³áˆá¢'>Credit hour updated and sent to Department Head.</span>";
+            $_SESSION['flash_success'] = "<span data-en='Credit hour updated and sent to Department Head.' data-am='የክሬዲት ሰዓት ለዲፓርትመንት ኃላፊ በተሳካ ሁኔታ ተልኳል።'>Credit hour updated and sent to Department Head.</span>";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
         } catch (PDOException $e) {
-            $error = "Database Error: " . $e->getMessage();
+            $error = "<span data-en='Database Error: " . $e->getMessage() . "' data-am='የውሂብ ጎታ ስህተት: " . $e->getMessage() . "'>Database Error: " . $e->getMessage() . "</span>";
         }
     }
 }
@@ -129,11 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
     $id = $_POST['course_id'];
     try {
         $pdo->prepare("DELETE FROM courses WHERE id = ?")->execute([$id]);
-        $_SESSION['flash_success'] = "<span data-en='Credit hour record deleted successfully.' data-am='á‹¨áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ áˆ˜á‹áŒˆá‰¥ á‰ á‰µáŠ­áŠ­áˆ áŒ áá‰·áˆá¢'>Credit hour record deleted successfully.</span>";
+        $_SESSION['flash_success'] = "<span data-en='Credit hour record deleted successfully.' data-am='የክሬዲት ሰዓት መዝገብ በተሳካ ሁኔታ ተሰርዟል።'>Credit hour record deleted successfully.</span>";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } catch (PDOException $e) {
-        $error = "Database Error: " . $e->getMessage();
+        $error = "<span data-en='Database Error: " . $e->getMessage() . "' data-am='የውሂብ ጎታ ስህተት: " . $e->getMessage() . "'>Database Error: " . $e->getMessage() . "</span>";
     }
 }
 ?>
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-en="Send Credit Hour - Registrar" data-am="áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ áˆ‹áŠ­ - áˆ¬áŒ…áˆµá‰µáˆ«áˆ­">Send Credit Hour - Registrar</title>
+    <title data-en="Send Credit Hour - Registrar" data-am="የክሬዲት ሰዓት ይላኩ - ሬጅስትራር">Send Credit Hour - Registrar</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
             <?php include '../../includes/sidebar.php'; ?>
             <div class="main-content">
                 <div class="top-bar">
-                    <h2 data-en="Send Credit Hour to Dept Head" data-am="áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ á‹ˆá‹° á‹²á“áˆ­á‰µáˆ˜áŠ•á‰µ áŠƒáˆ‹áŠ á‹­áˆ‹áŠ©">Send Credit Hour
+                    <h2 data-en="Send Credit Hour to Dept Head" data-am="ለዲፓርትመንት ኃላፊ የክሬዲት ሰዓት ይላኩ">Send Credit Hour
                         to Dept Head</h2>
                 </div>
 
@@ -174,9 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                 <div class="card" style="max-width: 800px; margin: 0 auto;">
                     <form method="POST">
                         <div class="form-group">
-                            <label data-en="Department" data-am="á‹²á“áˆ­á‰µáˆ˜áŠ•á‰µ">Department</label>
+                            <label data-en="Department" data-am="ዲፓርትመንት">Department</label>
                             <select name="department_id" id="deptSelect" onchange="loadBatches()" required>
-                                <option value="" data-en="-- Select --" data-am="-- á‹­áˆáˆ¨áŒ¡ --">-- Select --</option>
+                                <option value="" data-en="-- Select --" data-am="-- ይምረጡ --">-- Select --</option>
                                 <?php foreach ($departments as $d):
                                     $d_name_en = $d['name'];
                                     $d_name_am = $academic_translations[$d['name']] ?? $d['name'];
@@ -194,20 +194,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         <div class="form-group three-col"
                             style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                             <div>
-                                <label data-en="Academic Year" data-am="á‹¨á‰µáˆáˆ…áˆ­á‰µ á‹˜áˆ˜áŠ•">Academic Year</label>
+                                <label data-en="Academic Year" data-am="የትምህርት ዘመን">Academic Year</label>
                                 <input type="text" name="academic_year" placeholder="e.g. 2017"
-                                    data-en-placeholder="e.g. 2017" data-am-placeholder="áˆˆáˆáˆ³áˆŒ 2017" required>
+                                    data-en-placeholder="e.g. 2017" data-am-placeholder="የትምህርት ዘመን 2017" required>
                             </div>
                             <div>
-                                <label data-en="Year of Study" data-am="á‹¨áŒ¥áŠ“á‰µ á‹“áˆ˜á‰µ">Year of Study</label>
+                                <label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label>
                                 <select name="batch" id="batchSelect" onchange="onBatchChange()" required disabled
                                     style="opacity:0.5; cursor:not-allowed;">
                                     <option value="" data-en="-- Select Department First --"
-                                        data-am="-- áˆ˜áŒ€áˆ˜áˆªá‹« áŠ­ááˆ á‹­áˆáˆ¨áŒ¡ --">-- Select Department First --</option>
+                                        data-am="-- መጀመሪያ ዲፓርትመንት ይምረጡ --">-- Select Department First --</option>
                                 </select>
                             </div>
                             <div>
-                                <label data-en="Semester" data-am="áˆ´áˆšáˆµá‰°áˆ­">Semester</label>
+                                <label data-en="Semester" data-am="ሴሚስተር">Semester</label>
                                 <select name="semester" id="semesterSelect" required disabled
                                     style="opacity:0.5; cursor:not-allowed;">
                                 </select>
@@ -217,12 +217,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         <div class="form-group"
                             style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;">
                             <div>
-                                <label data-en="Min Credit Hour (Per Course)" data-am="á‹á‰…á‰°áŠ› áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ (á‰ áŠ®áˆ­áˆµ)">Min
+                                <label data-en="Min Credit Hour (Per Course)" data-am="ዝቅተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ኮርስ)">Min
                                     Credit Hour (Per Course)</label>
                                 <input type="number" name="min_credit_hours" min="1" max="20" value="2" required>
                             </div>
                             <div>
-                                <label data-en="Max Credit Hour (Per Course)" data-am="áŠ¨áá‰°áŠ› áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ (á‰ áŠ®áˆ­áˆµ)">Max
+                                <label data-en="Max Credit Hour (Per Course)" data-am="ከፍተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ኮርስ)">Max
                                     Credit Hour (Per Course)</label>
                                 <input type="number" name="max_credit_hours" min="1" max="20" value="5" required>
                             </div>
@@ -231,17 +231,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         <div class="form-group"
                             style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top:15px;">
                             <div>
-                                <label data-en="Semester Min Credits (Total)" data-am="áˆ´áˆšáˆµá‰°áˆ­ á‹á‰…á‰°áŠ› áŠ­áˆ¬á‹²á‰µ (áŒ á‰…áˆ‹áˆ‹)">Semester
+                                <label data-en="Semester Min Credits (Total)" data-am="ሴሚስተር ዝቅተኛ የክሬዲት ሰዓት (ጠቅላላ)">Semester
                                     Min</label>
                                 <input type="number" name="semester_min_credits" min="0" max="50" value="15" required>
                             </div>
                             <div>
-                                <label data-en="Semester Max Credits (Total)" data-am="áˆ´áˆšáˆµá‰°áˆ­ áŠ¨áá‰°áŠ› áŠ­áˆ¬á‹²á‰µ (áŒ á‰…áˆ‹áˆ‹)">Semester
+                                <label data-en="Semester Max Credits (Total)" data-am="ሴሚስተር ከፍተኛ የክሬዲት ሰዓት (ጠቅላላ)">Semester
                                     Max</label>
                                 <input type="number" name="semester_max_credits" min="0" max="60" value="21" required>
                             </div>
                             <div>
-                                <label data-en="Total Billing Credit Hour" data-am="áŒ á‰…áˆ‹áˆ‹ á‹¨áˆšá‰³áˆ°á‰¥ áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ">Billing
+                                <label data-en="Total Billing Credit Hour" data-am="ጠቅላላ ክፍያ የክሬዲት ሰዓት">Billing
                                     Cr.Hr</label>
                                 <input type="number" name="credit_hour" min="1" max="60" value="18" required>
                             </div>
@@ -249,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
 
 
                         <button type="submit" name="send_credit_hour" class="btn-primary" style="width: 25%;"
-                            data-en="Send Credit Hour" data-am="áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ áˆ‹áŠ­">
+                            data-en="Send Credit Hour" data-am="ክሬዲት ሰዓት ይላኩ">
                             <i class="fas fa-paper-plane"></i> Send Credit Hour
                         </button>
                     </form>
@@ -332,10 +332,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                                             </span>
                                         </td>
                                         <td>
-                                            <button onclick='openEditModal(<?php echo htmlspecialchars(json_encode($r), JSON_HEX_APOS | JSON_HEX_QUOT); ?>)' class='btn-secondary' style='padding: 3px 8px; font-size: 11px; margin-bottom:4px;' data-en='Edit' data-am='áŠ áˆµá‰°áŠ«áŠ­áˆ'>Edit</button>
-                                            <form style="display:inline-block;" method="POST" onsubmit="event.preventDefault(); var form = this; Swal.fire({title: 'Are you sure?', text: 'Do you want to delete this record?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, delete it!'}).then((result) => { if (result.isConfirmed) { form.submit(); } });">
+                                            <button onclick='openEditModal(<?php echo htmlspecialchars(json_encode($r), JSON_HEX_APOS | JSON_HEX_QUOT); ?>)' class='btn-secondary' style='padding: 3px 8px; font-size: 11px; margin-bottom:4px;' data-en='Edit' data-am='አስተካክል'>Edit</button>
+                                            <form style="display:inline-block;" method="POST" onsubmit="event.preventDefault(); var form = this; Swal.fire({title:'Are you sure?', data-am='ይህን መዝገብ መሰረዝ ይፈልጋሉ?', text: data-en='Do you want to delete this record?', data-am='ይህን መዝገብ መሰረዝ ይፈልጋሉ?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, delete it!'}).then((result) => { if (result.isConfirmed) { form.submit(); } });">
                                                 <input type="hidden" name="course_id" value="<?php echo $r['id']; ?>">
-                                                <button type="submit" name="delete_credit_hour" class='btn-danger' style='padding: 3px 8px; font-size: 11px;' data-en='Delete' data-am='áŠ áŒ¥á‹'>Delete</button>
+                                                <button type="submit" name="delete_credit_hour" class='btn-danger' style='padding: 3px 8px; font-size: 11px;' data-en='Delete' data-am='ሰርዝ'>Delete</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -344,7 +344,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         </table>
                     <?php else: ?>
                         <p style="text-align:center; padding:20px; color:#999;" data-en="No records yet."
-                            data-am="áŒˆáŠ“ áˆáŠ•áˆ áˆ˜á‹áŒˆá‰¥ á‹¨áˆˆáˆá¢">No records yet.</p>
+                            data-am="እስካሁን ምንም የተመዘገበ የለም።">No records yet.</p>
                     <?php endif; ?>
                 </div>
 
@@ -355,7 +355,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
     <div id="editModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h3 data-en="Edit Credit Hour" data-am="áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ á‹«áˆµá‰°áŠ«áŠ­áˆ‰">Edit Credit Hour</h3>
+                <h3 data-en="Edit Credit Hour" data-am="የክሬዲት ሰዓት ማስተካከያ">Edit Credit Hour</h3>
                 <span class="close" onclick="closeEditModal()">&times;</span>
             </div>
             <div class="modal-body">
@@ -364,51 +364,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                     
                     <div class="form-group three-col" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                         <div>
-                            <label data-en="Department" data-am="á‹²á“áˆ­á‰µáˆ˜áŠ•á‰µ">Department</label>
+                            <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
                             <input type="text" id="edit_dept_name" readonly style="background:#f0f0f0;" disabled>
                         </div>
                         <div>
-                            <label data-en="Year of Study" data-am="á‹¨áŒ¥áŠ“á‰µ á‹“áˆ˜á‰µ">Year of Study</label>
+                            <label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label>
                             <input type="text" id="edit_batch" readonly style="background:#f0f0f0;" disabled>
                         </div>
                         <div>
-                            <label data-en="Semester" data-am="áˆ´áˆšáˆµá‰°áˆ­">Semester</label>
+                            <label data-en="Semester" data-am="ሴሚስተር">Semester</label>
                             <input type="text" id="edit_semester" readonly style="background:#f0f0f0;" disabled>
                         </div>
                     </div>
 
                     <div class="form-group" style="margin-top:15px;">
-                        <label data-en="Academic Year" data-am="á‹¨á‰µáˆáˆ…áˆ­á‰µ á‹˜áˆ˜áŠ•">Academic Year</label>
+                        <label data-en="Academic Year" data-am="የትምህርት ዘመን">Academic Year</label>
                         <input type="text" name="academic_year" id="edit_academic_year" required>
                     </div>
 
                     <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;">
                         <div>
-                            <label data-en="Min Credit Hour (Per Course)" data-am="á‹á‰…á‰°áŠ› áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ (á‰ áŠ®áˆ­áˆµ)">Min Credit Hour (Per Course)</label>
+                            <label data-en="Min Credit Hour (Per Course)" data-am="ዝቅተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ትምህርት)">Min Credit Hour (Per Course)</label>
                             <input type="number" name="min_credit_hours" id="edit_min_credit_hours" min="1" max="20" required>
                         </div>
                         <div>
-                            <label data-en="Max Credit Hour (Per Course)" data-am="áŠ¨áá‰°áŠ› áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ (á‰ áŠ®áˆ­áˆµ)">Max Credit Hour (Per Course)</label>
+                            <label data-en="Max Credit Hour (Per Course)" data-am="ከፍተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ትምህርት)">Max Credit Hour (Per Course)</label>
                             <input type="number" name="max_credit_hours" id="edit_max_credit_hours" min="1" max="20" required>
                         </div>
                     </div>
 
                     <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top:15px;">
                         <div>
-                            <label data-en="Semester Min Credits (Total)" data-am="áˆ´áˆšáˆµá‰°áˆ­ á‹á‰…á‰°áŠ› áŠ­áˆ¬á‹²á‰µ (áŒ á‰…áˆ‹áˆ‹)">Semester Min</label>
+                            <label data-en="Semester Min Credits (Total)" data-am="ዝቅተኛ የሴሚስተር ክሬዲት (ጠቅላላ)">Semester Min</label>
                             <input type="number" name="semester_min_credits" id="edit_sem_min" min="0" max="50" required>
                         </div>
                         <div>
-                            <label data-en="Semester Max Credits (Total)" data-am="áˆ´áˆšáˆµá‰°áˆ­ áŠ¨áá‰°áŠ› áŠ­áˆ¬á‹²á‰µ (áŒ á‰…áˆ‹áˆ‹)">Semester Max</label>
+                            <label data-en="Semester Max Credits (Total)" data-am="ከፍተኛ የሴሚስተር ክሬዲት (ጠቅላላ)">Semester Max</label>
                             <input type="number" name="semester_max_credits" id="edit_sem_max" min="0" max="60" required>
                         </div>
                         <div>
-                            <label data-en="Total Billing Credit Hour" data-am="áŒ á‰…áˆ‹áˆ‹ á‹¨áˆšá‰³áˆ°á‰¥ áŠ­áˆ¬á‹²á‰µ áˆ°á‹“á‰µ">Billing Cr.Hr</label>
+                            <label data-en="Total Billing Credit Hour" data-am="ጠቅላላ የክፍያ ክሬዲት ሰዓት">Billing Cr.Hr</label>
                             <input type="number" name="credit_hour" id="edit_credit_hour" min="1" max="60" required>
                         </div>
                     </div>
 
-                    <button type="submit" name="edit_credit_hour" class="btn-primary" style="width: 100%; margin-top:15px;" data-en="Update and Send to Dept Head" data-am="áŠ áˆµá‰°áŠ«áŠ­áˆˆá‹ á‹ˆá‹° áŠ­ááˆ áŠƒáˆ‹áŠ á‹­áˆ‹áŠ©">
+                    <button type="submit" name="edit_credit_hour" class="btn-primary" style="width: 100%; margin-top:15px;" data-en="Update and Send to Dept Head" data-am="አድስ እና ለትምህርት ክፍሉ ኃላፊ ላክ">
                         <i class="fas fa-save"></i> Update and Send to Dept Head
                     </button>
                 </form>
@@ -457,10 +457,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
 
             const currentLang = localStorage.getItem('dmu_lang') || 'en';
             if (batchSelect) {
-                batchSelect.innerHTML = `<option value="" data-en="All Batches" data-am="áˆáˆ‰áˆ á‰£á‰½">${currentLang === 'am' ? 'áˆáˆ‰áˆ á‰£á‰½' : 'All Batches'}</option>`;
+                batchSelect.innerHTML = `<option value="" data-en="All Batches" data-am="ሁሉንም ዓመታት">${currentLang === 'am' ? 'ሁሉንም ዓመታት' : 'All Batches'}</option>`;
             }
             if (semesterSelect) {
-                semesterSelect.innerHTML = `<option value="" data-en="All Sem" data-am="áˆáˆ‰áˆ áˆ´áˆšáˆµá‰°áˆ­">${currentLang === 'am' ? 'áˆáˆ‰áˆ áˆ´áˆšáˆµá‰°áˆ­' : 'All Sem'}</option>`;
+                semesterSelect.innerHTML = `<option value="" data-en="All Sem" data-am="ሁሉንም ሴሚስተር">${currentLang === 'am' ? 'ሁሉንም ሴሚስተር' : 'All Sem'}</option>`;
             }
 
             let fetchUrl = `../../api/get_dropdown_options.php?action=get_all_batches`;
@@ -484,9 +484,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                             option.value = batch;
                             option.textContent = 'Batch ' + batch;
                             option.setAttribute('data-en', 'Batch ' + batch);
-                            option.setAttribute('data-am', 'á‰£á‰½ ' + batch);
+                            option.setAttribute('data-am', 'ዓመት ' + batch);
                             if (currentLang === 'am') {
-                                option.textContent = 'á‰£á‰½ ' + batch;
+                                option.textContent = 'ዓመት ' + batch;
                             }
                             if (typeof selectedBatch !== 'undefined' && batch == selectedBatch) option.selected = true;
                             // check if form has year attribute instead of selectedBatch
@@ -509,9 +509,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                                 option.value = batch;
                                 option.textContent = result.dept_type === 'freshman' ? "1 (Freshman)" : batch;
                                 option.setAttribute('data-en', result.dept_type === 'freshman' ? "1 (Freshman)" : batch);
-                                option.setAttribute('data-am', result.dept_type === 'freshman' ? "1 (ááˆ¬áˆ½áˆ›áŠ•)" : batch);
+                                option.setAttribute('data-am', result.dept_type === 'freshman' ? "1 (ፍሬሽማን)" : batch);
                                 if (currentLang === 'am' && result.dept_type === 'freshman') {
-                                    option.textContent = '1 (ááˆ¬áˆ½áˆ›áŠ•)';
+                                    option.textContent = '1 (ፍሬሽማን)';
                                 }
                                 yearSelect.appendChild(option);
                             });
@@ -532,7 +532,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
             // clear it only if it's a filter, if it's required (form), maybe don't put 'All Sem'
             const isRequired = semesterSelect.hasAttribute('required');
             if (!isRequired) {
-                semesterSelect.innerHTML = `<option value="" data-en="All Sem" data-am="áˆáˆ‰áˆ áˆ´áˆšáˆµá‰°áˆ­">${currentLang === 'am' ? 'áˆáˆ‰áˆ áˆ´áˆšáˆµá‰°áˆ­' : 'All Sem'}</option>`;
+                semesterSelect.innerHTML = `<option value="" data-en="All Sem" data-am="ሁሉንም ሴሚስተር">${currentLang === 'am' ? 'ሁሉንም ሴሚስተር' : 'All Sem'}</option>`;
             } else {
                 semesterSelect.innerHTML = '';
             }
