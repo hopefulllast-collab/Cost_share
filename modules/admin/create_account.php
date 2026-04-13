@@ -476,26 +476,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                         <!-- Student Specific -->
                         <div id="studentFields" class="hidden form-section">
                             <div class="form-group hidden" id="studentIdGroupOld">
-                                <label data-en="Student ID" data-am="á‰°áˆ›áˆª áˆ˜áˆˆá‹« á‰áŒ¥áˆ­">Student ID</label>
+                                <label data-en="Student ID" data-am="ተማሪ መለያ ቁጥር">Student ID</label>
                                 <div class="student-search-row">
                                     <div class="search-input-wrap">
                                         <input type="text" name="student_id_old" id="studentIdInputOld"
-                                            placeholder="Student ID" data-en="Student ID" data-am="á‰°áˆ›áˆª áˆ˜áˆˆá‹« á‰áŒ¥áˆ­"
-                                            data-en-placeholder="Student ID" data-am-placeholder="á‰°áˆ›áˆª áˆ˜áˆˆá‹« á‰áŒ¥áˆ­">
+                                            placeholder="Student ID" data-en="Student ID" data-am="ተማሪ መለያ ቁጥር"
+                                            data-en-placeholder="Student ID" data-am-placeholder="ተማሪ መለያ ቁጥር">
                                     </div>
                                     <button type="button" class="student-search-btn" id="studentSearchBtnOld"
                                         onclick="searchStudentForAccount()">
                                         <span class="spinner"></span>
                                         <i class="fas fa-search btn-text"></i>
-                                        <span class="btn-text" data-en="Search" data-am="áˆáˆáŒ">Search</span>
+                                        <span class="btn-text" data-en="Search" data-am="ፈልግ">Search</span>
                                     </button>
                                 </div>
                                 <div class="search-feedback" id="studentSearchFeedback"></div>
                             </div>
                             <div class="form-group">
-                                <label data-en="Department" data-am="á‰µáˆáˆ…áˆ­á‰µ áŠ­ááˆ">Department</label>
+                                <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
                                 <select name="department_id" id="deptSelect" onchange="updateSemesters()">
-                                    <option value="" data-en="Select Department" data-am="á‰µáˆáˆ…áˆ­á‰µ áŠ­ááˆ á‹­áˆáˆ¨áŒ¡">Select
+                                    <option value="" data-en="Select Department" data-am="ትምህርት ክፍል ይምረጡ">Select
                                         Department</option>
                                     <?php foreach ($departments as $dept): ?>
                                         <option value="<?php echo $dept['id']; ?>" data-name="<?php echo $dept['name']; ?>">
@@ -507,7 +507,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                             <div class="form-group two-col">
                                 <div>
                                     <label data-en="Academic Year (e.g., 2017)"
-                                        data-am="á‰µáˆáˆ…áˆ­á‰µ á‹˜áˆ˜áŠ• (áˆˆáˆáˆ³áˆŒá¡ 2017)">Academic Year (e.g.,
+                                        data-am="የትምህርት ዘመን (ለምሳሌ 2017)">Academic Year (e.g.,
                                         2017)</label>
                                     <input type="text" name="academic_year" id="academicYearInput" placeholder="2017"
                                         data-en="2017" data-en-placeholder="2017" data-am-placeholder="2017">
@@ -520,14 +520,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label data-en="Semester" data-am="á‹ˆáˆ°áŠ á‰µáˆáˆ…áˆ­á‰µ">Semester</label>
+                                <label data-en="Semester" data-am="ሴሚስተር">Semester</label>
                                 <select name="semester" id="semesterSelect">
-                                    <option value="" data-en="All Sem" data-am="áˆáˆ‰áˆ áˆ´áˆšáˆµá‰°áˆ­">All Sem</option>
+                                    <option value="" data-en="All Sem" data-am="ሁሉንም ሴሚስተር">All Sem</option>
                                 </select>
                             </div>
                         </div>
 
-                        <button data-en="Create Account" data-am="áˆ˜áˆˆá‹« ááŒ áˆ­" type="submit" name="create_user"
+                        <button data-en="Create Account" data-am="መለያ ፍጠር" type="submit" name="create_user"
                             class="btn-primary" style="color:#ffffff; background-color:#000000; margin-top:20px;">Create
                             Account</button>
                     </form>
@@ -535,12 +535,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
 
                 <!-- CSV Upload Block -->
                 <div class="card mt-20 hidden" id="csvUploadSection">
-                    <h3 data-en="Or Create Account by Uploading CSV" data-am="á‹ˆá‹­áˆ CSV á‰ áˆ˜áˆµá‰€áˆ áˆ˜áˆˆá‹« ááŒ áˆ­">Or Create Account
+                    <h3 data-en="Or Create Account by Uploading CSV" data-am="ወይም በCSV ፋይል መለያ ፍጠር">Or Create Account
                         by Uploading CSV</h3>
                     <form method="POST" enctype="multipart/form-data" action="upload_csv.php">
                         <input type="file" name="csv_file" accept=".csv" required>
                         <button type="submit" name="create_account" class="btn-primary" data-en="Create Account"
-                            data-am="áˆ˜áˆˆá‹« á‹­ááŒ áˆ©">Create Account</button>
+                            data-am="መለያ ፍጠር">Create Account</button>
                     </form>
                 </div>
             </div>
@@ -639,7 +639,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                     opt.innerText = i;
                     batchSelect.appendChild(opt);
                 }
-                semSelect.innerHTML = '<option data-en="First Semester" data-am="áˆ˜áŒ€áˆ˜áˆªá‹«á‹ á‹ˆáˆ°áŠ á‰µáˆáˆ…áˆ­á‰µ  " value="1">1</option><option data-en="Second Semester" data-am="áˆáˆˆá‰°áŠ›á‹ á‹ˆáˆ°áŠ á‰µáˆáˆ…áˆ­á‰µ" value="2">2</option>';
+                semSelect.innerHTML = '<option data-en="First Semester" data-am="የመጀመሪያ ሴሚስተር" value="1">1</option><option data-en="Second Semester" data-am="ሁለተኛ ሴሚስተር" value="2">2</option>';
             }
             // Refresh language for new elements
             const currentLang = localStorage.getItem('dmu_lang') || 'en';
