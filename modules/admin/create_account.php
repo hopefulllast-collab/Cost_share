@@ -731,9 +731,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                         feedback.innerHTML = '<i class="fas fa-check-circle"></i> <span data-en="Student found: ' +
                             s.first_name + ' ' + (s.middle_name || '') + ' ' + (s.last_name || '') +
                             ' | Dept: ' + (s.department_name || 'N/A') + ' | Status: ' + statusText + hasAccount + '"' +
-                            ' data-am="á‰°áˆ›áˆª á‰°áŒˆáŠá‰·áˆ: ' +
+                            ' data-am="ተማሪው ተገኝቷል: ' +
                             s.first_name + ' ' + (s.middle_name || '') + ' ' + (s.last_name || '') +
-                            ' | áŠ­ááˆ: ' + (s.department_name || 'á‹¨áˆˆáˆ') + ' | áˆáŠ”á‰³: ' + statusText + hasAccount + '">' +
+                            ' | ትምህርት ክፍል: ' + (s.department_name || 'á‹¨áˆˆáˆ') + ' | ሁኔታ: ' + statusText + hasAccount + '">' +
                             'Student found: ' + s.first_name + ' ' + (s.middle_name || '') + ' ' + (s.last_name || '') +
                             ' | Dept: ' + (s.department_name || 'N/A') + ' | Status: ' + statusText + hasAccount + '</span>';
 
