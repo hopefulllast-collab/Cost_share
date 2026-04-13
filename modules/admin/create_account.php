@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
         // For staff, require password
         $password_raw = $_POST['password'] ?? '';
         if (empty($password_raw)) {
-            $error = "<span data-en='Password is required for staff accounts.' data-am='áˆˆáˆ°áˆ«á‰°áŠ› áˆ˜áˆˆá‹«á‹Žá‰½ á‹¨á‹­áˆˆá á‰ƒáˆ á‹«áˆµáˆáˆáŒ‹áˆá¢'>Password is required for staff accounts.</span>";
+            $error = "<span data-en='Password is required for staff accounts.' data-am='ለስታፍ ሰራተኞች የይለፍ ቃል አስፈላጊ ነው።'>Password is required for staff accounts.</span>";
         }
     }
 
@@ -43,18 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
 
     // Validation
     if (!ctype_alpha($fname) || !ctype_alpha($mname) || !ctype_alpha($lname)) {
-        $error = "<span data-en='Names must contain only characters.' data-am='áˆµáˆžá‰½ áŠá‹°áˆ‹á‰µáŠ• á‰¥á‰» áˆ˜á‹«á‹ áŠ áˆˆá‰£á‰¸á‹á¢'>Names must contain only characters.</span>";
+        $error = "<span data-en='Names must contain only characters.' data-am='ስሞች የግዴታ ፊደላት ብቻ መሆን አለባቸው።'>Names must contain only characters.</span>";
     } else {
         // Validate Phone/Email only for Non-Students
         if (true) {
             // Optional phone validation for students
             if (!empty($phone) || $role != 'student') {
                 if (!preg_match('/^(\+2519|\+2517)[0-9]{8}$/', $phone)) {
-                    $error = "<span data-en='Phone must start with +2519 or +2517 and have 8 digits after.' data-am='áˆµáˆáŠ­ á‰áŒ¥áˆ­ á‰  +2519 á‹ˆá‹­áˆ +2517 áˆ˜áŒ€áˆ˜áˆ­ áŠ¥áŠ“ áŠ¨áŠ‹áˆ‹ 8 áŠ áˆƒá‹žá‰½ áˆŠáŠ–áˆ©á‰µ á‹­áŒˆá‰£áˆá¢'>Phone must start with +2519 or +2517 and have 8 digits after.</span>";
+                    $error = "<span data-en='Phone must start with +2519 or +2517 and have 8 digits after.' data-am='ስልኩ በ +2519 ወይም +2517 መጀመር እና 8 አሃዞች ሊኖሩት ይገባል።'>Phone must start with +2519 or +2517 and have 8 digits after.</span>";
                 }
             }
             if (!$error && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $error = "<span data-en='Invalid email format.' data-am='á‹¨áŠ¢áˆœáˆ á‰…áˆ­áŒ¸á‰µ á‰µáŠ­áŠ­áˆ áŠ á‹­á‹°áˆˆáˆá¢'>Invalid email format.</span>";
+                $error = "<span data-en='Invalid email format.' data-am='ትክክለኛ ያልሆነ ኢሜል።'>Invalid email format.</span>";
             }
         }
 
@@ -72,9 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
             $student_record = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$student_record) {
-                $error = "<span data-en='Student ID " . $student_id . " not found in Registrar records.' data-am='á‹¨á‰°áˆ›áˆª áˆ˜á‰³á‹ˆá‰‚á‹« " . $student_id . " á‰ áˆ¬áŒ…áˆµá‰µáˆ«áˆ­ áˆ˜á‹›áŒá‰¥á‰µ á‹áˆµáŒ¥ áŠ áˆá‰°áŒˆáŠ˜áˆá¢'>Student ID " . $student_id . " not found in Registrar records.</span>";
+                $error = "<span data-en='Student ID " . $student_id . " not found in Registrar records.' data-am='የተማሪ መለያ ቁጥር" . $student_id . " በመመዝገቢያ መዝገቦች ውስጥ አልተገኘም።'>Student ID " . $student_id . " not found in Registrar records.</span>";
             } elseif ($student_record['user_id']) {
-                $error = "<span data-en='Student ID " . $student_id . " already has an account.' data-am='á‹¨á‰°áˆ›áˆª áˆ˜á‰³á‹ˆá‰‚á‹« " . $student_id . " áŠ áˆµá‰€á‹µáˆž áˆ˜áˆˆá‹« áŠ áˆˆá‹á¢'>Student ID " . $student_id . " already has an account.</span>";
+                $error = "<span data-en='Student ID " . $student_id . " already has an account.' data-am='የተማሪ መለያ ቁጥር" . $student_id . "አስቀድሞ መለያ አለው።'>Student ID " . $student_id . " already has an account.</span>";
             }
 
         } elseif (!$error && $role == 'department_head') {
@@ -84,14 +84,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM departments WHERE id = ? AND head_user_id IS NOT NULL");
             $stmt->execute([$dept_id]);
             if ($stmt->fetchColumn() > 0) {
-                $error = "<span data-en='Assigned a department head already, you can not assign.' data-am='áˆˆá‹šáˆ… áŠ­ááˆ á‹¨á‰µáˆáˆ…áˆ­á‰µ áŠ­ááˆ áŠƒáˆ‹áŠ á‰°áˆ˜á‹µá‰§áˆá£ áˆ˜áˆ˜á‹°á‰¥ áŠ á‹­á‰½áˆ‰áˆá¢'>Assigned a department head already, you can not assign.</span>";
+                $error = "<span data-en='Assigned a department head already, you can not assign.' data-am='አስቀድሞ የመምሪያ ኃላፊ ተመድቧል፣ መመደብ አይችሉም።'>Assigned a department head already, you can not assign.</span>";
             }
         } elseif (!$error && in_array($role, ['registrar', 'transcript_pro', 'cost_sharing_pro', 'academic_vp'])) {
             // Check single account limit
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = ?");
             $stmt->execute([$role]);
             if ($stmt->fetchColumn() > 0) {
-                $error = "<span data-en='No, you can not create more than one account in this role' data-am='áŠ á‹­á£ á‰ á‹šáˆ… áˆšáŠ“ áŠ¨áŠ áŠ•á‹µ á‰ áˆ‹á‹­ áˆ˜áˆˆá‹« áˆ˜ááŒ áˆ­ áŠ á‹­á‰½áˆ‰áˆ'>No, you can not create more than one account in this role</span>";
+                $error = "<span data-en='No, you can not create more than one account in this role' data-am='አይ፣ በዚህ ሚና ውስጥ ከአንድ በላይ መለያ መፍጠር አይችሉም።'>No, you can not create more than one account in this role</span>";
             }
         }
     }
@@ -183,18 +183,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                 $body .= "Best Regards,<br>DMU System Administration";
 
                 if (sendSystemEmail($email_insert, $fname . ' ' . $lname, $subject, $body)) {
-                    $email_status_msg = "<br><small style='color:green;' data-en='Login credentials sent to email.' data-am='á‹¨áˆ˜áŒá‰¢á‹« áˆ˜áˆ¨áŒƒ á‹ˆá‹° áŠ¢áˆœáˆ á‰°áˆáŠ³áˆá¢'>Login credentials sent to email.</small>";
+                    $email_status_msg = "<br><small style='color:green;' data-en='Login credentials sent to email.' data-am='የመግቢያ ምስክርነቶች ወደ ኢሜል ተልከዋል።'>Login credentials sent to email.</small>";
                 } else {
-                    $email_status_msg = "<br><small style='color:red;' data-en='Could not send email credentials.' data-am='á‹¨áŠ¢áˆœáˆ áˆ˜áˆ¨áŒƒ áˆ˜áˆ‹áŠ­ áŠ áˆá‰°á‰»áˆˆáˆá¢'>Could not send email credentials.</small>";
+                    $email_status_msg = "<br><small style='color:red;' data-en='Could not send email credentials.' data-am='የኢሜይል ምስክርነቶችን መላክ አልተቻለም።'>Could not send email credentials.</small>";
                 }
             }
 
-            $_SESSION["flash_success"] = "<span data-en='Account created successfully!' data-am='áˆ˜áˆˆá‹«á‹ á‰ á‰°áˆ³áŠ« áˆáŠ”á‰³ á‰°áˆáŒ¥áˆ¯áˆ!'>Account created successfully!</span> Username: $username" . $email_status_msg;
+            $_SESSION["flash_success"] = "<span data-en='Account created successfully!' data-am='መለያ በተሳካ ሁኔታ ተፈጥሯል!'>Account created successfully!</span> Username: $username" . $email_status_msg;
             header("Location: " . $_SERVER["PHP_SELF"]);
             exit();
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error = "<span data-en='Error creating account: ' data-am='áˆ˜áˆˆá‹« áˆ²áˆáŒ áˆ­ áˆµáˆ…á‰°á‰µ: '>Error creating account: </span>" . $e->getMessage();
+            $error = "<span data-en='Error creating account: ' data-am='መለያ መፍጠር ላይ ስህተት: '>Error creating account: </span>" . $e->getMessage();
         }
     }
 }
@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-en="Create Account - Admin" data-am="áˆ˜áˆˆá‹« ááŒ áˆ­ - áŠ áˆµá‰°á‹³á‹³áˆª">Create Account - Admin</title>
+    <title data-en="Create Account - Admin" data-am="መለያ መፍጠር - አድሚን">Create Account - Admin</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -355,13 +355,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                                 <strong style="font-size: 15px;">
                                     <span
                                         data-en="<?php echo count($_SESSION['created_accounts']); ?> account(s) ready for download"
-                                        data-am="<?php echo count($_SESSION['created_accounts']); ?> áˆ˜áˆˆá‹«(á‹Žá‰½) áˆˆáˆ›á‹áˆ¨á‹µ á‹áŒáŒ áŠ“á‰¸á‹">
+                                        data-am="<?php echo count($_SESSION['created_accounts']); ?> መለያ(ዎች) ለመውረድ ዝግጁ ነው።">
                                         <?php echo count($_SESSION['created_accounts']); ?> account(s) ready for download
                                     </span>
                                 </strong>
                                 <p style="margin: 5px 0 0; font-size: 13px; color: #555;">
                                     <span data-en="Download includes username and password for each account."
-                                        data-am="áˆ›á‹áˆ¨á‹± áˆˆáŠ¥á‹«áŠ•á‹³áŠ•á‹± áˆ˜áˆˆá‹« á‹¨á‰°áŒ á‰ƒáˆš áˆµáˆ áŠ¥áŠ“ á‹¨á‹­áˆˆá á‰ƒáˆ á‹«áŠ«á‰µá‰³áˆá¢">
+                                        data-am="ማውረድ ለእያንዳንዱ መለያ የተጠቃሚ ስም እና የይለፍ ቃል ያካትታል።">
                                         Download includes username and password for each account.
                                     </span>
                                 </p>
@@ -369,10 +369,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                             <div style="display: flex; gap: 10px;">
                                 <a href="download_created_accounts_csv.php" class="btn-primary"
                                     style="color:#fff; background-color:#2e7d32; padding: 8px 20px; text-decoration: none; border-radius: 4px; font-size: 14px;"
-                                    data-en="â¬‡ Download CSV" data-am="â¬‡ CSV áŠ á‹áˆ­á‹µ">â¬‡ Download CSV</a>
+                                    data-en="Download CSV" data-am="CSV ያውርዱ።">â¬‡ Download CSV</a>
                                 <a href="download_created_accounts_csv.php?clear=1" class="btn-secondary"
                                     style="color:#fff; background-color:#757575; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 13px;"
-                                    data-en="Clear List" data-am="á‹áˆ­á‹áˆ©áŠ• áŠ áŒ½á‹³"
+                                    data-en="Clear List" data-am="ዝርዝር ያጽዱ።"
                                     onclick="event.preventDefault(); var dest = this.href; Swal.fire({title: 'Are you sure?', text: 'Are you sure you want to clear the list without downloading?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, clear it!'}).then((result) => { if (result.isConfirmed) { window.location.href = dest; } });">Clear
                                     List</a>
                             </div>
@@ -385,19 +385,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                         <!-- CSV Upload Section could go here, but let's stick to manual first as per primary flow -->
 
                         <div class="form-group">
-                            <label data-en="Role" data-am="áˆšáŠ“">Role</label>
+                            <label data-en="Role" data-am="ሚና">Role</label>
                             <select name="role" id="roleSelect" onchange="toggleFields()" required>
-                                <option data-en="Select Role" data-am="áˆšáŠ“ á‹­áˆáˆ¨áŒ¡" value="">Select Role</option>
-                                <option data-en="Student" data-am="á‰°áˆ›áˆª" value="student">Student</option>
-                                <option data-en="Department Head" data-am="á‹¨á‰µáˆáˆ…áˆ­á‰µ áŠ­ááˆ áŠƒáˆ‹áŠ" value="department_head">
+                                <option data-en="Select Role" data-am="ሚና ይምረጡ" value="">Select Role</option>
+                                <option data-en="Student" data-am="ተማሪ" value="student">Student</option>
+                                <option data-en="Department Head" data-am="ትምህርት ክፍል" value="department_head">
                                     Department Head</option>
-                                <option data-en="Registrar Head" data-am="á‹¨áˆ˜áˆ˜á‹áŒˆá‰¢á‹« áŠƒáˆ‹áŠ" value="registrar">Registrar Head
+                                <option data-en="Registrar Head" data-am="ሬጅስትራር ሃላፊ" value="registrar">Registrar Head
                                 </option>
-                                <option data-en="Cost Sharing Professional" data-am="á‹¨á‹ˆáŒª áˆ˜áŒ‹áˆ«á‰µ á‰£áˆˆáˆ™á‹«"
+                                <option data-en="Cost Sharing Professional" data-am="የወጪ መጋራት ባለሙያ"
                                     value="cost_sharing_pro">Cost Sharing Professional</option>
-                                <option data-en="Official Transcript Professional" data-am="á‹¨áŠ¦áŠáˆ´áˆ á‰µáˆ«áŠ•áˆµáŠ­áˆªá•á‰µ á‰£áˆˆáˆ™á‹«"
+                                <option data-en="Official Transcript Professional" data-am="ኦፊሲላዊ ትራንስክሪፕት ባለሙያ"
                                     value="transcript_pro">Official Transcript Professional</option>
-                                <option data-en="Academic Vice President" data-am="á‹¨áŠ áŠ«á‹³áˆšáŠ­ áˆ/á•áˆ¬á‹šá‹³áŠ•á‰µ" value="academic_vp">
+                                <option data-en="Academic Vice President" data-am="አካደሚክ ምክትል ፕሬዚዳንት" value="academic_vp">
                                     Academic Vice President</option>
                             </select>
                         </div>
@@ -405,18 +405,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                         <!-- Moved Student ID Search to top for better workflow -->
                         <div class="form-group hidden form-section" id="studentIdGroup"
                             style="border-top: none; padding-top: 0; margin-top: 5px;">
-                            <label data-en="Student ID" data-am="á‰°áˆ›áˆª áˆ˜áˆˆá‹« á‰áŒ¥áˆ­">Student ID</label>
+                            <label data-en="Student ID" data-am="የተማሪ አይዲ­">Student ID</label>
                             <div class="student-search-row">
                                 <div class="search-input-wrap">
                                     <input type="text" name="student_id" id="studentIdInput" placeholder="Student ID"
-                                        data-en="Student ID" data-am="á‰°áˆ›áˆª áˆ˜áˆˆá‹« á‰áŒ¥áˆ­" data-en-placeholder="Student ID"
-                                        data-am-placeholder="á‰°áˆ›áˆª áˆ˜áˆˆá‹« á‰áŒ¥áˆ­">
+                                        data-en="Student ID" data-am="የተማሪ አይዲ­" data-en-placeholder="Student ID"
+                                        data-am-placeholder="የተማሪ አይዲ­">
                                 </div>
                                 <button type="button" class="student-search-btn" id="studentSearchBtn"
                                     onclick="searchStudentForAccount()">
                                     <span class="spinner"></span>
                                     <i class="fas fa-search btn-text"></i>
-                                    <span class="btn-text" data-en="Search" data-am="áˆáˆáŒ">Search</span>
+                                    <span class="btn-text" data-en="Search" data-am="ፈልግ">Search</span>
                                 </button>
                             </div>
                             <div class="search-feedback" id="studentSearchFeedback"></div>
@@ -425,34 +425,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                         <div class="form-group three-col"
                             style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                             <div>
-                                <label data-en="First Name" data-am="á‹¨áˆ˜áŒ€áˆ˜áˆªá‹« áˆµáˆ">First Name</label>
+                                <label data-en="First Name" data-am="የመጀመሪያ ስም">First Name</label>
                                 <input type="text" name="first_name" id="firstNameInput" required pattern="[A-Za-z]+"
-                                    placeholder="First Name" data-en="First Name" data-am="á‹¨áˆ˜áŒ€áˆ˜áˆªá‹« áˆµáˆ"
-                                    data-en-placeholder="First Name" data-am-placeholder="á‹¨áˆ˜áŒ€áˆ˜áˆªá‹« áˆµáˆ">
+                                    placeholder="First Name" data-en="First Name" data-am="የመጀመሪያ ስም"
+                                    data-en-placeholder="First Name" data-am-placeholder="የመጀመሪያ ስም">
                             </div>
                             <div>
-                                <label data-en="Middle Name" data-am="á‹¨áŠ á‰£á‰µ áˆµáˆ">Middle Name</label>
+                                <label data-en="Middle Name" data-am="የአባት ስም">Middle Name</label>
                                 <input type="text" name="middle_name" id="middleNameInput" required pattern="[A-Za-z]+"
-                                    placeholder="Middle Name" data-en="Middle Name" data-am="á‹¨áŠ á‰£á‰µ áˆµáˆ"
-                                    data-en-placeholder="Middle Name" data-am-placeholder="á‹¨áŠ á‰£á‰µ áˆµáˆ">
+                                    placeholder="Middle Name" data-en="Middle Name" data-am="የአባት ስም"
+                                    data-en-placeholder="Middle Name" data-am-placeholder="የአባት ስም">
                             </div>
                             <div>
-                                <label data-en="Last Name" data-am="á‹¨áŠ á‹«á‰µ áˆµáˆ">Last Name</label>
+                                <label data-en="Last Name" data-am="የአያት ስም">Last Name</label>
                                 <input type="text" name="last_name" id="lastNameInput" required pattern="[A-Za-z]+"
-                                    placeholder="Last Name" data-en="Last Name" data-am="á‹¨áŠ á‹«á‰µ áˆµáˆ"
-                                    data-en-placeholder="Last Name" data-am-placeholder="á‹¨áŠ á‹«á‰µ áˆµáˆ">
+                                    placeholder="Last Name" data-en="Last Name" data-am="የአያት ስም"
+                                    data-en-placeholder="Last Name" data-am-placeholder="የአያት ስም">
                             </div>
                         </div>
 
                         <div class="form-group two-col" id="contactGroup">
                             <div>
                                 <label data-en="Phone (+2519... or +2517...)"
-                                    data-am="áˆµáˆáŠ­ á‰áŒ¥áˆ­ (+2519... á‹ˆá‹­áˆ +2517...)">Phone (+2519... or +2517...)</label>
+                                    data-am="ስልክ­ (+2519... ወይም +2517...)">Phone (+2519... or +2517...)</label>
                                 <input type="text" name="phone" id="phoneInput" placeholder="+251..." data-en="+251..."
                                     data-en-placeholder="+251..." data-am-placeholder="+251...">
                             </div>
                             <div>
-                                <label data-en="Email" data-am="áŠ¢áˆœáˆ">Email</label>
+                                <label data-en="Email" data-am="ኢሜል">Email</label>
                                 <input type="email" name="email" id="emailInput" placeholder="example@email.com"
                                     data-en="example@email.com" data-am="example@email.com"
                                     data-en-placeholder="example@email.com" data-am-placeholder="example@email.com"
@@ -462,12 +462,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
 
                         <!-- Password Field (For Non-Students) -->
                         <div class="form-group" id="passwordGroup">
-                            <label data-en="Password" data-am="á‹¨á‹­áˆˆá á‰ƒáˆ">Password</label>
+                            <label data-en="Password" data-am="ይለፍ ቃል">Password</label>
                             <input type="password" name="password" id="passwordInput" placeholder="Enter password"
-                                data-en="Enter password" data-am="á‹¨á‹­áˆˆá á‰ƒáˆ á‹«áˆµáŒˆá‰¡" data-en-placeholder="Enter password"
-                                data-am-placeholder="á‹¨á‹­áˆˆá á‰ƒáˆ á‹«áˆµáŒˆá‰¡">
+                                data-en="Enter password" data-am="ይለፍ ቃል አስገባ" data-en-placeholder="Enter password"
+                                data-am-placeholder="ይለፍ ቃል አስገባ">
                             <small data-en="CAUTION: Remember For students, the password will be their Student ID."
-                                data-am="áŒ¥áŠ•á‰ƒá‰„ á‹«áˆµá‰³á‹áˆ±á£ áˆˆá‰°áˆ›áˆªá‹Žá‰½á£ á‹¨á‹­áˆˆá á‰ƒáˆ‰ á‹¨á‰°áˆ›áˆª áˆ˜á‰³á‹ˆá‰‚á‹«á‰¸á‹ á‹­áˆ†áŠ“áˆá¢"
+                                data-am="ያስታዉሱ ለተማሪዎች ይለፍ ቃል የተማሪ መለያ ቁጥራቸው ነው።"
                                 style="color: red; font-weight: bold; font-size: 12px; display:block; margin-top:5px;">CAUTION:
                                 Remember
                                 For students, the password will be their Student ID.</small>
@@ -513,7 +513,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                                         data-en="2017" data-en-placeholder="2017" data-am-placeholder="2017">
                                 </div>
                                 <div>
-                                    <label data-en="Year of Study" data-am="á‹¨áŒ¥áŠ“á‰µ á‹“áˆ˜á‰µ">Year of Study</label>
+                                    <label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label>
                                     <select name="batch" id="batchSelect">
                                         <!-- Populated by JS -->
                                     </select>
@@ -661,7 +661,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
 
             if (!studentId) {
                 feedback.className = 'search-feedback error';
-                feedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span data-en="Please enter a Student ID" data-am="áŠ¥á‰£áŠ­á‹Ž á‹¨á‰°áˆ›áˆª áˆ˜á‰³á‹ˆá‰‚á‹« á‹«áˆµáŒˆá‰¡">Please enter a Student ID</span>';
+                feedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span data-en="Please enter a Student ID" data-am="እባክዎ የተማሪ መለያ ያስገቡ">Please enter a Student ID</span>';
                 studentIdInput.focus();
                 if (typeof updateLanguage === 'function') updateLanguage();
                 return;
@@ -726,7 +726,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
 
                         // Show success feedback
                         var statusText = s.status || 'Active';
-                        var hasAccount = s.user_id ? ' (âš  Already has account!)' : '';
+                        var hasAccount = s.user_id ? ' (Already has account!)' : '';
                         feedback.className = 'search-feedback found';
                         feedback.innerHTML = '<i class="fas fa-check-circle"></i> <span data-en="Student found: ' +
                             s.first_name + ' ' + (s.middle_name || '') + ' ' + (s.last_name || '') +
@@ -741,14 +741,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                     } else {
                         // Not found
                         feedback.className = 'search-feedback not-found';
-                        feedback.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span data-en="Student not found in registrar records. Please check the Student ID." data-am="á‰°áˆ›áˆª á‰ áˆ¬áŒ…áˆµá‰µáˆ«áˆ­ áˆ˜á‹›áŒá‰¥á‰µ á‹áˆµáŒ¥ áŠ áˆá‰°áŒˆáŠ˜áˆá¢ áŠ¥á‰£áŠ­á‹Ž á‹¨á‰°áˆ›áˆª áˆ˜á‰³á‹ˆá‰‚á‹«á‹áŠ• á‹«áˆ¨áŒ‹áŒáŒ¡á¢">Student not found in registrar records. Please check the Student ID.</span>';
+                        feedback.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span data-en="Student not found in registrar records. Please check the Student ID." data-am="ተማሪ በመዝጋቢ መዝገቦች ውስጥ አልተገኘም። እባክዎ የተማሪ መታወቂያውን ያረጋግጡ።">Student not found in registrar records. Please check the Student ID.</span>';
                         if (typeof updateLanguage === 'function') updateLanguage();
                     }
                 })
                 .catch(function (err) {
                     searchBtn.classList.remove('loading');
                     feedback.className = 'search-feedback error';
-                    feedback.innerHTML = '<i class="fas fa-times-circle"></i> <span data-en="Error searching. Please try again." data-am="ááˆˆáŒ‹ áˆµáˆ…á‰°á‰µá¢ áŠ¥á‰£áŠ­á‹Ž áŠ¥áŠ•á‹°áŒˆáŠ“ á‹­áˆžáŠ­áˆ©á¢">Error searching. Please try again.</span>';
+                    feedback.innerHTML = '<i class="fas fa-times-circle"></i> <span data-en="Error searching. Please try again." data-am="መፈለግ አልተሳካም። እንደገና ይሞክሩ።">Error searching. Please try again.</span>';
                     if (typeof updateLanguage === 'function') updateLanguage();
                 });
         }
