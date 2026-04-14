@@ -17,6 +17,9 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
 require_once 'config/db_connect.php';
 require_once 'includes/audit_logger.php';
 
+// Session timeout detection
+$session_expired = isset($_GET['session_expired']) && $_GET['session_expired'] == '1';
+
 // Login Logic (retained)
 $error = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
@@ -265,7 +268,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     </footer>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="login-modal" <?php if ($error)
+    <div id="loginModal" class="login-modal" <?php if ($error || $session_expired)
         echo 'style="display:flex;"'; ?>>
         <!-- Animated Background -->
         <div class="login-bg">
@@ -301,6 +304,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                     <span style="color: #000000ff; font-size: 15px;"></span>
                 </div>
             </div>
+
+            <?php if ($session_expired): ?>
+                <div class="login-error" style="background-color: #fff3cd; color: #856404; border-left-color: #ffc107;">
+                    <i class="fas fa-clock"></i>
+                    <span data-en="Your session has expired due to inactivity. Please log in again."
+                          data-am="በእንቅስቃሴ ማነስ ምክንያት ክፍለ-ጊዜዎ አልቋል። እባክዎ እንደገና ይግቡ።">Your session has expired due to inactivity. Please log in again.</span>
+                </div>
+            <?php endif; ?>
 
             <?php if ($error): ?>
                 <div class="login-error">
