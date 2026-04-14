@@ -2,7 +2,7 @@
 require_once __DIR__ . '/session_manager.php';
 
 // Session timeout duration in seconds (4 minutes = 240 seconds)
-define('SESSION_TIMEOUT', 240);
+define('SESSION_TIMEOUT', 60);
 
 function checkAuth($allowed_roles = [])
 {
