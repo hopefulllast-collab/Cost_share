@@ -228,15 +228,18 @@ endif; ?>
         }
     });
 
-    // Automatically highlight active sidebar link based on current URL
     document.addEventListener("DOMContentLoaded", function() {
-        const currentUrl = window.location.href.split('#')[0]; // Ignore URL hashes
+        const currentUrl = window.location.href.split('#')[0].split('?')[0]; // Ignore URL hashes and queries for base match
         const sidebarLinks = document.querySelectorAll('.sidebar .nav-links a:not(.logout-btn)');
         
         sidebarLinks.forEach(link => {
-            const linkUrl = link.href.split('#')[0];
+            const rawHref = link.getAttribute('href');
+            // Skip dropdown toggle links which have href="#"
+            if (!rawHref || rawHref === '#' || rawHref.startsWith('javascript:')) return;
+
+            const linkUrl = link.href.split('#')[0].split('?')[0];
             
-            // Highlight if exact match, or if current page contains the link href (e.g., query params)
+            // Highlight if exact match of base URL
             if (currentUrl === linkUrl) {
                 link.classList.add('active');
                 
@@ -247,8 +250,6 @@ endif; ?>
                     const dropdown = submenu.closest('.sidebar-dropdown');
                     if (dropdown) {
                         dropdown.classList.add('active');
-                        // Make parent dropdown link look active too
-                        dropdown.querySelector('a').classList.add('active');
                     }
                 }
             }
