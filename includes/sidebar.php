@@ -229,7 +229,7 @@ endif; ?>
     });
 
     document.addEventListener("DOMContentLoaded", function() {
-        const currentUrl = window.location.href.split('#')[0].split('?')[0]; // Ignore URL hashes and queries for base match
+        const currentUrlObj = new URL(window.location.href);
         const sidebarLinks = document.querySelectorAll('.sidebar .nav-links a:not(.logout-btn)');
         
         sidebarLinks.forEach(link => {
@@ -237,19 +237,29 @@ endif; ?>
             // Skip dropdown toggle links which have href="#"
             if (!rawHref || rawHref === '#' || rawHref.startsWith('javascript:')) return;
 
-            const linkUrl = link.href.split('#')[0].split('?')[0];
+            const linkUrlObj = new URL(link.href);
             
-            // Highlight if exact match of base URL
-            if (currentUrl === linkUrl) {
-                link.classList.add('active');
+            // Highlight if exactly same path AND current URL contains all query params specified in the link
+            if (currentUrlObj.pathname === linkUrlObj.pathname) {
+                let paramsMatch = true;
+                for (let [key, value] of linkUrlObj.searchParams.entries()) {
+                    if (currentUrlObj.searchParams.get(key) !== value) {
+                        paramsMatch = false;
+                        break;
+                    }
+                }
                 
-                // If it's a dropdown menu item, open its parent menu
-                const submenu = link.closest('.sidebar-submenu');
-                if (submenu) {
-                    submenu.classList.add('show');
-                    const dropdown = submenu.closest('.sidebar-dropdown');
-                    if (dropdown) {
-                        dropdown.classList.add('active');
+                if (paramsMatch) {
+                    link.classList.add('active');
+                    
+                    // If it's a dropdown menu item, open its parent menu
+                    const submenu = link.closest('.sidebar-submenu');
+                    if (submenu) {
+                        submenu.classList.add('show');
+                        const dropdown = submenu.closest('.sidebar-dropdown');
+                        if (dropdown) {
+                            dropdown.classList.add('active');
+                        }
                     }
                 }
             }
