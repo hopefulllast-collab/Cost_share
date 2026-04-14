@@ -27,7 +27,7 @@
         </button>
         <div class="user-profile" onclick="showProfileModal()"
             style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; transition: background 0.3s;">
-            <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i>
+            <img src="../../assets/images/dmulogo.png" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
             <span style="font-weight: 500;">
                 <?php echo $_SESSION['username'] ?? $role; ?>
             </span>
@@ -40,7 +40,7 @@
     <div class="modal-content" style="max-width: 500px;">
         <span class="close-btn" onclick="closeProfileModal()">&times;</span>
         <div style="text-align: center; margin-bottom: 20px;">
-            <i class="fas fa-user-circle" style="font-size: 64px; color: #2c3e50;"></i>
+            <img src="../../assets/images/dmulogo.png" alt="Profile" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
             <h2 id="profileFullName" style="margin: 10px 0 5px 0;">Loading...</h2>
             <p id="profileRole" style="color: #7f8c8d; margin: 0;"></p>
         </div>
