@@ -32,7 +32,19 @@ if ($active_role) {
         session_start();
     }
 } else {
+    // Attempt to detect existing session name from cookies
+    $existing_session = null;
+    foreach ($_COOKIE as $key => $value) {
+        if (strpos($key, 'DMU_') === 0) {
+            $existing_session = $key;
+            break;
+        }
+    }
+    
     if (session_status() === PHP_SESSION_NONE) {
+        if ($existing_session) {
+            session_name($existing_session);
+        }
         session_start();
     }
 }

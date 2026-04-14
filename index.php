@@ -1,5 +1,19 @@
 <?php
 require_once 'includes/session_manager.php';
+
+// Auto-redirect if already logged in (handles browser back button scenarios smoothly)
+if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
+    switch ($_SESSION['role']) {
+        case 'student': header("Location: modules/student/dashboard.php"); exit();
+        case 'registrar': header("Location: modules/registrar/dashboard.php"); exit();
+        case 'department_head': header("Location: modules/department/dashboard.php"); exit();
+        case 'cost_sharing_pro': header("Location: modules/cost_sharing/index.php"); exit();
+        case 'transcript_pro': header("Location: modules/transcript/dashboard.php"); exit();
+        case 'admin': header("Location: modules/admin/dashboard.php"); exit();
+        case 'academic_vp': header("Location: modules/academic_vp/dashboard.php"); exit();
+    }
+}
+
 require_once 'config/db_connect.php';
 require_once 'includes/audit_logger.php';
 
