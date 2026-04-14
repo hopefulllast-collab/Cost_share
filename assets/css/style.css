@@ -429,10 +429,13 @@ body.mobile-layout .sidebar.collapsed .nav-links a i {
     transform: rotate(180deg);
 }
 
-.sidebar-dropdown.active>a {
-    color: #ffffff;
-    /* Active state remains visibly highlighted with gradients */
-    background: linear-gradient(135deg, var(--dash-primary-vivid), #4f46e5);
+.sidebar-dropdown.active>a:not(.active) {
+    color: #000000;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-dropdown.active>a:not(.active) i {
+    color: var(--dash-primary-vivid);
 }
 
 /* =========================================
