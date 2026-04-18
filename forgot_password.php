@@ -24,14 +24,21 @@ session_start();
         .msg-box { padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; }
         .msg-error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
         .msg-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .security-note { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px; text-align: left; }
+        .security-note i { margin-right: 5px; }
     </style>
 </head>
 
 <body>
     <div class="reset-card">
         <h2 data-en="Forgot Password" data-am="የይለፍ ቃል ረሳሁ">Forgot Password</h2>
-        <p data-en="Enter your email address to receive a password reset link." data-am="የይለፍ ቃል መቀየሪያ ሊንክ ለማግኘት የኢሜል አድራሻዎን ያስገቡ።">Enter your email address to receive a password reset link.</p>
+        <p data-en="Enter your username and email address to receive a password reset link." data-am="የይለፍ ቃል መቀየሪያ ሊንክ ለማግኘት የተጠቃሚ ስምዎን እና የኢሜል አድራሻዎን ያስገቡ።">Enter your username and email address to receive a password reset link.</p>
         
+        <div class="security-note">
+            <i class="fas fa-shield-alt"></i>
+            <span data-en="For security, both your username and registered email must match." data-am="ለደህንነት ሲባል የተጠቃሚ ስምዎ እና የተመዘገበ ኢሜልዎ መዛመድ አለባቸው።">For security, both your username and registered email must match.</span>
+        </div>
+
         <?php if (isset($_SESSION['reset_error'])): ?>
             <div class="msg-box msg-error"><?php echo $_SESSION['reset_error']; unset($_SESSION['reset_error']); ?></div>
         <?php endif; ?>
@@ -40,7 +47,8 @@ session_start();
         <?php endif; ?>
 
         <form action="process_forgot_password.php" method="POST" class="reset-form">
-            <input type="email" name="email" required placeholder="example@email.com" data-en-placeholder="example@email.com" data-am-placeholder="ኢሜል ያስገቡ">
+            <input type="text" name="username" required placeholder="Username" data-en-placeholder="Enter Username" data-am-placeholder="የተጠቃሚ ስም ያስገቡ">
+            <input type="email" name="email" required placeholder="example@email.com" data-en-placeholder="Enter Email" data-am-placeholder="ኢሜል ያስገቡ">
             <button type="submit" class="reset-btn" data-en="Send Reset Link" data-am="የመቀየሪያ ሊንክ ላክ">Send Reset Link</button>
         </form>
         <a href="index.php" class="back-link" data-en="Back to Login" data-am="ወደ መግቢያ ተመለስ">Back to Login</a>

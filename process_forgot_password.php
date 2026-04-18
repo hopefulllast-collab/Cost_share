@@ -10,12 +10,13 @@ require_once 'includes/PHPMailer/src/SMTP.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email']) && isset($_POST['username'])) {
     $email = trim($_POST['email']);
+    $username = trim($_POST['username']);
 
-    // Check if user exists with this email
-    $stmt = $pdo->prepare("SELECT id, first_name FROM users WHERE email = ?");
-    $stmt->execute([$email]);
+    // Check if user exists with BOTH username AND email matching
+    $stmt = $pdo->prepare("SELECT id, first_name FROM users WHERE username = ? AND email = ?");
+    $stmt->execute([$username, $email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
@@ -29,11 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
         if ($stmt_token->execute([$user_id, $token, $expires_at])) {
             
             // Construct Reset Link
-            // Note: Since this is local, we'll construct a generic localhost link, 
-            // In production, use your actual domain.
             $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
             $host = $_SERVER['HTTP_HOST'];
-            // Assuming Cost_share is the root folder name.
             $reset_link = $protocol . "://" . $host . "/Cost_share/reset_password.php?token=" . $token;
 
             require_once 'includes/mailer.php';
@@ -59,8 +57,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
             $_SESSION['reset_error'] = "<span data-en='Failed to generate token. Please try again.' data-am='ቶከን ማመንጨት አልተሳካም። እባክዎ እንደገና ይሞክሩ።'>Failed to generate token. Please try again.</span>";
         }
     } else {
-        // Obfuscate whether the email exists or not to prevent user enumeration
-        $_SESSION['reset_success'] = "<span data-en='If your email is in our system, you will receive a reset link.' data-am='ኢሜልዎ በስርዓታችን ውስጥ ካለ የይለፍ ቃል መቀየሪያ ሊንክ ይደርስዎታል።'>If your email is in our system, you will receive a reset link.</span>";
+        // Security: Don't reveal whether username or email was wrong
+        $_SESSION['reset_error'] = "<span data-en='The username and email you entered do not match any account in our system.' data-am='ያስገቡት የተጠቃሚ ስም እና ኢሜል ከስርዓታችን ውስጥ ካሉ መረጃዎች ጋር አይዛመዱም።'>The username and email you entered do not match any account in our system.</span>";
     }
 
     header("Location: forgot_password.php");
