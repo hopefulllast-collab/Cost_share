@@ -4,13 +4,27 @@ require_once 'includes/session_manager.php';
 // Auto-redirect if already logged in (handles browser back button scenarios smoothly)
 if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     switch ($_SESSION['role']) {
-        case 'student': header("Location: modules/student/dashboard.php"); exit();
-        case 'registrar': header("Location: modules/registrar/dashboard.php"); exit();
-        case 'department_head': header("Location: modules/department/dashboard.php"); exit();
-        case 'cost_sharing_pro': header("Location: modules/cost_sharing/index.php"); exit();
-        case 'transcript_pro': header("Location: modules/transcript/dashboard.php"); exit();
-        case 'admin': header("Location: modules/admin/dashboard.php"); exit();
-        case 'academic_vp': header("Location: modules/academic_vp/dashboard.php"); exit();
+        case 'student':
+            header("Location: modules/student/dashboard.php");
+            exit();
+        case 'registrar':
+            header("Location: modules/registrar/dashboard.php");
+            exit();
+        case 'department_head':
+            header("Location: modules/department/dashboard.php");
+            exit();
+        case 'cost_sharing_pro':
+            header("Location: modules/cost_sharing/index.php");
+            exit();
+        case 'transcript_pro':
+            header("Location: modules/transcript/dashboard.php");
+            exit();
+        case 'admin':
+            header("Location: modules/admin/dashboard.php");
+            exit();
+        case 'academic_vp':
+            header("Location: modules/academic_vp/dashboard.php");
+            exit();
     }
 }
 
@@ -27,12 +41,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     $password = trim($_POST['password']);
     $client_ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-    // --- Brute Force Protection: Check failed login attempts from this IP in last 24 hours ---
+    // --- Brute Force Protection: Check failed login attempts per USERNAME in last 24 hours ---
+    // (Per-username, not per-IP, so one user's failures don't lock out others on the same network)
     $max_attempts = 3;
     $lockout_hours = 24;
     try {
-        $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM audit_logs WHERE ip_address = ? AND action = 'LOGIN_FAILED' AND created_at > DATE_SUB(NOW(), INTERVAL ? HOUR)");
-        $stmt_check->execute([$client_ip, $lockout_hours]);
+        $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM audit_logs WHERE username = ? AND action = 'LOGIN_FAILED' AND created_at > DATE_SUB(NOW(), INTERVAL ? HOUR)");
+        $stmt_check->execute([$username, $lockout_hours]);
         $failed_count = (int) $stmt_check->fetchColumn();
     } catch (Exception $e) {
         $failed_count = 0;
@@ -50,16 +65,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
             if ($user['status'] !== 'active') {
                 $error = "Account is " . $user['status'];
             } else {
-                // Clear failed attempts for this IP on successful login
+                // Clear failed attempts for this username on successful login
                 try {
-                    $pdo->prepare("DELETE FROM audit_logs WHERE ip_address = ? AND action = 'LOGIN_FAILED' AND created_at > DATE_SUB(NOW(), INTERVAL ? HOUR)")->execute([$client_ip, $lockout_hours]);
-                } catch (Exception $e) { /* silent */ }
+                    $pdo->prepare("DELETE FROM audit_logs WHERE username = ? AND action = 'LOGIN_FAILED' AND created_at > DATE_SUB(NOW(), INTERVAL ? HOUR)")->execute([$username, $lockout_hours]);
+                } catch (Exception $e) { /* silent */
+                }
 
                 session_write_close();
                 session_name("DMU_" . strtoupper($user['role']));
                 session_id(session_create_id());
                 session_start();
-                
+
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
@@ -123,7 +139,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
         - Cost Sharing</title>
     <link rel="stylesheet" href="assets/css/index.css?v=11">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body class="landing-page">
@@ -269,7 +287,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 <h3 data-en="Developers" data-am="ገንቢዎች">Developers</h3>
                 <p data-en="Designed and Developed by 2026 Graduaters" data-am="የተዘጋጀው እና የተሰራው በ 2026 ተመራቂ ተማሪዎች ነው።">
                     Designed and Developed by <strong>2026 Graduaters</strong></p>
-                    <p style="color: #fff; font-weight:bold; font-family:tahoma;" data-en="For more information, contact us at:" data-am="ለተጨማሪ መረጃ፣ እኛን ያነጋግሩን:">For more information, contact us at: </p>
+                <p style="color: #fff; font-weight:bold; font-family:tahoma;"
+                    data-en="For more information, contact us at:" data-am="ለተጨማሪ መረጃ፣ እኛን ያነጋግሩን:">For more
+                    information, contact us at: </p>
                 <div class="social-links">
                     <a href="https://web.facebook.com/dmu.edu?_rdc=1&_rdr" target="_blank"><i
                             class="fab fa-facebook"></i></a>
@@ -281,8 +301,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                             class="fab fa-youtube"></i></a>
                     <a href="https://www.instagram.com/dmu_ethiopia" target="_blank"><i
                             class="fab fa-instagram"></i></a>
-                    <a href="https://www.dmu.edu.et/" target="_blank"><i
-                            class="fas fa-globe"></i></a>
+                    <a href="https://www.dmu.edu.et/" target="_blank"><i class="fas fa-globe"></i></a>
                 </div>
                 <!-- Login removed from footer as requested, moved to navbar -->
             </div>
@@ -323,7 +342,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                     <img src="assets/images/dmulogo.png" style="border-radius: 50%;" alt="DMU Logo" class="login-logo">
                 </div>
                 <h1 class="login-title" data-en="Sign In" data-am="ግባ">Sign In</h1>
-                <p class="login-subtitle" data-en="DMU Cost Sharing Portal" data-am="የ DMU ወጪ መጋራት ፖርታል" style="color: #000000ff;">DMU Cost
+                <p class="login-subtitle" data-en="DMU Cost Sharing Portal" data-am="የ DMU ወጪ መጋራት ፖርታል"
+                    style="color: #000000ff;">DMU Cost
                     Sharing Portal</p>
                 <div class="login-divider" style="color: #000000ff;">
                     <span style="color: #000000ff;"></span>
@@ -336,7 +356,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 <div class="login-error" style="background-color: #fff3cd; color: #856404; border-left-color: #ffc107;">
                     <i class="fas fa-clock"></i>
                     <span data-en="Your session has expired due to inactivity. Please log in again."
-                          data-am="በእንቅስቃሴ ማነስ ምክንያት ክፍለ-ጊዜዎ አልቋል። እባክዎ እንደገና ይግቡ።">Your session has expired due to inactivity. Please log in again.</span>
+                        data-am="በእንቅስቃሴ ማነስ ምክንያት ክፍለ-ጊዜዎ አልቋል። እባክዎ እንደገና ይግቡ።">Your session has expired due to
+                        inactivity. Please log in again.</span>
                 </div>
             <?php endif; ?>
 
@@ -346,11 +367,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                     <span><?php echo $error; ?></span>
                 </div>
             <?php endif; ?>
-            
+
             <?php if (isset($_SESSION['forgot_pw_success'])): ?>
                 <div class="login-error" style="background-color: #e8f5e9; color: #2e7d32; border-left-color: #2e7d32;">
                     <i class="fas fa-check-circle"></i>
-                    <span><?php echo $_SESSION['forgot_pw_success']; unset($_SESSION['forgot_pw_success']); ?></span>
+                    <span><?php echo $_SESSION['forgot_pw_success'];
+                    unset($_SESSION['forgot_pw_success']); ?></span>
                 </div>
             <?php endif; ?>
 
@@ -376,7 +398,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                         </button>
                     </div>
                     <div style="text-align: right; margin-top: 8px;">
-                        <a href="forgot_password.php" style="color: #2e7d32; font-weight: 700; text-decoration: none; font-size: 15px; transition: color 0.3s;" onmouseover="this.style.color='#16ac20ff'" onmouseout="this.style.color='#2e7d32'" data-en="Forgot Password?" data-am="የይለፍ ቃል ረሱ?">Forgot Password?</a>
+                        <a href="forgot_password.php"
+                            style="color: #2e7d32; font-weight: 700; text-decoration: none; font-size: 15px; transition: color 0.3s;"
+                            onmouseover="this.style.color='#16ac20ff'" onmouseout="this.style.color='#2e7d32'"
+                            data-en="Forgot Password?" data-am="የይለፍ ቃል ረሱ?">Forgot Password?</a>
                     </div>
                 </div>
 
@@ -389,7 +414,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
             <!-- Footer -->
             <div class="login-card-footer">
-                <p style="color: black; weight: bold;" data-en="Debre Markos University © 2026" data-am="ደብረ ማርቆስ ዩኒቨርሲቲ © 2026">
+                <p style="color: black; weight: bold;" data-en="Debre Markos University © 2026"
+                    data-am="ደብረ ማርቆስ ዩኒቨርሲቲ © 2026">
                     <i class="fas fa-university"></i> Debre Markos University © 2026
                 </p>
             </div>
