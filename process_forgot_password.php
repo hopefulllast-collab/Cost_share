@@ -21,6 +21,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email']) && isset($_PO
 
     if ($user) {
         $user_id = $user['id'];
+
+        // --- Rate Limiting: Max 2 reset requests per 24 hours, with 12-hour gap ---
+        $max_resets_per_day = 2;
+        $min_gap_hours = 12;
+
+        // Count resets in last 24 hours
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM password_resets WHERE user_id = ? AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)");
+        $stmt_count->execute([$user_id]);
+        $reset_count = (int) $stmt_count->fetchColumn();
+
+        // Check last reset time for 12-hour gap
+        $stmt_last = $pdo->prepare("SELECT created_at FROM password_resets WHERE user_id = ? ORDER BY created_at DESC LIMIT 1");
+        $stmt_last->execute([$user_id]);
+        $last_reset = $stmt_last->fetch(PDO::FETCH_ASSOC);
+
+        if ($reset_count >= $max_resets_per_day) {
+            $_SESSION['reset_error'] = "<span data-en='You have reached the maximum of 2 password reset requests in 24 hours. Please try again later.' data-am='በ24 ሰዓት ውስጥ ከ2 ጊዜ በላይ የይለፍ ቃል መቀየሪያ ጥያቄ አቅርበዋል። እባክዎ ቆይተው እንደገና ይሞክሩ።'>You have reached the maximum of 2 password reset requests in 24 hours. Please try again later.</span>";
+            header("Location: forgot_password.php");
+            exit();
+        }
+
+        if ($last_reset) {
+            $last_time = new DateTime($last_reset['created_at']);
+            $now = new DateTime();
+            $diff_hours = ($now->getTimestamp() - $last_time->getTimestamp()) / 3600;
+            if ($diff_hours < $min_gap_hours) {
+                $wait_hours = ceil($min_gap_hours - $diff_hours);
+                $_SESSION['reset_error'] = "<span data-en='Please wait at least 12 hours between password reset requests. Try again in about {$wait_hours} hour(s).' data-am='በየ12 ሰዓት ልዩነት ብቻ የይለፍ ቃል መቀየሪያ መጠየቅ ይቻላል። ከ{$wait_hours} ሰዓት(ዎች) በኋላ እንደገና ይሞክሩ።'>Please wait at least 12 hours between password reset requests. Try again in about {$wait_hours} hour(s).</span>";
+                header("Location: forgot_password.php");
+                exit();
+            }
+        }
+
         // Generate Token
         $token = bin2hex(random_bytes(32));
         $expires_at = date("Y-m-d H:i:s", strtotime('+10 minutes'));
@@ -28,14 +61,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email']) && isset($_PO
         // Save token to database
         $stmt_token = $pdo->prepare("INSERT INTO password_resets (user_id, reset_token, expires_at) VALUES (?, ?, ?)");
         if ($stmt_token->execute([$user_id, $token, $expires_at])) {
-            
+
             // Construct Reset Link
             $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
             $host = $_SERVER['HTTP_HOST'];
             $reset_link = $protocol . "://" . $host . "/Cost_share/reset_password.php?token=" . $token;
 
             require_once 'includes/mailer.php';
-            
+
             $subject = 'Password Reset Request | የይለፍ ቃል መቀየሪያ ጥያቄ - DMU';
             $firstName = htmlspecialchars($user['first_name']);
             $htmlBody = "

@@ -52,6 +52,18 @@ try {
     $options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))";
     
     $pdo = new PDO($dsn, $username, $password, $options);
+
+    // Auto-create password_resets table if it doesn't exist
+    $pdo->exec("CREATE TABLE IF NOT EXISTS password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        reset_token VARCHAR(255) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_user_id (user_id),
+        KEY idx_token (reset_token)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
 } catch(PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }

@@ -25,64 +25,90 @@ $error = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
+    $client_ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-    // Check in users table
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
-    $stmt->execute([':username' => $username]);
-    $user = $stmt->fetch();
+    // --- Brute Force Protection: Check failed login attempts from this IP in last 24 hours ---
+    $max_attempts = 3;
+    $lockout_hours = 24;
+    try {
+        $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM audit_logs WHERE ip_address = ? AND action = 'LOGIN_FAILED' AND created_at > DATE_SUB(NOW(), INTERVAL ? HOUR)");
+        $stmt_check->execute([$client_ip, $lockout_hours]);
+        $failed_count = (int) $stmt_check->fetchColumn();
+    } catch (Exception $e) {
+        $failed_count = 0;
+    }
 
-    if ($user && password_verify($password, $user['password'])) {
-        if ($user['status'] !== 'active') {
-            $error = "Account is " . $user['status'];
-        } else {
-            session_write_close();
-            session_name("DMU_" . strtoupper($user['role']));
-            session_id(session_create_id());
-            session_start();
-            
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['role'] = $user['role'];
-            $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
-            $_SESSION['username'] = $user['username'];
-
-            logAudit($pdo, 'LOGIN_SUCCESS', 'User logged in as ' . $user['role']);
-
-            // Redirect based on role
-            switch ($user['role']) {
-                case 'student':
-                    header("Location: modules/student/dashboard.php");
-                    break;
-                case 'registrar':
-                    header("Location: modules/registrar/dashboard.php");
-                    break;
-                case 'department_head':
-                    header("Location: modules/department/dashboard.php");
-                    break;
-                case 'cost_sharing_pro':
-                    header("Location: modules/cost_sharing/index.php");
-                    break;
-                case 'transcript_pro':
-                    header("Location: modules/transcript/dashboard.php");
-                    break;
-                case 'admin':
-                    header("Location: modules/admin/dashboard.php");
-                    break;
-                case 'academic_vp':
-                    header("Location: modules/academic_vp/dashboard.php");
-                    break;
-                default:
-                    $error = "Unknown role.";
-            }
-            exit();
-        }
+    if ($failed_count >= $max_attempts) {
+        $error = "<span data-en='Too many failed login attempts. Your access has been temporarily locked for 24 hours. Please try again later.' data-am='በጣም ብዙ ያልተሳኩ የመግቢያ ሙከራዎች። ለ24 ሰዓት ጊዜያዊ እገዳ ተደርጓል። እባክዎ ቆይተው እንደገና ይሞክሩ።'>Too many failed login attempts. Your access has been temporarily locked for 24 hours. Please try again later.</span>";
     } else {
-        $error = "Invalid username or password.";
-        // Log failed login - no session yet, so insert directly
-        try {
-            $stmt_log = $pdo->prepare("INSERT INTO audit_logs (user_id, username, role, action, description, ip_address) VALUES (NULL, ?, 'unknown', 'LOGIN_FAILED', ?, ?)");
-            $stmt_log->execute([$username, 'Failed login attempt for username: ' . $username, $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0']);
-        } catch (Exception $e) { /* silent */
-        }
+        // Check in users table
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute([':username' => $username]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password'])) {
+            if ($user['status'] !== 'active') {
+                $error = "Account is " . $user['status'];
+            } else {
+                // Clear failed attempts for this IP on successful login
+                try {
+                    $pdo->prepare("DELETE FROM audit_logs WHERE ip_address = ? AND action = 'LOGIN_FAILED' AND created_at > DATE_SUB(NOW(), INTERVAL ? HOUR)")->execute([$client_ip, $lockout_hours]);
+                } catch (Exception $e) { /* silent */ }
+
+                session_write_close();
+                session_name("DMU_" . strtoupper($user['role']));
+                session_id(session_create_id());
+                session_start();
+                
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
+                $_SESSION['username'] = $user['username'];
+
+                logAudit($pdo, 'LOGIN_SUCCESS', 'User logged in as ' . $user['role']);
+
+                // Redirect based on role
+                switch ($user['role']) {
+                    case 'student':
+                        header("Location: modules/student/dashboard.php");
+                        break;
+                    case 'registrar':
+                        header("Location: modules/registrar/dashboard.php");
+                        break;
+                    case 'department_head':
+                        header("Location: modules/department/dashboard.php");
+                        break;
+                    case 'cost_sharing_pro':
+                        header("Location: modules/cost_sharing/index.php");
+                        break;
+                    case 'transcript_pro':
+                        header("Location: modules/transcript/dashboard.php");
+                        break;
+                    case 'admin':
+                        header("Location: modules/admin/dashboard.php");
+                        break;
+                    case 'academic_vp':
+                        header("Location: modules/academic_vp/dashboard.php");
+                        break;
+                    default:
+                        $error = "Unknown role.";
+                }
+                exit();
+            }
+        } else {
+            // Show remaining attempts warning
+            $remaining = $max_attempts - $failed_count - 1;
+            if ($remaining > 0) {
+                $error = "<span data-en='Invalid username or password. You have {$remaining} attempt(s) remaining before your access is locked for 24 hours.' data-am='የተጠቃሚ ስም ወይም የይለፍ ቃል ስህተት ነው። ለ24 ሰዓት ከመቆለፉ በፊት {$remaining} ሙከራ(ዎች) ይቀርዎታል።'>Invalid username or password. You have {$remaining} attempt(s) remaining before your access is locked for 24 hours.</span>";
+            } else {
+                $error = "<span data-en='Invalid username or password. Your access has been locked for 24 hours due to too many failed attempts.' data-am='የተጠቃሚ ስም ወይም የይለፍ ቃል ስህተት ነው። በብዙ ያልተሳኩ ሙከራዎች ምክንያት ለ24 ሰዓት ተቆልፏል።'>Invalid username or password. Your access has been locked for 24 hours due to too many failed attempts.</span>";
+            }
+            // Log failed login
+            try {
+                $stmt_log = $pdo->prepare("INSERT INTO audit_logs (user_id, username, role, action, description, ip_address) VALUES (NULL, ?, 'unknown', 'LOGIN_FAILED', ?, ?)");
+                $stmt_log->execute([$username, 'Failed login attempt for username: ' . $username, $client_ip]);
+            } catch (Exception $e) { /* silent */
+            }
     }
 }
 ?>
