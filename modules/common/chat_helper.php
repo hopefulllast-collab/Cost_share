@@ -3,6 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     require_once '../../includes/session_manager.php';
 }
 require_once __DIR__ . '/../../config/db_connect.php';
+require_once __DIR__ . '/../../includes/encryption.php';
 
 /**
  * Get users available for chat based on the current user's role.
@@ -60,7 +61,15 @@ function getMessages($pdo, $user1_id, $user2_id)
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$user1_id, $user2_id, $user2_id, $user1_id]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Decrypt messages before returning
+    foreach ($messages as &$msg) {
+        $msg['message'] = decryptData($msg['message']);
+    }
+    unset($msg);
+
+    return $messages;
 }
 
 /**
@@ -75,7 +84,7 @@ function sendMessage($pdo, $sender_id, $receiver_id, $message)
 
     $sql = "INSERT INTO messages (sender_id, receiver_id, message) VALUES (?, ?, ?)";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([$sender_id, $receiver_id, trim($message)]);
+    return $stmt->execute([$sender_id, $receiver_id, encryptData(trim($message))]);
 }
 
 /**
@@ -128,7 +137,7 @@ function editMessage($pdo, $message_id, $user_id, $new_content)
 
     $sql = "UPDATE messages SET message = ? WHERE id = ? AND sender_id = ?";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([trim($new_content), $message_id, $user_id]);
+    return $stmt->execute([encryptData(trim($new_content)), $message_id, $user_id]);
 }
 /**
  * Delete old messages (older than 1 week).

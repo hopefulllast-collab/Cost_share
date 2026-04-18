@@ -1,6 +1,7 @@
 <?php
 require_once '../../includes/auth_check.php';
 require_once '../../config/db_connect.php';
+require_once '../../includes/encryption.php';
 // Allow Admin and Registrar to view feedback
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'registrar'])) {
     die("Access Denied");
@@ -61,7 +62,7 @@ $feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, u.username FROM
                                         <?php echo htmlspecialchars($f['subject']); ?>
                                     </td>
                                     <td>
-                                        <?php echo nl2br(htmlspecialchars(substr($f['message'], 0, 100))) . '...'; ?>
+                                        <?php $decrypted_msg = decryptData($f['message']); echo nl2br(htmlspecialchars(substr($decrypted_msg, 0, 100))) . (strlen($decrypted_msg) > 100 ? '...' : ''); ?>
                                     </td>
                                     <td>
                                         <?php

@@ -1,6 +1,7 @@
 <?php
 require_once '../../includes/auth_check.php';
 require_once '../../config/db_connect.php';
+require_once '../../includes/encryption.php';
 checkAuth(['cost_sharing_pro']);
 
 // PRG: Read flash messages from session
@@ -106,7 +107,7 @@ $feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as
                                     </span>
                                 </div>
                                 <p>
-                                    <?php echo nl2br(htmlspecialchars($fb['message'])); ?>
+                                    <?php echo nl2br(htmlspecialchars(decryptData($fb['message']))); ?>
                                 </p>
 
 

@@ -1,6 +1,7 @@
 <?php
 require_once '../../includes/auth_check.php';
 require_once '../../config/db_connect.php';
+require_once '../../includes/encryption.php';
 checkAuth(['student']);
 
 // PRG: Read flash messages from session
@@ -50,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_feedback'])) {
             $error = "<span data-en='You already have a pending feedback on \"" . htmlspecialchars($subject) . "\". Please wait until it is resolved before submitting another.' data-am='በ\"" . htmlspecialchars($subject) . "\" ላይ ገና ያልተፈታ አስተያየት አለዎት። እባክዎ ሌላ ከመላክዎ በፊት እስኪፈታ ይጠብቁ።'>You already have a pending feedback on \"" . htmlspecialchars($subject) . "\". Please wait until it is resolved before submitting another.</span>";
         } else {
             $stmt = $pdo->prepare("INSERT INTO feedback (student_id, subject, message) VALUES (:uid, :sub, :msg)");
-            $stmt->execute([':uid' => $_SESSION['user_id'], ':sub' => $subject, ':msg' => $message]);
+            $stmt->execute([':uid' => $_SESSION['user_id'], ':sub' => $subject, ':msg' => encryptData($message)]);
             $_SESSION['flash_success'] = "<span data-en='Feedback sent successfully.' data-am='አስተያየትዎ በተሳካ ሁኔታ ተልኳል።'>Feedback sent successfully.</span>";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
@@ -248,7 +249,7 @@ $banned_keywords_json = json_encode($banned_keywords);
                                         <i class="fas fa-clock"></i> <?php echo $fb['created_at']; ?>
                                     </span>
                                 </div>
-                                <p class="feedback-message"><?php echo nl2br(htmlspecialchars($fb['message'])); ?></p>
+                                <p class="feedback-message"><?php echo nl2br(htmlspecialchars(decryptData($fb['message']))); ?></p>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
