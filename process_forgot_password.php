@@ -36,13 +36,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email']) && isset($_PO
 
             require_once 'includes/mailer.php';
             
-            $subject = 'Password Reset Request';
-            $htmlBody = "Hi " . htmlspecialchars($user['first_name']) . ",<br><br>
-                              You recently requested to reset your password for your DMU Cost Sharing account. 
-                              Click the link below to reset it. This link is valid for 10 minutes.<br><br>
-                              <a href='" . $reset_link . "'>Reset Password</a><br><br>
-                              If you did not request a password reset, please ignore this email.<br><br>
-                              Thanks,<br>DMU System Admin";
+            $subject = 'Password Reset Request | የይለፍ ቃል መቀየሪያ ጥያቄ - DMU';
+            $firstName = htmlspecialchars($user['first_name']);
+            $htmlBody = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                    <!-- Header -->
+                    <div style='background: linear-gradient(135deg, #2e7d32, #1b5e20); padding: 20px; text-align: center;'>
+                        <h2 style='color: #ffffff; margin: 0; font-size: 20px;'>DMU Cost Sharing System</h2>
+                        <p style='color: #c8e6c9; margin: 5px 0 0; font-size: 13px;'>ደብረ ማርቆስ ዩኒቨርሲቲ - የወጪ መጋራት ስርዓት</p>
+                    </div>
+
+                    <!-- Body -->
+                    <div style='padding: 30px;'>
+                        <!-- English -->
+                        <p style='color: #333; font-size: 15px;'>Hi <strong>{$firstName}</strong>,</p>
+                        <p style='color: #555; font-size: 14px; line-height: 1.6;'>
+                            You recently requested to reset your password for your DMU Cost Sharing account. 
+                            Click the button below to reset it. <strong>This link is valid for 10 minutes.</strong>
+                        </p>
+
+                        <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;'>
+
+                        <!-- Amharic -->
+                        <p style='color: #333; font-size: 15px;'>ሰላም <strong>{$firstName}</strong>፣</p>
+                        <p style='color: #555; font-size: 14px; line-height: 1.6;'>
+                            ለ DMU የወጪ መጋራት አካውንትዎ የይለፍ ቃልዎን እንዲቀይሩ ጥያቄ አቅርበዋል። 
+                            ከታች ያለውን ቁልፍ ጠቅ በማድረግ ይቀይሩ። <strong>ይህ ሊንክ ለ10 ደቂቃ ብቻ ይሰራል።</strong>
+                        </p>
+
+                        <!-- Reset Button -->
+                        <div style='text-align: center; margin: 25px 0;'>
+                            <a href='{$reset_link}' style='background: #2e7d32; color: #ffffff; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;'>
+                                Reset Password | የይለፍ ቃል ቀይር
+                            </a>
+                        </div>
+
+                        <p style='color: #888; font-size: 13px; line-height: 1.5;'>
+                            If you did not request this, please ignore this email.<br>
+                            ይህን ካልጠየቁ፣ እባክዎ ይህን ኢሜል ችላ ይበሉ።
+                        </p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style='background: #f5f5f5; padding: 15px; text-align: center; border-top: 1px solid #e0e0e0;'>
+                        <p style='color: #999; font-size: 12px; margin: 0;'>
+                            &copy; 2026 Debre Markos University | ደብረ ማርቆስ ዩኒቨርሲቲ
+                        </p>
+                    </div>
+                </div>";
 
             $mail_sent = sendSystemEmail($email, $user['first_name'], $subject, $htmlBody);
 
