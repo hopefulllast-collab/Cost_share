@@ -109,6 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 $stmt_log->execute([$username, 'Failed login attempt for username: ' . $username, $client_ip]);
             } catch (Exception $e) { /* silent */
             }
+        }
     }
 }
 ?>
