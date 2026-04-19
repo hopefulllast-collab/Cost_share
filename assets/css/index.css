@@ -607,7 +607,7 @@ ul {
     height: 36px;
     border: none;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.04);
+    background: rgba(189, 34, 34, 0.411);
     color: var(--text-light);
     font-size: 15px;
     cursor: pointer;
@@ -618,8 +618,9 @@ ul {
 }
 
 .login-close:hover {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background: rgba(104, 39, 22, 0.178);
+    color: #ff0000;
+    font-size: 25px;
     transform: rotate(90deg) scale(1.1);
 }
 
