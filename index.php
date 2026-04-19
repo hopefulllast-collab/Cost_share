@@ -329,13 +329,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
             </div>
         </div>
 
-        <!-- Close Button -->
-        <button class="login-close" onclick="closeLogin()" aria-label="Close">
-            <i class="fas fa-times"></i>
-        </button>
-
         <!-- Glass Card -->
         <div class="login-glass-card">
+            <!-- Close Button (inside card) -->
+            <button class="login-close" onclick="closeLogin()" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+
             <!-- Logo & Branding -->
             <div class="login-brand">
                 <div class="login-logo-glow">
