@@ -160,16 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         to Dept Head</h2>
                 </div>
 
-                <?php if ($msg): ?>
-                    <div class="success-msg">
-                        <?php echo $msg; ?>
-                    </div>
-                <?php endif; ?>
-                <?php if ($error): ?>
-                    <div class="error-msg">
-                        <?php echo $error; ?>
-                    </div>
-                <?php endif; ?>
+
 
                 <div class="card">
                     <form method="POST">
@@ -586,6 +577,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                 semesterSelect.style.opacity = '0.5';
                 semesterSelect.style.cursor = 'not-allowed';
             }
+        }
+    </script>
+
+    <!-- SweetAlert Popups for Success/Error -->
+    <?php if ($msg): ?>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: '<span data-en="Success" data-am="ተሳክቷል">Success</span>',
+            html: '<?php echo addslashes($msg); ?>',
+            confirmButtonColor: '#28a745',
+            timer: 3000,
+            timerProgressBar: true
+        });
+    </script>
+    <?php endif; ?>
+    <?php if ($error): ?>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: '<span data-en="Error" data-am="ስህተት">Error</span>',
+            html: '<?php echo addslashes($error); ?>',
+            confirmButtonColor: '#d33'
+        });
+    </script>
+    <?php endif; ?>
+
+    <script>
+        function showBilingualConfirm(enText, amText, callback) {
+            Swal.fire({
+                title: '<span data-en="Are you sure?" data-am="እርግጠኛ ነዎት?">Are you sure?</span>',
+                html: '<span data-en="' + enText + '" data-am="' + amText + '">' + enText + '</span>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<span data-en="Yes, delete" data-am="አዎ፣ ሰርዝ">Yes, delete</span>',
+                cancelButtonText: '<span data-en="Cancel" data-am="ተው">Cancel</span>'
+            }).then((result) => {
+                if (result.isConfirmed) callback();
+            });
         }
     </script>
     <script src="../../assets/js/bilingual.js"></script>
