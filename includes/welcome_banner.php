@@ -78,6 +78,7 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
 <script>
 // Store greeting data globally so bilingual.js can't override it
 window._welcomeGreeting = null;
+var _clockStarted = false;
 
 function applyWelcomeGreeting() {
     const now = new Date();
@@ -141,24 +142,29 @@ function applyWelcomeGreeting() {
     const dateEl = document.getElementById('welcome-date');
     if (dateEl) dateEl.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
 
-    // Live clock
-    function updateClock() {
-        const t = new Date();
-        let h = t.getHours(), m = t.getMinutes();
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12 || 12;
-        const el = document.getElementById('welcome-time');
-        if (el) el.textContent = h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
+    // Live clock (only start once)
+    if (!_clockStarted) {
+        _clockStarted = true;
+        function updateClock() {
+            const t = new Date();
+            let h = t.getHours(), m = t.getMinutes();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            const el = document.getElementById('welcome-time');
+            if (el) el.textContent = h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
+        }
+        updateClock();
+        setInterval(updateClock, 30000);
     }
-    updateClock();
-    setInterval(updateClock, 30000);
 }
 
-// Run AFTER all scripts (including bilingual.js) have loaded
+// Run immediately (inline - elements are already in DOM above)
+applyWelcomeGreeting();
+
+// Also run on DOMContentLoaded and window.load as fallbacks
+document.addEventListener('DOMContentLoaded', applyWelcomeGreeting);
 window.addEventListener('load', function() {
     applyWelcomeGreeting();
-    // Also re-apply after a short delay to beat any bilingual.js override
-    setTimeout(applyWelcomeGreeting, 300);
+    setTimeout(applyWelcomeGreeting, 500);
 });
 </script>
-
