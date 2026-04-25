@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_course'])) {
             $ins = $pdo->prepare("INSERT INTO courses (department_id, batch, semester, course_name, credit_hour) VALUES (?, ?, ?, ?, ?)");
             $ins->execute([$dept_id, $sel_batch, $sel_semester, $course_name, $credit_hour]);
             $_SESSION["flash_success"] = "<span data-en='Course ' data-am='??? '>Course </span>'$course_name'<span data-en=' added successfully.' data-am=' ???? ??? ??????'> added successfully.</span>";
-            header("Location: " . $_SERVER["PHP_SELF"]);
+            header("Location: " . $_SERVER["PHP_SELF"] . "?batch=" . $sel_batch . "&semester=" . $sel_semester);
             exit();
         }
     }
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_course'])) {
     $sel_semester = (int) $_POST['semester'];
     $pdo->prepare("DELETE FROM courses WHERE id = ? AND department_id = ?")->execute([$course_id, $dept_id]);
     $_SESSION["flash_success"] = "<span data-en='Course deleted successfully.' data-am='??? ???? ??? ??????'>Course deleted successfully.</span>";
-    header("Location: " . $_SERVER["PHP_SELF"]);
+    header("Location: " . $_SERVER["PHP_SELF"] . "?batch=" . $sel_batch . "&semester=" . $sel_semester);
     exit();
 }
 
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_to_cost_sharing
         $upd = $pdo->prepare("UPDATE courses SET credit_hours = ?, rate_status = 'Submitted' WHERE department_id = ? AND batch = ? AND semester = ?");
         $upd->execute([$total, $dept_id, $sel_batch, $sel_semester]);
         $_SESSION["flash_success"] = "<span data-en='Successfully submitted to Cost Sharing Professional.' data-am='??? ???? ???? ???? ??? ?????'>Successfully submitted to Cost Sharing Professional.</span>";
-        header("Location: " . $_SERVER["PHP_SELF"]);
+        header("Location: " . $_SERVER["PHP_SELF"] . "?batch=" . $sel_batch . "&semester=" . $sel_semester);
         exit();
     } else {
         $error = "<span data-en='No courses found to submit.' data-am='????? ??? ???????'>No courses found to submit.</span>";
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_special_case'])) 
         $upd = $pdo->prepare("UPDATE students SET adjusted_credit_hours = ?, dropped_courses = ?, added_courses = ?, special_credit_reason = ? WHERE user_id = ?");
         $upd->execute([$total_ch, $dropped_json, $added_json, $reason, $student_user_id]);
         $_SESSION["flash_success"] = "<span data-en='Special case saved. Adjusted credit hours: ' data-am='?? ??? ?????? ??????? ???? ???: '>Special case saved. Adjusted credit hours: </span>$total_ch";
-        header("Location: " . $_SERVER["PHP_SELF"]);
+        header("Location: " . $_SERVER["PHP_SELF"] . "?batch=" . $sel_batch . "&semester=" . $sel_semester);
         exit();
     }
 }
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['remove_special_case'])
     $sel_semester = (int) $_POST['semester'];
     $pdo->prepare("UPDATE students SET adjusted_credit_hours = NULL, dropped_courses = NULL, added_courses = NULL, special_credit_reason = NULL WHERE user_id = ? AND department_id = ?")->execute([$sc_user_id, $dept_id]);
     $_SESSION["flash_success"] = "<span data-en='Special case removed. Student will use standard credit hours.' data-am='?? ??? ?????? ???? ?????? ???? ??? ??????'>Special case removed. Student will use standard credit hours.</span>";
-    header("Location: " . $_SERVER["PHP_SELF"]);
+    header("Location: " . $_SERVER["PHP_SELF"] . "?batch=" . $sel_batch . "&semester=" . $sel_semester);
     exit();
 }
 
