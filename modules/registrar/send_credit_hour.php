@@ -147,6 +147,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @keyframes modalFadeIn {
+            from { transform: scale(0.9) translateY(-20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid #f0f0f0; }
+        .modal-header h3 { margin:0; font-size:1.2rem; color:#1a1a2e; }
+        .modal-header .close { font-size:28px; cursor:pointer; color:#999; transition:color 0.2s; line-height:1; }
+        .modal-header .close:hover { color:#e74c3c; }
+    </style>
 </head>
 
 <body>
@@ -346,8 +356,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
         </div>
 
     <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
+    <div id="editModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; justify-content:center; align-items:center;">
+        <div class="modal-content" style="max-width:600px; width:90%; background:#fff; border-radius:16px; padding:30px; box-shadow:0 20px 60px rgba(0,0,0,0.3); position:relative; animation:modalFadeIn 0.3s ease;">
             <div class="modal-header">
                 <h3 data-en="Edit Credit Hour" data-am="የክሬዲት ሰዓት ማስተካከያ">Edit Credit Hour</h3>
                 <span class="close" onclick="closeEditModal()">&times;</span>
@@ -425,7 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
             document.getElementById('edit_sem_max').value = record.semester_max_credits;
             document.getElementById('edit_credit_hour').value = record.credit_hours;
             
-            document.getElementById('editModal').style.display = 'block';
+            document.getElementById('editModal').style.display = 'flex';
             if(typeof updateLanguage === 'function') updateLanguage();
         }
 
