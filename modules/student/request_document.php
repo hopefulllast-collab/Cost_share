@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
                                 data-am="የህግ ተቀባይነት ደብዳቤ ስቀል
                                 (ከዩኒቨርሲቲው የአካዳሚክ ክፍል፣ የአካዳሚክ ምክትል ፕሬዘዳንት ቢሮ ወይም የሀገር ውስጥ ገቢ ብቻ)">Upload Legal Acceptance Letter
                                 <br>(From the university academic department, academic vice president office or inland revenue only)</label>
-                            <input type="file" name="acceptance_letter_file" accept=".pdf,.jpg,.png">
+                            <input type="file" name="clearance_file" accept=".pdf,.jpg,.png">
                             <small data-en="Required for all document requests." data-am="ለሁሉም የሰነድ ጥያቄዎች ያስፈልጋል።">Required
                                 for all document requests.</small>
                         </div>
