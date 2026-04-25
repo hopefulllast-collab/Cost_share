@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                     </div>
                 <?php endif; ?>
 
-                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <div class="card">
                     <form method="POST">
                         <div class="form-group">
                             <label data-en="Department" data-am="ዲፓርትመንት">Department</label>
@@ -265,11 +265,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                     $existing = $pdo->query("SELECT r.*, d.name as dept_name 
                                              FROM courses r 
                                              JOIN departments d ON r.department_id = d.id 
-                                             WHERE r.credit_hours IS NOT NULL AND r.credit_hours > 0
+                                             WHERE r.course_name = 'Semester Credit'
                                              ORDER BY d.name, r.batch, r.semester")->fetchAll(PDO::FETCH_ASSOC);
                     ?>
                     <?php if (count($existing) > 0): ?>
-                        <table class="table">
+                        <div style="overflow-x:auto;">
+                        <table class="table-list">
                             <thead>
                                 <tr>
                                     <th data-en="Department" data-am="ትምህርት ክፍል">Department</th>
@@ -333,15 +334,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                                         </td>
                                         <td>
                                             <button onclick='openEditModal(<?php echo htmlspecialchars(json_encode($r), JSON_HEX_APOS | JSON_HEX_QUOT); ?>)' class='btn-secondary' style='padding: 3px 8px; font-size: 11px; margin-bottom:4px;' data-en='Edit' data-am='አስተካክል'>Edit</button>
-                                            <form style="display:inline-block;" method="POST" onsubmit="event.preventDefault(); var form = this; Swal.fire({title:'Are you sure?', data-am='ይህን መዝገብ መሰረዝ ይፈልጋሉ?', text: data-en='Do you want to delete this record?', data-am='ይህን መዝገብ መሰረዝ ይፈልጋሉ?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, delete it!'}).then((result) => { if (result.isConfirmed) { form.submit(); } });">
+                                            <form style="display:inline-block;" method="POST" id="deleteForm_<?php echo $r['id']; ?>">
                                                 <input type="hidden" name="course_id" value="<?php echo $r['id']; ?>">
-                                                <button type="submit" name="delete_credit_hour" class='btn-danger' style='padding: 3px 8px; font-size: 11px;' data-en='Delete' data-am='ሰርዝ'>Delete</button>
+                                                <input type="hidden" name="delete_credit_hour" value="1">
+                                                <button type="button" onclick="showBilingualConfirm('Are you sure you want to delete this record?', 'ይህን መዝገብ መሰረዝ ይፈልጋሉ?', function(){ document.getElementById('deleteForm_<?php echo $r['id']; ?>').submit(); })" class='btn-danger' style='padding: 3px 8px; font-size: 11px;' data-en='Delete' data-am='ሰርዝ'><i class='fas fa-trash'></i> Delete</button>
                                             </form>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                        </div>
                     <?php else: ?>
                         <p style="text-align:center; padding:20px; color:#999;" data-en="No records yet."
                             data-am="እስካሁን ምንም የተመዘገበ የለም።">No records yet.</p>
