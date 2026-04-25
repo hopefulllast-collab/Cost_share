@@ -27,13 +27,13 @@ if ($hour >= 5 && $hour < 12) {
     $greeting_en = 'Good Evening';
     $greeting_am = 'እንደምን አመሸህ/ሽ';
     $icon = 'fas fa-moon';
-    $gradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    $gradient = 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)';
     $icon_color = '#8b5cf6';
 } else {
     $greeting_en = 'Welcome';
     $greeting_am = 'እንኳን ደህና መጡ';
     $icon = 'fas fa-stars';
-    $gradient = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+    $gradient = 'linear-gradient(135deg, #c3cfe2 0%, #f5f7fa 100%)';
     $icon_color = '#6366f1';
 }
 
