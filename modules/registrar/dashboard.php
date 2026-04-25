@@ -42,9 +42,7 @@ require_once '../../includes/academic_translations.php';
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
-                <div class="top-bar">
-                    <h2 data-en="Registrar head Dashboard" data-am="ሬጅስትራር ኃላፊ ዳሽቦርድ">Registrar Dashboard</h2>
-                </div>
+                <?php include '../../includes/welcome_banner.php'; ?>
 
                 <!-- Stats Grid -->
                 <div class="card-grid">

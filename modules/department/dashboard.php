@@ -44,9 +44,7 @@ $pendingAgreements = $stmt->fetchAll();
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
-                <div class="top-bar">
-                    <h2 data-en="Department Head Dashboard" data-am="የዲፓርትመንት ተጠሪ ዳሽቦርድ">Department Head Dashboard</h2>
-                </div>
+                <?php include '../../includes/welcome_banner.php'; ?>
 
                 <div class="card">
                     <h3 data-en="Pending Agreements" data-am="በመጠባበቅ ላይ ያሉ ውሎች">Pending Agreements</h3>

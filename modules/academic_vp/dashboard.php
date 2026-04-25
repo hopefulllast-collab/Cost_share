@@ -36,9 +36,7 @@ require_once '../../includes/academic_translations.php';
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
-                <div class="top-bar">
-                    <h2 data-en="Academic Vice President Dashboard" data-am="የአካዳሚክ ም/ፕሬዚዳንት ዳሽቦርድ">Academic Vice President Dashboard</h2>
-                </div>
+                <?php include '../../includes/welcome_banner.php'; ?>
 
                 <!-- Stats Grid -->
                 <div class="card-grid">

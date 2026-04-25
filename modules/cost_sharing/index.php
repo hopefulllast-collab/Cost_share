@@ -20,16 +20,7 @@ checkAuth(['cost_sharing_pro']);
         <div class="layout-body">
             <?php include '../../includes/sidebar.php'; ?>
             <div class="main-content">
-                <div class="top-bar">
-                    <h2 data-en="Cost Sharing professional Dashboard" data-am="የወጪ ክፍፍል ባለሙያ ዳሽቦርድ">Cost Sharing professional Dashboard</h2>
-                    <div class="user-info">
-                        <span
-                            data-en="Welcome, <?php echo htmlspecialchars($_SESSION['name'] ?? 'Cost Sharing Professional'); ?>"
-                            data-am="እንኳን ደህና መጡ፣ <?php echo htmlspecialchars($_SESSION['name'] ?? 'Cost Sharing Professional'); ?>">Welcome,
-                            <?php echo htmlspecialchars($_SESSION['name'] ?? 'Cost Sharing Professional'); ?>
-                        </span>
-                    </div>
-                </div>
+                <?php include '../../includes/welcome_banner.php'; ?>
 
                 <div class="stats-grid">
                     <div class="stat-card">

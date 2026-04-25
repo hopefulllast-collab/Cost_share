@@ -32,10 +32,7 @@ require_once '../../includes/academic_translations.php';
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
-                <div class="top-bar">
-                    <h2 data-en="Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?>"
-                        data-am="እንኳን ደህና መጡ, <?php echo htmlspecialchars($_SESSION['name']); ?>">Welcome</h2>
-                </div>
+                <?php include '../../includes/welcome_banner.php'; ?>
 
                 <div class="card-grid">
                     <div class="card info-card">

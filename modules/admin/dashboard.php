@@ -25,10 +25,7 @@ $userCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
-                <div class="top-bar">
-                    <h2 data-en="System Administrator" data-am="ስርዓት አስተዳደር">System Administrator</h2>
-                    <!-- Lang button moved to header, can remove or keep page specific actions here -->
-                </div>
+                <?php include '../../includes/welcome_banner.php'; ?>
 
                 <div class="card-grid">
                     <div class="card info-card">

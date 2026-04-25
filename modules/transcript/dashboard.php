@@ -22,9 +22,7 @@ checkAuth(['transcript_pro']);
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
-                <div class="top-bar">
-                    <h2 data-en="Transcript Office" data-am="ትራንስክሪፕት ቢሮ">Transcript Office</h2>
-                </div>
+                <?php include '../../includes/welcome_banner.php'; ?>
 
                 <div class="card">
                     <h3 data-en="Actions" data-am="ተግባራት">Actions</h3>
