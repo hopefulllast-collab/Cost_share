@@ -76,13 +76,18 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
 </div>
 
 <script>
-(function initWelcomeBanner() {
+// Store greeting data globally so bilingual.js can't override it
+window._welcomeGreeting = null;
+
+function applyWelcomeGreeting() {
     const now = new Date();
     const hour = now.getHours();
     const banner = document.getElementById('welcomeBanner');
     const icon = document.getElementById('welcomeIcon');
     const greeting = document.getElementById('greetingText');
     const name = '<?php echo $user_name; ?>';
+    
+    if (!banner || !icon || !greeting) return;
     
     let greetEn, greetAm, iconClass, iconColor, bgGradient;
 
@@ -112,10 +117,16 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
         bgGradient = 'linear-gradient(135deg, #e8eaf6 0%, #e0e7ff 40%, #f1f5f9 100%)';
     }
 
-    // Apply greeting
-    greeting.setAttribute('data-en', greetEn + ', ' + name + '!');
-    greeting.setAttribute('data-am', greetAm + ', ' + name + '!');
-    greeting.textContent = greetEn + ', ' + name + '!';
+    // Store for re-use
+    window._welcomeGreeting = { en: greetEn + ', ' + name + '!', am: greetAm + ', ' + name + '!' };
+
+    // Apply greeting text & data attributes
+    greeting.setAttribute('data-en', window._welcomeGreeting.en);
+    greeting.setAttribute('data-am', window._welcomeGreeting.am);
+    
+    // Set text based on current language
+    const lang = localStorage.getItem('dmu_lang') || 'en';
+    greeting.textContent = lang === 'am' ? window._welcomeGreeting.am : window._welcomeGreeting.en;
     
     // Apply icon
     icon.className = iconClass;
@@ -128,7 +139,7 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
     const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const dateEl = document.getElementById('welcome-date');
-    dateEl.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+    if (dateEl) dateEl.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
 
     // Live clock
     function updateClock() {
@@ -136,14 +147,18 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
         let h = t.getHours(), m = t.getMinutes();
         const ampm = h >= 12 ? 'PM' : 'AM';
         h = h % 12 || 12;
-        document.getElementById('welcome-time').textContent = h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
+        const el = document.getElementById('welcome-time');
+        if (el) el.textContent = h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
     }
     updateClock();
     setInterval(updateClock, 30000);
+}
 
-    // Update bilingual if available
-    if (typeof updateLanguage === 'function') {
-        setTimeout(updateLanguage, 100);
-    }
-})();
+// Run AFTER all scripts (including bilingual.js) have loaded
+window.addEventListener('load', function() {
+    applyWelcomeGreeting();
+    // Also re-apply after a short delay to beat any bilingual.js override
+    setTimeout(applyWelcomeGreeting, 300);
+});
 </script>
+
