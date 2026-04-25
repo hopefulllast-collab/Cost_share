@@ -34,6 +34,11 @@ function setLanguage(lang) {
     if (btnText) {
         btnText.textContent = lang === 'en' ? 'Amharic' : 'English';
     }
+
+    // Re-apply welcome greeting if available (prevents overriding time-based greeting)
+    if (typeof applyWelcomeGreeting === 'function') {
+        applyWelcomeGreeting();
+    }
 }
 
 // Initialize on load
