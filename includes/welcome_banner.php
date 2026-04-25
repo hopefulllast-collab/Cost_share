@@ -36,18 +36,6 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
     <div style="position:absolute; bottom:-30px; right:80px; width:90px; height:90px; background:rgba(255,255,255,0.15); border-radius:50%;"></div>
     
     <div style="display:flex; align-items:center; gap:16px; position:relative; z-index:2;">
-        <!-- Icon container -->
-        <div id="welcomeIconBox" style="
-            width:50px; height:50px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 14px;
-            display:flex; align-items:center; justify-content:center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            flex-shrink: 0;
-        ">
-            <i id="welcomeIcon" class="fas fa-sun" style="font-size:1.3rem; color:#f59e0b;"></i>
-        </div>
-        
         <!-- Text content -->
         <div style="flex:1; min-width:0;">
             <h2 style="margin:0 0 6px 0; font-size:1.3rem; font-weight:700; color:#1e293b; letter-spacing:-0.02em;">
@@ -84,37 +72,32 @@ function applyWelcomeGreeting() {
     const now = new Date();
     const hour = now.getHours();
     const banner = document.getElementById('welcomeBanner');
-    const icon = document.getElementById('welcomeIcon');
     const greeting = document.getElementById('greetingText');
     const name = '<?php echo $user_name; ?>';
     
-    if (!banner || !icon || !greeting) return;
+    if (!banner || !greeting) return;
     
-    let greetEn, greetAm, iconClass, iconColor, bgGradient;
+    let greetEn, greetAm, bgGradient;
 
     if (hour >= 5 && hour < 12) {
         greetEn = 'Good Morning';
         greetAm = 'እንደምን አደርክ/ሽ';
-        iconClass = 'fas fa-sun';
-        iconColor = '#f59e0b';
+
         bgGradient = 'linear-gradient(135deg, #fef9c3 0%, #fde68a 40%, #fed7aa 100%)';
     } else if (hour >= 12 && hour < 17) {
         greetEn = 'Good Afternoon';
         greetAm = 'እንደምን ዋልክ/ሽ';
-        iconClass = 'fas fa-cloud-sun';
-        iconColor = '#0ea5e9';
+
         bgGradient = 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #dbeafe 100%)';
     } else if (hour >= 17 && hour < 21) {
         greetEn = 'Good Evening';
         greetAm = 'እንደምን አመሸህ/ሽ';
-        iconClass = 'fas fa-cloud-moon';
-        iconColor = '#8b5cf6';
+
         bgGradient = 'linear-gradient(135deg, #ede9fe 0%, #e0e7ff 40%, #ddd6fe 100%)';
     } else {
         greetEn = 'Welcome Back';
         greetAm = 'እንኳን ተመልሰው መጡ';
-        iconClass = 'fas fa-moon';
-        iconColor = '#6366f1';
+
         bgGradient = 'linear-gradient(135deg, #e8eaf6 0%, #e0e7ff 40%, #f1f5f9 100%)';
     }
 
@@ -129,9 +112,6 @@ function applyWelcomeGreeting() {
     const lang = localStorage.getItem('dmu_lang') || 'en';
     greeting.textContent = lang === 'am' ? window._welcomeGreeting.am : window._welcomeGreeting.en;
     
-    // Apply icon
-    icon.className = iconClass;
-    icon.style.color = iconColor;
     
     // Apply gradient
     banner.style.background = bgGradient;
