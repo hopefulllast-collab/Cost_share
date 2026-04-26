@@ -38,17 +38,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $action = $_GET['action'];
 
     if ($action == 'delete') {
-        // Server-side: only allow deletion if Transfer-Out or Original Document is delivered
-        $check = $pdo->prepare("SELECT COUNT(*) FROM official_transcript WHERE student_id = ? AND request_type IN ('Transfer-Out', 'Original') AND status = 'Delivered'");
-        $check->execute([$id]);
-        if ($check->fetchColumn() > 0) {
-            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-            $stmt->execute([$id]);
-            logAudit($pdo, 'USER_DELETED', 'Deleted user ID: ' . $id . ' (eligible: document delivered)');
-        $_SESSION["flash_success"] = "<span data-en='User deleted.' data-am='ተጠቃሚው ተሰርዟል'>User deleted.</span>";
-        } else {
-            $_SESSION["flash_success"] = "<span data-en='Cannot delete this account.' data-am='ይህን መለያ መሰረዝ አይቻልም።'>Cannot delete.</span>";
-        }
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        logAudit($pdo, 'USER_DELETED', 'Deleted user ID: ' . $id);
+        $_SESSION["flash_success"] = "<span data-en='Account deleted successfully.' data-am='መለያው በተሳካ ሁኔታ ተሰርዟል።'>Account deleted.</span>";
         header("Location: " . $_SERVER["PHP_SELF"]);
         exit();
     } elseif ($action == 'enable') {
@@ -274,30 +267,21 @@ $deletable_count = count($deletable_users);
                                         </a>
                                         <?php endif; ?>
 
-                                        <?php if (isset($deletable_users[$u['id']])): ?>
-                                            <!-- Show delete only for Transfer-Out / Original Document delivered students -->
-                                            <a href="javascript:void(0);" class="btn-sm btn-danger"
-                                                onclick="var c=this.nextElementSibling; c.style.display='inline'; this.style.display='none';"
-                                                title="Delete">
-                                                <i class="fas fa-trash"></i> <span data-en="Delete" data-am="ሰርዝ">Delete</span>
-                                            </a>
-                                            <span style="display:none;">
-                                                <span style="font-size:12px; color:#856404; font-weight:bold;"
-                                                    data-en="Delete this account permanently?" data-am="ይህን መለያ በቋሚነት ይሰርዝ?">Delete permanently?</span>
-                                                <a href="?action=delete&id=<?php echo $u['id']; ?>" class="btn-sm btn-danger"
-                                                    style="margin-left:5px;" data-en="Yes" data-am="አዎ">Yes</a>
-                                                <a href="javascript:void(0);" class="btn-sm btn-secondary"
-                                                    style="margin-left:3px;"
-                                                    onclick="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='inline';"
-                                                    data-en="No" data-am="አይ">No</a>
-                                            </span>
-                                        <?php elseif ($u['role'] !== 'admin' && $u['id'] !== $_SESSION['user_id']): ?>
-                                            <!-- Non-deletable: show disabled info -->
-                                            <span style="color:#94a3b8; font-size:0.75rem; cursor:help;" 
-                                                title="Account can only be deleted after Transfer-Out or Original Document is delivered by Registrar">
-                                                <i class="fas fa-lock"></i>
-                                            </span>
-                                        <?php endif; ?>
+                                        <a href="javascript:void(0);" class="btn-sm btn-danger"
+                                            onclick="var c=this.nextElementSibling; c.style.display='inline'; this.style.display='none';"
+                                            title="Delete">
+                                            <i class="fas fa-trash"></i> <span data-en="Delete" data-am="ሰርዝ">Delete</span>
+                                        </a>
+                                        <span style="display:none;">
+                                            <span style="font-size:12px; color:#856404; font-weight:bold;"
+                                                data-en="Delete this account?" data-am="ይህን መለያ ይሰርዝ?">Delete?</span>
+                                            <a href="?action=delete&id=<?php echo $u['id']; ?>" class="btn-sm btn-danger"
+                                                style="margin-left:5px;" data-en="Yes" data-am="አዎ">Yes</a>
+                                            <a href="javascript:void(0);" class="btn-sm btn-secondary"
+                                                style="margin-left:3px;"
+                                                onclick="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='inline';"
+                                                data-en="No" data-am="አይ">No</a>
+                                        </span>
 
                                     </td>
                                 </tr>
