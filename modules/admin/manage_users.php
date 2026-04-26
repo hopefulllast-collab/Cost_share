@@ -38,10 +38,17 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $action = $_GET['action'];
 
     if ($action == 'delete') {
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-        logAudit($pdo, 'USER_DELETED', 'Deleted user ID: ' . $id);
+        // Server-side: only allow deletion if Transfer-Out or Original Document is delivered
+        $check = $pdo->prepare("SELECT COUNT(*) FROM official_transcript WHERE student_id = ? AND request_type IN ('Transfer-Out', 'Original') AND status = 'Delivered'");
+        $check->execute([$id]);
+        if ($check->fetchColumn() > 0) {
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([$id]);
+            logAudit($pdo, 'USER_DELETED', 'Deleted user ID: ' . $id . ' (eligible: document delivered)');
         $_SESSION["flash_success"] = "<span data-en='User deleted.' data-am='ተጠቃሚው ተሰርዟል'>User deleted.</span>";
+        } else {
+            $_SESSION["flash_success"] = "<span data-en='Cannot delete this account.' data-am='ይህን መለያ መሰረዝ አይቻልም።'>Cannot delete.</span>";
+        }
         header("Location: " . $_SERVER["PHP_SELF"]);
         exit();
     } elseif ($action == 'enable') {
@@ -85,6 +92,23 @@ if (!empty($conditions)) {
     $where = "WHERE " . implode(" AND ", $conditions);
 }
 
+// Fetch students eligible for deletion (Transfer-Out or Original Document delivered)
+$deletable_query = $pdo->query("
+    SELECT DISTINCT ot.student_id as user_id, ot.request_type, ot.status as doc_status
+    FROM official_transcript ot 
+    WHERE ot.request_type IN ('Transfer-Out', 'Original') 
+    AND ot.status = 'Delivered'
+")->fetchAll(PDO::FETCH_ASSOC);
+
+// Build lookup: user_id => request_type
+$deletable_users = [];
+foreach ($deletable_query as $d) {
+    $deletable_users[$d['user_id']] = $d['request_type'];
+}
+
+// Handle 'deletable' filter
+$show_deletable = isset($_GET['filter']) && $_GET['filter'] === 'deletable';
+
 // Query with LEFT JOIN to get student_id for students
 $query = "SELECT u.*, s.student_id 
           FROM users u 
@@ -94,8 +118,19 @@ $query = "SELECT u.*, s.student_id
 
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$all_users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// If deletable filter is active, only show eligible students
+if ($show_deletable) {
+    $users = array_filter($all_users, function($u) use ($deletable_users) {
+        return isset($deletable_users[$u['id']]);
+    });
+} else {
+    $users = $all_users;
+}
+
 $departments = $pdo->query("SELECT * FROM departments")->fetchAll(PDO::FETCH_ASSOC);
+$deletable_count = count($deletable_users);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -157,6 +192,17 @@ $departments = $pdo->query("SELECT * FROM departments")->fetchAll(PDO::FETCH_ASS
                                 <?php endif; ?>
                             </div>
                         </form>
+                        <?php if ($deletable_count > 0): ?>
+                            <a href="?filter=deletable" class="btn-sm" style="margin-left:10px; background:<?php echo $show_deletable ? '#dc3545' : '#e74c3c'; ?>; color:#fff; padding:6px 14px; border-radius:6px; text-decoration:none; font-size:0.85rem;">
+                                <i class="fas fa-user-slash"></i>
+                                <span data-en="Eligible for Deletion (<?php echo $deletable_count; ?>)" data-am="ለመሰረዝ ብቁ (<?php echo $deletable_count; ?>)">Eligible for Deletion (<?php echo $deletable_count; ?>)</span>
+                            </a>
+                            <?php if ($show_deletable): ?>
+                                <a href="manage_users.php" class="btn-sm" style="margin-left:5px; background:#6c757d; color:#fff; padding:6px 14px; border-radius:6px; text-decoration:none; font-size:0.85rem;">
+                                    <i class="fas fa-times"></i> <span data-en="Show All" data-am="ሁሉንም አሳይ">Show All</span>
+                                </a>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -176,6 +222,7 @@ $departments = $pdo->query("SELECT * FROM departments")->fetchAll(PDO::FETCH_ASS
                                 <?php endif; ?>
                                 <th data-en="Role" data-am="ሚና">Role</th>
                                 <th data-en="Status" data-am="ሁኔታ">Status</th>
+                                <th data-en="Doc Status" data-am="የሰነድ ሁኔታ">Doc Status</th>
                                 <th data-en="Actions" data-am="ድርጊቶች">Actions</th>
                             </tr>
                         </thead>
@@ -191,6 +238,19 @@ $departments = $pdo->query("SELECT * FROM departments")->fetchAll(PDO::FETCH_ASS
                                     <td>
                                         <span
                                             class="status-badge <?php echo $u['status']; ?>"><?php echo $u['status']; ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if (isset($deletable_users[$u['id']])): ?>
+                                            <?php $doc_type = $deletable_users[$u['id']]; ?>
+                                            <span style="background:#fef2f2; color:#dc2626; padding:3px 8px; border-radius:4px; font-size:0.78rem; font-weight:600; border:1px solid #fecaca;">
+                                                <i class="fas fa-exclamation-circle"></i>
+                                                <span data-en="<?php echo $doc_type; ?> - Delivered" data-am="<?php echo $doc_type === 'Transfer-Out' ? 'ዝውውር' : 'ኦሪጅናል'; ?> - ተሰጥቷል">
+                                                    <?php echo $doc_type; ?> - Delivered
+                                                </span>
+                                            </span>
+                                        <?php else: ?>
+                                            <span style="color:#94a3b8; font-size:0.8rem;">—</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if ($u['status'] == 'active'): ?>
@@ -214,21 +274,30 @@ $departments = $pdo->query("SELECT * FROM departments")->fetchAll(PDO::FETCH_ASS
                                         </a>
                                         <?php endif; ?>
 
-                                        <a href="javascript:void(0);" class="btn-sm btn-danger"
-                                            onclick="var c=this.nextElementSibling; c.style.display='inline'; this.style.display='none';"
-                                            title="Delete">
-                                            <i class="fas fa-trash"></i> <span data-en="Delete" data-am="ሰርዝ">Delete</span>
-                                        </a>
-                                        <span style="display:none;">
-                                            <span style="font-size:12px; color:#856404; font-weight:bold;"
-                                                data-en="Delete this user?" data-am="ይህን ተጠቃሚ ሰርዝ?">Delete?</span>
-                                            <a href="?action=delete&id=<?php echo $u['id']; ?>" class="btn-sm btn-danger"
-                                                style="margin-left:5px;" data-en="Yes" data-am="አዎ">Yes</a>
-                                            <a href="javascript:void(0);" class="btn-sm btn-secondary"
-                                                style="margin-left:3px;"
-                                                onclick="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='inline';"
-                                                data-en="No" data-am="አይ">No</a>
-                                        </span>
+                                        <?php if (isset($deletable_users[$u['id']])): ?>
+                                            <!-- Show delete only for Transfer-Out / Original Document delivered students -->
+                                            <a href="javascript:void(0);" class="btn-sm btn-danger"
+                                                onclick="var c=this.nextElementSibling; c.style.display='inline'; this.style.display='none';"
+                                                title="Delete">
+                                                <i class="fas fa-trash"></i> <span data-en="Delete" data-am="ሰርዝ">Delete</span>
+                                            </a>
+                                            <span style="display:none;">
+                                                <span style="font-size:12px; color:#856404; font-weight:bold;"
+                                                    data-en="Delete this account permanently?" data-am="ይህን መለያ በቋሚነት ይሰርዝ?">Delete permanently?</span>
+                                                <a href="?action=delete&id=<?php echo $u['id']; ?>" class="btn-sm btn-danger"
+                                                    style="margin-left:5px;" data-en="Yes" data-am="አዎ">Yes</a>
+                                                <a href="javascript:void(0);" class="btn-sm btn-secondary"
+                                                    style="margin-left:3px;"
+                                                    onclick="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='inline';"
+                                                    data-en="No" data-am="አይ">No</a>
+                                            </span>
+                                        <?php elseif ($u['role'] !== 'admin' && $u['id'] !== $_SESSION['user_id']): ?>
+                                            <!-- Non-deletable: show disabled info -->
+                                            <span style="color:#94a3b8; font-size:0.75rem; cursor:help;" 
+                                                title="Account can only be deleted after Transfer-Out or Original Document is delivered by Registrar">
+                                                <i class="fas fa-lock"></i>
+                                            </span>
+                                        <?php endif; ?>
 
                                     </td>
                                 </tr>
