@@ -185,19 +185,26 @@ $deletable_count = count($deletable_users);
                                 <?php endif; ?>
                             </div>
                         </form>
-                        <?php if ($deletable_count > 0): ?>
-                            <a href="?filter=deletable" class="btn-sm" style="margin-left:10px; background:<?php echo $show_deletable ? '#dc3545' : '#e74c3c'; ?>; color:#fff; padding:6px 14px; border-radius:6px; text-decoration:none; font-size:0.85rem;">
-                                <i class="fas fa-user-slash"></i>
-                                <span data-en="Eligible for Deletion (<?php echo $deletable_count; ?>)" data-am="ለመሰረዝ ብቁ (<?php echo $deletable_count; ?>)">Eligible for Deletion (<?php echo $deletable_count; ?>)</span>
-                            </a>
-                            <?php if ($show_deletable): ?>
-                                <a href="manage_users.php" class="btn-sm" style="margin-left:5px; background:#6c757d; color:#fff; padding:6px 14px; border-radius:6px; text-decoration:none; font-size:0.85rem;">
-                                    <i class="fas fa-times"></i> <span data-en="Show All" data-am="ሁሉንም አሳይ">Show All</span>
-                                </a>
-                            <?php endif; ?>
-                        <?php endif; ?>
                     </div>
                 </div>
+
+                <?php if ($deletable_count > 0): ?>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px; padding:10px 16px; background:#fff5f5; border:1px solid #fecaca; border-radius:10px;">
+                    <i class="fas fa-info-circle" style="color:#dc2626; font-size:1rem;"></i>
+                    <span style="font-size:0.88rem; color:#991b1b; font-weight:500;" data-en="<?php echo $deletable_count; ?> student(s) with delivered Transfer-Out / Original Document" data-am="<?php echo $deletable_count; ?> ተማሪ(ዎች) የተላለፉ ዝውውር / ኦሪጅናል ሰነድ"><?php echo $deletable_count; ?> student(s) with delivered Transfer-Out / Original Document</span>
+                    <?php if (!$show_deletable): ?>
+                        <a href="?filter=deletable" style="margin-left:auto; background:#dc2626; color:#fff; padding:6px 16px; border-radius:6px; text-decoration:none; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+                            <i class="fas fa-filter"></i>
+                            <span data-en="Show Only" data-am="ብቻ አሳይ">Show Only</span>
+                        </a>
+                    <?php else: ?>
+                        <a href="manage_users.php" style="margin-left:auto; background:#6c757d; color:#fff; padding:6px 16px; border-radius:6px; text-decoration:none; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+                            <i class="fas fa-times"></i>
+                            <span data-en="Show All Users" data-am="ሁሉንም ተጠቃሚዎች አሳይ">Show All Users</span>
+                        </a>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
 
                 <?php if ($msg)
                     echo "<div class='success-msg'>$msg</div>"; ?>
