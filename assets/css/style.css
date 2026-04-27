@@ -718,22 +718,30 @@ body.mobile-layout .sidebar.collapsed .nav-links a i {
 /* =========================================
    14. TABLES
    ========================================= */
-.table-list, .table, .table-styled {
+.table-list,
+.table,
+.table-styled {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     margin-top: 16px;
 }
 
-.table-list th, .table th, .table-styled th,
-.table-list td, .table td, .table-styled td {
+.table-list th,
+.table th,
+.table-styled th,
+.table-list td,
+.table td,
+.table-styled td {
     padding: 13px 16px;
     text-align: left;
     border-bottom: 1px solid var(--dash-border);
     font-size: 0.88rem;
 }
 
-.table-list th, .table th, .table-styled th {
+.table-list th,
+.table th,
+.table-styled th {
     background: #f8f9fb;
     color: var(--dash-text-light);
     font-weight: 600;
@@ -745,23 +753,33 @@ body.mobile-layout .sidebar.collapsed .nav-links a i {
     z-index: 1;
 }
 
-.table-list th:first-child, .table th:first-child, .table-styled th:first-child {
+.table-list th:first-child,
+.table th:first-child,
+.table-styled th:first-child {
     border-radius: 8px 0 0 0;
 }
 
-.table-list th:last-child, .table th:last-child, .table-styled th:last-child {
+.table-list th:last-child,
+.table th:last-child,
+.table-styled th:last-child {
     border-radius: 0 8px 0 0;
 }
 
-.table-list tbody tr, .table tbody tr, .table-styled tbody tr {
+.table-list tbody tr,
+.table tbody tr,
+.table-styled tbody tr {
     transition: var(--dash-transition-fast);
 }
 
-.table-list tbody tr:hover, .table tbody tr:hover, .table-styled tbody tr:hover {
+.table-list tbody tr:hover,
+.table tbody tr:hover,
+.table-styled tbody tr:hover {
     background: rgba(55, 48, 163, 0.03);
 }
 
-.table-list tbody tr:last-child td, .table tbody tr:last-child td, .table-styled tbody tr:last-child td {
+.table-list tbody tr:last-child td,
+.table tbody tr:last-child td,
+.table-styled tbody tr:last-child td {
     border-bottom: none;
 }
 
@@ -1432,31 +1450,43 @@ body.mobile-layout #chat-window {
     bottom: 135px !important;
     z-index: 1045 !important;
 }
+
 /* =========================================
    17. GLOBAL FILTER GRIDS & BUTTONS
    ========================================= */
-.filter-grid, form[style*='display:grid'], form[style*='display: grid'] {
+.filter-grid,
+form[style*='display:grid'],
+form[style*='display: grid'] {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 15px !important;
     align-items: flex-end !important;
 }
 
-.filter-grid > div, form[style*='display:grid'] > div, form[style*='display: grid'] > div {
+.filter-grid>div,
+form[style*='display:grid']>div,
+form[style*='display: grid']>div {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 140px !important;
     min-width: 140px !important;
 }
 
-.filter-grid label, form[style*='display:grid'] label, form[style*='display: grid'] label {
+.filter-grid label,
+form[style*='display:grid'] label,
+form[style*='display: grid'] label {
     font-size: 0.82rem !important;
     font-weight: 600 !important;
     margin-bottom: 6px !important;
     white-space: nowrap !important;
 }
 
-.filter-grid input, .filter-grid select, form[style*='display:grid'] input, form[style*='display:grid'] select, form[style*='display: grid'] input, form[style*='display: grid'] select {
+.filter-grid input,
+.filter-grid select,
+form[style*='display:grid'] input,
+form[style*='display:grid'] select,
+form[style*='display: grid'] input,
+form[style*='display: grid'] select {
     height: 40px !important;
     padding: 0 12px !important;
     border: 1.5px solid var(--dash-border) !important;
@@ -1467,14 +1497,19 @@ body.mobile-layout #chat-window {
 }
 
 /* Fix Button Container & Buttons */
-.filter-grid > div[style*='span 2'], form[style*='display:grid'] > div[style*='span 2'], form[style*='display: grid'] > div[style*='span 2'] {
+.filter-grid>div[style*='span 2'],
+form[style*='display:grid']>div[style*='span 2'],
+form[style*='display: grid']>div[style*='span 2'] {
     flex-direction: row !important;
-    flex: 0 0 auto !important; /* Stop stretching */
+    flex: 0 0 auto !important;
+    /* Stop stretching */
     gap: 10px !important;
     width: auto !important;
 }
 
-.filter-grid button, form[style*='display:grid'] button, form[style*='display: grid'] button {
+.filter-grid button,
+form[style*='display:grid'] button,
+form[style*='display: grid'] button {
     height: 40px !important;
     padding: 0 20px !important;
     flex: unset !important;
@@ -1483,5 +1518,244 @@ body.mobile-layout #chat-window {
     font-size: 0.85rem !important;
 }
 
-.filter-grid > div:last-child, form[style*='display:grid'] > div:last-child, form[style*='display: grid'] > div:last-child { flex-direction: row !important; flex: 0 0 auto !important; width: auto !important; gap: 10px !important; justify-content: flex-start !important; } 
+.filter-grid>div:last-child,
+form[style*='display:grid']>div:last-child,
+form[style*='display: grid']>div:last-child {
+    flex-direction: row !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    gap: 10px !important;
+    justify-content: flex-start !important;
+}
 
+/* =========================================
+   DASHBOARD ENHANCEMENTS — Professional UI
+   ========================================= */
+
+/* Stat Cards Grid */
+.dash-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.dash-stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+}
+
+.dash-stat-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+
+.dash-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.dash-stat-icon.blue { background: #eff6ff; color: #2563eb; }
+.dash-stat-icon.amber { background: #fffbeb; color: #d97706; }
+.dash-stat-icon.green { background: #f0fdf4; color: #16a34a; }
+.dash-stat-icon.purple { background: #faf5ff; color: #7c3aed; }
+.dash-stat-icon.rose { background: #fff1f2; color: #e11d48; }
+.dash-stat-icon.teal { background: #f0fdfa; color: #0d9488; }
+
+.dash-stat-info h4 {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dash-stat-info .dash-stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 2px 0 0 0;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+/* Dashboard Content Grid */
+.dash-content-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+    .dash-content-grid { grid-template-columns: 1fr; }
+    .dash-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+    .dash-stats { grid-template-columns: 1fr; }
+}
+
+/* Dashboard Section Card */
+.dash-section {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.04);
+}
+
+.dash-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dash-section-title i {
+    color: #6366f1;
+    font-size: 0.9rem;
+}
+
+/* Quick Action Links */
+.dash-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dash-action-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #334155;
+    font-weight: 500;
+    font-size: 0.88rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.dash-action-link:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+    transform: translateX(4px);
+}
+
+.dash-action-link i {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: #e0e7ff;
+    color: #4f46e5;
+    flex-shrink: 0;
+}
+
+.dash-action-link:hover i {
+    background: #4f46e5;
+    color: #fff;
+}
+
+/* Cost Share Amount Display */
+.dash-amount-display {
+    text-align: center;
+    padding: 16px 0;
+}
+
+.dash-amount-display .amount-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.dash-amount-display .amount-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #0a0044;
+    letter-spacing: -0.02em;
+}
+
+.dash-amount-display .amount-currency {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #d4a017;
+    margin-left: 4px;
+}
+
+/* Student Info Card */
+.dash-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dash-info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.dash-info-item:last-child { border-bottom: none; }
+
+.dash-info-item .info-label {
+    font-size: 0.82rem;
+    color: #64748b;
+    min-width: 110px;
+    font-weight: 500;
+}
+
+.dash-info-item .info-value {
+    font-size: 0.88rem;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* View All Button */
+.dash-view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin-top: 12px;
+}
+
+.dash-view-all:hover {
+    background: #0a0044;
+    color: #fff;
+}

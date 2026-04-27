@@ -44,35 +44,53 @@ require_once '../../includes/academic_translations.php';
             <div class="main-content">
                 <?php include '../../includes/welcome_banner.php'; ?>
 
-                <!-- Stats Grid -->
-                <div class="card-grid">
-                    <div class="card info-card">
-                        <h3><i class="fas fa-users" style="color:var(--secondary-color);"></i> <span
-                                data-en="Total Students" data-am="ጠቅላላ ተማሪዎች">Total Students</span></h3>
-                        <p class="big-number"><?php echo $studentCount; ?></p>
+                <!-- Stats -->
+                <div class="dash-stats">
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon blue"><i class="fas fa-user-graduate"></i></div>
+                        <div class="dash-stat-info">
+                            <h4 data-en="Total Students" data-am="ጠቅላላ ተማሪዎች">Total Students</h4>
+                            <div class="dash-stat-value"><?php echo $studentCount; ?></div>
+                        </div>
                     </div>
-                    <div class="card info-card">
-                        <h3><i class="fas fa-university" style="color:var(--secondary-color);"></i> <span
-                                data-en="Departments" data-am="የትምህርት ክፍሎች">Departments</span></h3>
-                        <p class="big-number"><?php echo $deptCount; ?></p>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon amber"><i class="fas fa-building"></i></div>
+                        <div class="dash-stat-info">
+                            <h4 data-en="Departments" data-am="የትምህርት ክፍሎች">Departments</h4>
+                            <div class="dash-stat-value"><?php echo $deptCount; ?></div>
+                        </div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        <div class="dash-stat-info">
+                            <h4 data-en="Approved" data-am="የጸደቁ">Approved</h4>
+                            <div class="dash-stat-value"><?php echo $approvedCount; ?></div>
+                        </div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon rose"><i class="fas fa-clock"></i></div>
+                        <div class="dash-stat-info">
+                            <h4 data-en="Pending" data-am="በመጠባበቅ">Pending</h4>
+                            <div class="dash-stat-value"><?php echo $pendingCount; ?></div>
+                        </div>
                     </div>
                 </div>
-                <!-- Bottom Content Grid -->
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
-                    
-                    <!-- Left Column: Recent Registrations -->
-                    <div class="card">
-                        <h3 data-en="Recent Registrations" data-am="በቅርቡ የተመዘገቡ">Recent Registrations</h3>
+
+                <!-- Content Grid -->
+                <div class="dash-content-grid">
+                    <!-- Left: Recent Registrations -->
+                    <div class="dash-section">
+                        <h3 class="dash-section-title"><i class="fas fa-list-alt"></i> <span data-en="Recent Registrations" data-am="በቅርቡ የተመዘገቡ">Recent Registrations</span></h3>
                         <?php if (empty($recentStudents)): ?>
                             <p data-en="No students found." data-am="ተማሪዎች አልተገኙም">No students found.</p>
                         <?php else: ?>
                             <table class="table-list">
                                 <thead>
                                     <tr>
-                                        <th data-en="ID" data-am="መለያ ቁጥር">ID</th>
+                                        <th data-en="ID" data-am="መለያ">ID</th>
                                         <th data-en="Name" data-am="ስም">Name</th>
                                         <th data-en="Dept" data-am="ክፍል">Dept</th>
-                                        <th data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</th>
+                                        <th data-en="Year" data-am="ዓመት">Year</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -95,63 +113,53 @@ require_once '../../includes/academic_translations.php';
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
-                            <div style="margin-top: 15px; text-align: right;">
-                                <a href="view_student_list.php" class="btn-sm" data-en="View All" data-am="ሁሉንም ይመልከቱ"
-                                    style="color: #ffffff; padding: 15px; background-color: #000000; font-size: 1.2em;">View
-                                    All</a>
-                            </div>
+                            <a href="view_student_list.php" class="dash-view-all" data-en="View All Students" data-am="ሁሉንም ተማሪዎች ይመልከቱ">
+                                <i class="fas fa-arrow-right"></i> View All Students
+                            </a>
                         <?php endif; ?>
                     </div>
 
-                    <!-- Right Column: Cost Share Summary & Quick Actions -->
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        
+                    <!-- Right Column -->
+                    <div style="display:flex; flex-direction:column; gap:20px;">
                         <!-- Cost Share Summary -->
-                        <div class="card">
-                            <h3 data-en="Cost Share Summary" data-am="የወጪ መጋራት ማጠቃለያ">Cost Share Summary</h3>
-                            <p style="font-size: 1.1em; margin: 10px 0;">
-                                <strong data-en="Total Cost Share Amount:" data-am="ጠቅላላ የወጪ መጋራት መጠን:">Total Cost Share Amount:</strong>
-                                <span style="font-size: 1.3em; color: var(--primary-color); font-weight: bold;">
-                                    <?php echo number_format($totalCostShare, 2); ?> <span data-en="ETB" data-am="ብር">ETB</span>
-                                </span>
-                            </p>
-                        </div>
-                        
-                        <!-- Quick Actions -->
-                        <div class="card" style="flex: 1;">
-                            <h3 data-en="Quick Actions" data-am="ፈጣን ተግባራት">Quick Actions</h3>
-                            <div class="action-buttons" style="display: flex; flex-direction: column; gap: 10px;">
-                                <a href="add_student.php" class="btn-primary"
-                                    style="text-align: center; width:80%; height: 30%;">
-                                    <i class="fas fa-plus"></i> <span data-en="Add New Student" data-am="አዲስ ተማሪ ጨምር">Add
-                                        New Student</span>
-                                </a>
-                                <a href="approve_cost_share.php" class="btn-secondary"
-                                    style="text-align: center; width: 80%; height: 30%;">
-                                    <i class="fas fa-check-circle"></i> <span data-en="Approve Agreements"
-                                        data-am="ውሎችን አጽድቅ">Approve Agreements</span>
-                                </a>
-                                <a href="report_cost_share.php" class="btn-secondary"
-                                    style="text-align: center; width: 80%; height: 30%;">
-                                    <i class="fas fa-chart-line"></i> <span data-en="Generate Reports"
-                                        data-am="ሪፖርቶችን አውጣ">Generate Reports</span>
-                                </a>
-                                <a href="order.php" class="btn-secondary"
-                                    style="text-align: center; width: 80%; height: 30%;">
-                                    <i class="fas fa-user-shield"></i> <span data-en="Manage Orders"
-                                        data-am="ትዕዛዞችን አስተዳድር">Manage Orders</span>
-                                </a>
+                        <div class="dash-section">
+                            <h3 class="dash-section-title"><i class="fas fa-coins"></i> <span data-en="Cost Share Summary" data-am="የወጪ መጋራት ማጠቃለያ">Cost Share Summary</span></h3>
+                            <div class="dash-amount-display">
+                                <div class="amount-label" data-en="Total Amount" data-am="ጠቅላላ መጠን">Total Amount</div>
+                                <div class="amount-value"><?php echo number_format($totalCostShare, 2); ?> <span class="amount-currency" data-en="ETB" data-am="ብር">ETB</span></div>
                             </div>
                         </div>
 
+                        <!-- Quick Actions -->
+                        <div class="dash-section">
+                            <h3 class="dash-section-title"><i class="fas fa-bolt"></i> <span data-en="Quick Actions" data-am="ፈጣን ተግባራት">Quick Actions</span></h3>
+                            <div class="dash-actions">
+                                <a href="add_student.php" class="dash-action-link">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span data-en="Add New Student" data-am="አዲስ ተማሪ ጨምር">Add New Student</span>
+                                </a>
+                                <a href="approve_cost_share.php" class="dash-action-link">
+                                    <i class="fas fa-check-double"></i>
+                                    <span data-en="Approve Agreements" data-am="ውሎችን አጽድቅ">Approve Agreements</span>
+                                </a>
+                                <a href="report_cost_share.php" class="dash-action-link">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span data-en="Generate Reports" data-am="ሪፖርቶችን አውጣ">Generate Reports</span>
+                                </a>
+                                <a href="order.php" class="dash-action-link">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <span data-en="Manage Orders" data-am="ትዕዛዞችን አስተዳድር">Manage Orders</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-            </div> <!-- Closes main-content -->
-        </div> <!-- Closes layout-body -->
+            </div>
+        </div>
         
         <?php include '../../includes/footer.php'; ?>
-    </div> <!-- Closes dashboard-container -->
+    </div>
     <script src="../../assets/js/bilingual.js"></script>
 </body>
 
