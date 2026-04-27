@@ -1835,4 +1835,74 @@ form[style*='display: grid']>div:last-child {
     border-color: transparent;
     box-shadow: 0 4px 14px rgba(10,0,68,0.25);
     transform: translateY(-1px);
+}
+
+/* =========================================
+   ULTRA-PREMIUM DASHBOARD ADDITIONS
+   ========================================= */
+
+/* Stat card subtle background decoration */
+.dash-stat-card::before {
+    content: '';
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.04;
+    transition: all 0.4s ease;
+}
+.dash-stat-card:nth-child(1)::before { background: #3b82f6; }
+.dash-stat-card:nth-child(2)::before { background: #f59e0b; }
+.dash-stat-card:nth-child(3)::before { background: #10b981; }
+.dash-stat-card:nth-child(4)::before { background: #e11d48; }
+.dash-stat-card:hover::before { opacity: 0.08; transform: scale(1.5); }
+
+/* Premium table inside dash-section */
+.dash-section .table-list { border-collapse: separate; border-spacing: 0; width: 100%; }
+.dash-section .table-list thead th {
+    background: #f8fafc; color: #64748b;
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 10px 14px; border-bottom: 2px solid #e2e8f0;
+}
+.dash-section .table-list tbody td {
+    padding: 12px 14px; font-size: 0.85rem;
+    color: #334155; border-bottom: 1px solid #f1f5f9;
+}
+.dash-section .table-list tbody tr { transition: all 0.2s ease; }
+.dash-section .table-list tbody tr:hover { background: #faf5ff; }
+.dash-section .table-list tbody tr:last-child td { border-bottom: none; }
+
+/* Amount shimmer effect */
+.dash-amount-display { position: relative; overflow: hidden; }
+.dash-amount-display::before {
+    content: ''; position: absolute;
+    top: 0; left: -100%; width: 200%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: amountShimmer 4s infinite;
+}
+@keyframes amountShimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Right column helper */
+.dash-right-col { display: flex; flex-direction: column; gap: 20px; }
+
+/* Stat number fadeInUp */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.dash-stat-value { animation: fadeInUp 0.5s ease forwards; }
+.dash-stat-card:nth-child(2) .dash-stat-value { animation-delay: 0.1s; }
+.dash-stat-card:nth-child(3) .dash-stat-value { animation-delay: 0.2s; }
+.dash-stat-card:nth-child(4) .dash-stat-value { animation-delay: 0.3s; }
+
+/* Action badge */
+.dash-action-badge {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    color: #fff; font-size: 0.68rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+    margin-left: auto; min-width: 20px; text-align: center;
 }

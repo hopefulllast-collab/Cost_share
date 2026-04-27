@@ -95,10 +95,6 @@ $stAm = ($st === 'active' || $st === 'Active') ? 'ንቁ' : $st;
                     <div class="dash-section">
                         <h3 class="dash-section-title"><i class="fas fa-bolt"></i> <span data-en="Quick Actions" data-am="ፈጣን ተግባራት">Quick Actions</span></h3>
                         <div class="dash-actions">
-                            <a href="agreement_form.php" class="dash-action-link">
-                                <i class="fas fa-file-signature"></i>
-                                <span data-en="Sign Agreement" data-am="ውል ይፈርሙ">Sign Agreement</span>
-                            </a>
                             <a href="fill_cost_share.php" class="dash-action-link">
                                 <i class="fas fa-edit"></i>
                                 <span data-en="Fill Cost Share" data-am="የወጪ መጋራት ይሙሉ">Fill Cost Share</span>
