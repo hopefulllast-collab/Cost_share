@@ -1,7 +1,7 @@
 <?php
 require_once '../../includes/auth_check.php';
 require_once '../../config/db_connect.php';
-checkAuth(['cost_sharing']);
+checkAuth(['cost_sharing_pro']);
 require_once '../../includes/academic_translations.php';
 
 // Fetch Expense Settings
