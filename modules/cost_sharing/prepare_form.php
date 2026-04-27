@@ -49,48 +49,53 @@ $msg = $_SESSION["flash_success"] ?? ""; unset($_SESSION["flash_success"]);
         .preview-banner { background:linear-gradient(135deg,#0a0044,#3730a3); color:#fff; padding:18px 24px; border-radius:12px; margin-bottom:24px; display:flex; align-items:center; gap:14px; }
         .preview-banner i { font-size:1.5rem; }
         @media print { .no-print { display:none !important; } .paper-form { box-shadow:none; border:none; } }
-        <?php if (isset($_GET['embed'])): ?>
-        .dashboard-container, .layout-body, .main-content { all:unset !important; display:block !important; }
-        .main-content { padding:20px !important; background:#f8fafc !important; min-height:100vh; }
-        <?php endif; ?>
     </style>
 </head>
 <body>
+<?php if (isset($_GET['embed'])): ?>
+    <div style="padding:20px; background:#f8fafc; min-height:100vh;">
+        <div class="preview-banner no-print">
+            <i class="fas fa-eye"></i>
+            <div>
+                <strong data-en="Form Preview Mode" data-am="ቅጽ ቅድመ-እይታ">Form Preview Mode</strong>
+                <p style="margin:4px 0 0; font-size:0.85em; opacity:0.85;">Yellow fields are editable by students.</p>
+            </div>
+            <div style="margin-left:auto;">
+                <button onclick="window.print()" class="btn-primary" style="background:#fff; color:#1e1b4b; padding:8px 18px; border-radius:8px; font-size:0.85em;">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+<?php else: ?>
     <div class="dashboard-container">
-        <?php if (!isset($_GET['embed'])): ?>
         <?php include '../../includes/main_header.php'; ?>
         <div class="layout-body">
             <?php include '../../includes/sidebar.php'; ?>
-        <?php endif; ?>
             <div class="main-content">
-
-                <!-- Preview Banner -->
                 <div class="preview-banner no-print">
                     <i class="fas fa-eye"></i>
                     <div>
                         <strong data-en="Form Preview Mode" data-am="ቅጽ ቅድመ-እይታ">Form Preview Mode</strong>
-                        <p style="margin:4px 0 0; font-size:0.85em; opacity:0.85;" data-en="This is how the student's Cost Share Agreement form looks. Yellow fields are editable by students." data-am="የተማሪው የወጪ መጋራት ስምምነት ቅጽ ይህን ይመስላል። ቢጫ ማሳያዎች ተማሪዎች የሚሞሏቸው ናቸው።">
-                            This is how the student's Cost Share Agreement form looks. Yellow fields are editable by students.
-                        </p>
+                        <p style="margin:4px 0 0; font-size:0.85em; opacity:0.85;">Yellow fields are editable by students.</p>
                     </div>
                     <div style="margin-left:auto; display:flex; gap:10px;">
                         <button onclick="window.print()" class="btn-primary" style="background:#fff; color:#1e1b4b; padding:8px 18px; border-radius:8px; font-size:0.85em;">
-                            <i class="fas fa-print"></i> <span data-en="Print" data-am="አትም">Print</span>
+                            <i class="fas fa-print"></i> Print
                         </button>
                         <a href="manage_tuition_rates.php" class="btn-primary" style="background:rgba(255,255,255,0.15); color:#fff; padding:8px 18px; border-radius:8px; font-size:0.85em; text-decoration:none;">
-                            <i class="fas fa-arrow-left"></i> <span data-en="Back" data-am="ተመለስ">Back</span>
+                            <i class="fas fa-arrow-left"></i> Back
                         </a>
                     </div>
                 </div>
+<?php endif; ?>
 
-                <!-- The Form -->
                 <div class="paper-form">
                     <div class="header-section">
-                        <h3 data-en="FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA" data-am="የኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ">FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA</h3>
-                        <h4 data-en="MINISTRY OF EDUCATION" data-am="ትምህርት ሚኒስቴር">MINISTRY OF EDUCATION</h4>
-                        <h3 data-en="HIGHER EDUCATION COST SHARING REGULATION" data-am="የከፍተኛ ትምህርት የወጪ መጋራት ደንብ">HIGHER EDUCATION COST SHARING REGULATION</h3>
-                        <h4 data-en="Council of Ministers Regulation No. 154/2008" data-am="የሚኒስትሮች ምክር ቤት ደንብ ቁጥር 154/2008">Council of Ministers Regulation No. 154/2008</h4>
-                        <h2 data-en="BENEFICIARIES AGREEMENT FORM" data-am="የተጠቃሚዎች የውል ፎርም">BENEFICIARIES AGREEMENT FORM</h2>
+                        <h3>FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA</h3>
+                        <h4>MINISTRY OF EDUCATION</h4>
+                        <h3>HIGHER EDUCATION COST SHARING REGULATION</h3>
+                        <h4>Council of Ministers Regulation No. 154/2008</h4>
+                        <h2>BENEFICIARIES AGREEMENT FORM</h2>
                     </div>
 
                     <!-- 1. Identity -->
@@ -278,11 +283,14 @@ $msg = $_SESSION["flash_success"] ?? ""; unset($_SESSION["flash_success"]);
                     </div>
                 </div>
             </div>
-        <?php if (!isset($_GET['embed'])): ?>
+<?php if (isset($_GET['embed'])): ?>
+    </div>
+<?php else: ?>
+            </div>
         </div>
         <?php include '../../includes/footer.php'; ?>
-        <?php endif; ?>
     </div>
+<?php endif; ?>
 
     <script>
         const rates = <?php echo $rates_json; ?>;
