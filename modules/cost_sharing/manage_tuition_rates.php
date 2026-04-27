@@ -810,40 +810,37 @@ if ($sel_dept > 0 && $sel_batch > 0 && $sel_semester > 0) {
         if (document.getElementById('deptSelect').value) loadBatches();
     </script>
     <script src="../../assets/js/bilingual.js"></script>
-</body>
 
     <!-- Form Preview Modal -->
-    <div id="formPreviewModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
-        <div style="position:relative; width:92%; max-width:1100px; height:90vh; margin:5vh auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:modalIn 0.3s ease;">
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 22px; background:linear-gradient(135deg,#0a0044,#3730a3); color:#fff;">
+    <div id="formPreviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; background:rgba(0,0,0,0.65); backdrop-filter:blur(5px);">
+        <div style="position:absolute; top:2%; left:2%; width:96%; height:96%; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 25px 80px rgba(0,0,0,0.4); animation:modalIn 0.3s ease; display:flex; flex-direction:column;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 22px; background:linear-gradient(135deg,#0a0044,#3730a3); color:#fff; flex-shrink:0;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <i class="fas fa-file-invoice" style="font-size:1.2rem;"></i>
-                    <strong data-en="Cost Share Form Preview" data-am="የወጪ መጋራት ቅጽ ቅድመ-እይታ">Cost Share Form Preview</strong>
+                    <strong>Cost Share Form Preview</strong>
                 </div>
-                <button onclick="closeFormPreview()" style="background:rgba(255,255,255,0.15); border:none; color:#fff; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                <button onclick="closeFormPreview()" style="background:rgba(255,255,255,0.15); border:none; color:#fff; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <iframe id="formPreviewIframe" src="" style="width:100%; height:calc(100% - 56px); border:none;"></iframe>
+            <iframe id="formPreviewIframe" src="" style="flex:1; width:100%; border:none;"></iframe>
         </div>
     </div>
-    <style>
-        @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
-    </style>
+    <style>@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}</style>
     <script>
-        function openFormPreview() {
-            document.getElementById('formPreviewIframe').src = 'prepare_form.php?embed=1';
-            document.getElementById('formPreviewModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
+        function openFormPreview(){
+            document.getElementById('formPreviewIframe').src='prepare_form.php?embed=1';
+            document.getElementById('formPreviewModal').style.display='block';
+            document.body.style.overflow='hidden';
         }
-        function closeFormPreview() {
-            document.getElementById('formPreviewModal').style.display = 'none';
-            document.getElementById('formPreviewIframe').src = '';
-            document.body.style.overflow = '';
+        function closeFormPreview(){
+            document.getElementById('formPreviewModal').style.display='none';
+            document.getElementById('formPreviewIframe').src='';
+            document.body.style.overflow='';
         }
-        document.getElementById('formPreviewModal').addEventListener('click', function(e) {
-            if (e.target === this) closeFormPreview();
+        document.getElementById('formPreviewModal').addEventListener('click',function(e){
+            if(e.target===this) closeFormPreview();
         });
     </script>
-
+</body>
 </html>
