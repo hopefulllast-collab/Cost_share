@@ -12,12 +12,7 @@ $deptCount = $pdo->query("SELECT COUNT(*) FROM departments")->fetchColumn();
 $pendingCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status = 'Pending'")->fetchColumn();
 $approvedCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status = 'Approved'")->fetchColumn();
 $deliveredCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE status = 'Delivered'")->fetchColumn();
-
-// Recent Students (Last 5)
-$recentStudents = $pdo->query("SELECT s.student_id, s.first_name, s.last_name, d.name as dept_name, s.batch 
-                               FROM students s 
-                               JOIN departments d ON s.department_id = d.id 
-                               ORDER BY s.id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+$activeAgreements = $pdo->query("SELECT COUNT(*) FROM cost_sharing_agreements WHERE status NOT IN ('Suspended','Draft')")->fetchColumn();
 
 require_once '../../includes/academic_translations.php';
 ?>
@@ -73,119 +68,59 @@ require_once '../../includes/academic_translations.php';
                     </div>
                 </div>
 
-                <!-- Content Grid -->
-                <div class="dash-content-grid">
-
-                    <!-- Left: Recent Registrations -->
-                    <div class="dash-section">
-                        <h3 class="dash-section-title">
-                            <i class="fas fa-clipboard-list"></i>
-                            <span data-en="Recent Registrations" data-am="በቅርቡ የተመዘገቡ">Recent Registrations</span>
-                        </h3>
-                        <?php if (empty($recentStudents)): ?>
-                            <div style="text-align:center; padding:40px; color:#94a3b8;">
-                                <i class="fas fa-inbox" style="font-size:2.5rem; margin-bottom:12px; display:block; color:#cbd5e1;"></i>
-                                <p data-en="No students registered yet." data-am="ገና ምንም ተማሪ አልተመዘገበም።">No students registered yet.</p>
+                <!-- Cost Share Summary — Full Width Premium -->
+                <div class="dash-section" style="margin-bottom:22px;">
+                    <h3 class="dash-section-title">
+                        <i class="fas fa-coins"></i>
+                        <span data-en="Cost Share Summary" data-am="የወጪ መጋራት ማጠቃለያ">Cost Share Summary</span>
+                    </h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; align-items:stretch;">
+                        <!-- Main Amount -->
+                        <div class="dash-amount-display" style="grid-column:1/2;">
+                            <div class="amount-label" data-en="Total Cost Share" data-am="ጠቅላላ የወጪ መጋራት">Total Cost Share</div>
+                            <div class="amount-value"><?php echo number_format($totalCostShare, 2); ?> <span class="amount-currency" data-en="ETB" data-am="ብር">ETB</span></div>
+                        </div>
+                        <!-- Active Agreements -->
+                        <div style="text-align:center; padding:20px 16px; background:linear-gradient(135deg, #eef2ff, #e0e7ff); border-radius:14px; display:flex; flex-direction:column; justify-content:center;">
+                            <div style="font-size:0.7rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.06em;" data-en="Active Agreements" data-am="ንቁ ውሎች">Active Agreements</div>
+                            <div style="font-size:1.8rem; font-weight:800; color:#4338ca; margin-top:4px;"><?php echo $activeAgreements; ?></div>
+                        </div>
+                        <!-- Delivered / Pending Split -->
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div style="flex:1; text-align:center; padding:14px; background:linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius:12px; display:flex; flex-direction:column; justify-content:center;">
+                                <div style="font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.05em;" data-en="Delivered" data-am="የተሰጡ">Delivered</div>
+                                <div style="font-size:1.3rem; font-weight:800; color:#16a34a; margin-top:2px;"><?php echo $deliveredCount; ?></div>
                             </div>
-                        <?php else: ?>
-                            <table class="table-list">
-                                <thead>
-                                    <tr>
-                                        <th data-en="ID" data-am="መለያ">ID</th>
-                                        <th data-en="Name" data-am="ስም">Name</th>
-                                        <th data-en="Department" data-am="ክፍል">Department</th>
-                                        <th data-en="Year" data-am="ዓመት">Year</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($recentStudents as $stu): ?>
-                                        <tr>
-                                            <td style="font-weight:600; color:#6366f1;"><?php echo htmlspecialchars($stu['student_id']); ?></td>
-                                            <td>
-                                                <div style="display:flex; align-items:center; gap:8px;">
-                                                    <div style="width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#e0e7ff,#c7d2fe); display:flex; align-items:center; justify-content:center; font-size:0.65rem; color:#4338ca; font-weight:700;">
-                                                        <?php echo strtoupper(substr($stu['first_name'],0,1) . substr($stu['last_name'],0,1)); ?>
-                                                    </div>
-                                                    <?php echo htmlspecialchars($stu['first_name'] . ' ' . $stu['last_name']); ?>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                $dept_en = $stu['dept_name'];
-                                                $dept_am = $academic_translations[$dept_en] ?? $dept_en;
-                                                ?>
-                                                <span data-en="<?php echo htmlspecialchars($dept_en); ?>"
-                                                    data-am="<?php echo htmlspecialchars($dept_am); ?>">
-                                                    <?php echo htmlspecialchars($dept_en); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span style="background:#f0fdf4; color:#16a34a; padding:2px 10px; border-radius:8px; font-size:0.78rem; font-weight:700;">
-                                                    <?php echo htmlspecialchars($stu['batch']); ?>
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                            <a href="view_student_list.php" class="dash-view-all" data-en="View All Students" data-am="ሁሉንም ተማሪዎች ይመልከቱ">
-                                View All Students <i class="fas fa-arrow-right"></i>
-                            </a>
-                        <?php endif; ?>
+                            <div style="flex:1; text-align:center; padding:14px; background:linear-gradient(135deg, #fffbeb, #fef3c7); border-radius:12px; display:flex; flex-direction:column; justify-content:center;">
+                                <div style="font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.05em;" data-en="Pending" data-am="በመጠባበቅ">Pending</div>
+                                <div style="font-size:1.3rem; font-weight:800; color:#d97706; margin-top:2px;"><?php echo $pendingCount; ?></div>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- Right Column -->
-                    <div class="dash-right-col">
-                        <!-- Cost Share Summary -->
-                        <div class="dash-section">
-                            <h3 class="dash-section-title">
-                                <i class="fas fa-coins"></i>
-                                <span data-en="Cost Share Summary" data-am="የወጪ መጋራት ማጠቃለያ">Cost Share Summary</span>
-                            </h3>
-                            <div class="dash-amount-display">
-                                <div class="amount-label" data-en="Total Amount" data-am="ጠቅላላ መጠን">Total Amount</div>
-                                <div class="amount-value"><?php echo number_format($totalCostShare, 2); ?> <span class="amount-currency" data-en="ETB" data-am="ብር">ETB</span></div>
-                            </div>
-                            <div style="display:flex; gap:12px; margin-top:14px;">
-                                <div style="flex:1; text-align:center; padding:10px; background:#f0fdf4; border-radius:10px;">
-                                    <div style="font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.05em;" data-en="Delivered" data-am="የተሰጡ">Delivered</div>
-                                    <div style="font-size:1.1rem; font-weight:800; color:#16a34a; margin-top:2px;"><?php echo $deliveredCount; ?></div>
-                                </div>
-                                <div style="flex:1; text-align:center; padding:10px; background:#fffbeb; border-radius:10px;">
-                                    <div style="font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.05em;" data-en="Pending" data-am="በመጠባበቅ">Pending</div>
-                                    <div style="font-size:1.1rem; font-weight:800; color:#d97706; margin-top:2px;"><?php echo $pendingCount; ?></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="dash-section">
-                            <h3 class="dash-section-title">
-                                <i class="fas fa-bolt"></i>
-                                <span data-en="Quick Actions" data-am="ፈጣን ተግባራት">Quick Actions</span>
-                            </h3>
-                            <div class="dash-actions">
-                                <a href="add_student.php" class="dash-action-link">
-                                    <i class="fas fa-user-plus"></i>
-                                    <span data-en="Add New Student" data-am="አዲስ ተማሪ ጨምር">Add New Student</span>
-                                </a>
-                                <a href="approve_cost_share.php" class="dash-action-link">
-                                    <i class="fas fa-check-double"></i>
-                                    <span data-en="Approve Agreements" data-am="ውሎችን አጽድቅ">Approve Agreements</span>
-                                    <?php if ($pendingCount > 0): ?>
-                                        <span class="dash-action-badge"><?php echo $pendingCount; ?></span>
-                                    <?php endif; ?>
-                                </a>
-                                <a href="report_cost_share.php" class="dash-action-link">
-                                    <i class="fas fa-chart-bar"></i>
-                                    <span data-en="Generate Reports" data-am="ሪፖርቶችን አውጣ">Generate Reports</span>
-                                </a>
-                                <a href="order.php" class="dash-action-link">
-                                    <i class="fas fa-clipboard-list"></i>
-                                    <span data-en="Manage Orders" data-am="ትዕዛዞችን አስተዳድር">Manage Orders</span>
-                                </a>
-                            </div>
-                        </div>
+                <!-- Quick Actions — 3-Column Grid -->
+                <div class="dash-section">
+                    <h3 class="dash-section-title">
+                        <i class="fas fa-bolt"></i>
+                        <span data-en="Quick Actions" data-am="ፈጣን ተግባራት">Quick Actions</span>
+                    </h3>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
+                        <a href="approve_cost_share.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
+                            <i class="fas fa-check-double" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
+                            <span data-en="Approve Agreements" data-am="ውሎችን አጽድቅ" style="font-size:0.82rem;">Approve Agreements</span>
+                            <?php if ($pendingCount > 0): ?>
+                                <span class="dash-action-badge"><?php echo $pendingCount; ?></span>
+                            <?php endif; ?>
+                        </a>
+                        <a href="report_cost_share.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
+                            <i class="fas fa-chart-bar" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
+                            <span data-en="Generate Reports" data-am="ሪፖርቶችን አውጣ" style="font-size:0.82rem;">Generate Reports</span>
+                        </a>
+                        <a href="order.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
+                            <i class="fas fa-clipboard-list" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
+                            <span data-en="Manage Orders" data-am="ትዕዛዞችን አስተዳድር" style="font-size:0.82rem;">Manage Orders</span>
+                        </a>
                     </div>
                 </div>
 

@@ -1905,4 +1905,21 @@ form[style*='display: grid']>div:last-child {
     color: #fff; font-size: 0.68rem; font-weight: 700;
     padding: 2px 8px; border-radius: 10px;
     margin-left: auto; min-width: 20px; text-align: center;
+}
+
+/* Vertical action link badge centering */
+.dash-action-link[style*="flex-direction:column"] .dash-action-badge {
+    margin-left: 0;
+    position: absolute;
+    top: 8px; right: 8px;
+}
+
+/* Responsive for 3-col grids */
+@media (max-width: 768px) {
+    .dash-section [style*="grid-template-columns:repeat(3"] {
+        grid-template-columns: 1fr !important;
+    }
+    .dash-section [style*="grid-template-columns:1fr 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
 }
