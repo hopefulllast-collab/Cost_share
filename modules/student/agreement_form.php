@@ -113,6 +113,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_agreement'])) {
         $remedial_year = $_POST['remedial_year'] ?? null;
         $payment_mode = $_POST['payment_mode'] ?? null;
 
+        // Server-side validation: Both Food and Boarding must be assigned
+        $inkind_arr = isset($_POST['service_inkind']) ? $_POST['service_inkind'] : [];
+        $cash_arr = isset($_POST['service_cash']) ? $_POST['service_cash'] : [];
+        $food_ok = in_array('Food', $inkind_arr) || in_array('Food', $cash_arr);
+        $boarding_ok = in_array('Boarding', $inkind_arr) || in_array('Boarding', $cash_arr);
+        if (!$food_ok || !$boarding_ok) {
+            $error = "<span data-en='You must assign both Food and Boarding services (each to either In-kind or In Cash).' data-am='ምግብ እና መኝታ ሁለቱንም አገልግሎቶች መመደብ አለብዎት (እያንዳንዱን በዓይነት ወይም በገንዘብ)።'>You must assign both Food and Boarding services.</span>";
+        }
+
+        if (empty($error)) {
         try {
             $pdo->beginTransaction();
 
@@ -160,6 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_agreement'])) {
             $pdo->rollBack();
             $error = "Error: " . $e->getMessage();
         }
+        } // end if(empty($error))
     }
 }
 
@@ -748,7 +759,8 @@ if (isset($_SESSION['agreement_success'])) {
 
                             <button type="submit" name="submit_agreement" class="btn-primary w-full"
                                 style="margin-top: 30px; color: #ffffff; padding: 15px; background-color: #000000; font-size: 1.2em;"
-                                data-en="Sign Agreement" data-am="ስምምነት ይፈርሙ">Sign Agreement</button>
+                                data-en="Sign Agreement" data-am="ስምምነት ይፈርሙ"
+                                onclick="return validateServicesOnSubmit()">Sign Agreement</button>
                         </div>
                     </form>
                 <?php endif; ?>
@@ -875,9 +887,42 @@ if (isset($_SESSION['agreement_success'])) {
             }
         }
 
+        // Submit validation: Both Food and Boarding must be assigned
+        function validateServicesOnSubmit() {
+            const kindFood = document.querySelector('.service-check[data-type="kind"][data-service="food"]');
+            const kindBoarding = document.querySelector('.service-check[data-type="kind"][data-service="boarding"]');
+            const cashFood = document.querySelector('.service-check[data-type="cash"][data-service="food"]');
+            const cashBoarding = document.querySelector('.service-check[data-type="cash"][data-service="boarding"]');
+
+            const foodAssigned = (kindFood && kindFood.checked) || (cashFood && cashFood.checked);
+            const boardingAssigned = (kindBoarding && kindBoarding.checked) || (cashBoarding && cashBoarding.checked);
+
+            if (!foodAssigned && !boardingAssigned) {
+                const msg = localStorage.getItem('dmu_lang') === 'am'
+                    ? 'ምግብ እና መኝታ ሁለቱንም አገልግሎቶች መመደብ አለብዎት (እያንዳንዱን በዓይነት ወይም በገንዘብ)።'
+                    : 'You must assign both Food and Boarding services (each to In-kind or In Cash).';
+                showValidationMsg(msg);
+                return false;
+            }
+            if (!foodAssigned) {
+                const msg = localStorage.getItem('dmu_lang') === 'am'
+                    ? 'ምግብ አገልግሎትን በዓይነት ወይም በገንዘብ መመደብ አለብዎት።'
+                    : 'You must assign Food service to either In-kind or In Cash.';
+                showValidationMsg(msg);
+                return false;
+            }
+            if (!boardingAssigned) {
+                const msg = localStorage.getItem('dmu_lang') === 'am'
+                    ? 'መኝታ አገልግሎትን በዓይነት ወይም በገንዘብ መመደብ አለብዎት።'
+                    : 'You must assign Boarding service to either In-kind or In Cash.';
+                showValidationMsg(msg);
+                return false;
+            }
+            return true;
+        }
+
         // Init calc
         window.onload = function () {
-            // updateOptions(); // No longer needed as we use read-only inputs
             calculateTuition();
         };
     </script>
