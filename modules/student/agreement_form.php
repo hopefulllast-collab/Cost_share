@@ -65,6 +65,17 @@ if ($std_info['adjusted_credit_hours']) {
 }
 $special_json = json_encode($special_credits);
 
+// Fetch most recent previous agreement for auto-fill (Birth, Mother, School)
+$prev_stmt = $pdo->prepare("SELECT date_of_birth, pob_region, pob_zone, pob_wereda, pob_town, pob_kebele, pob_house, pob_pobox,
+                                   mother_firstname, mother_middlename, mother_lastname, mom_region, mom_zone, mom_wereda, mom_town,
+                                   prep_school, prep_completed_date
+                            FROM cost_sharing_agreements 
+                            WHERE student_id = ? 
+                            ORDER BY id DESC LIMIT 1");
+$prev_stmt->execute([$user_id]);
+$prev = $prev_stmt->fetch(PDO::FETCH_ASSOC);
+if (!$prev) $prev = [];
+
 // PRG: Read flash messages from session
 $msg = $_SESSION["flash_success"] ?? "";
 unset($_SESSION["flash_success"]);
@@ -438,80 +449,84 @@ if (isset($_SESSION['agreement_success'])) {
                             <!-- 3. Birth -->
                             <div class="form-row">
                                 <label data-en="3. Date of Birth:" data-am="3. የትውልድ ዘመን:">3. Date of Birth:</label>
-                                <input type="date" name="withdrawal_date" class="inline-input">
+                                <input type="date" name="withdrawal_date" class="inline-input" value="<?php echo htmlspecialchars($prev['date_of_birth'] ?? ''); ?>">
                             </div>
 
                             <div class="form-row">
                                 <label data-en="Place of Birth:" data-am="የትውልድ ቦታ:">Place of Birth:</label>
 
                                 <span data-en="Region:" data-am="ክልል:">Region:</span>
+                                <?php $pr = $prev['pob_region'] ?? ''; ?>
                                 <select name="pob_region" class="inline-input">
-                                    <option data-en="Amhara" data-am="አማራ">Amhara</option>
-                                    <option data-en="Oromia" data-am="ኦሮሚያ">Oromia</option>
-                                    <option data-en="Addis Ababa" data-am="አዲስ አበባ">Addis Ababa</option>
-                                    <option data-en="Tigray" data-am="ትግራይ">Tigray</option>
-                                    <option data-en="SNNPR" data-am="ደቡብ ክልል">SNNPR</option>
-                                    <option data-en="Sidama" data-am="ሲዳማ">Sidama</option>
-                                    <option data-en="Somali" data-am="ሶማሌ">Somali</option>
-                                    <option data-en="Afar" data-am="አፋር">Afar</option>
-                                    <option data-en="Gambela" data-am="ጋምቤላ">Gambela</option>
-                                    <option data-en="Benishangul-Gumuz" data-am="ቤኒሻንጉል-ጉሙዝ">Benishangul-Gumuz</option>
-                                    <option data-en="Harari" data-am="ሐረሪ">Harari</option>
-                                    <option data-en="Dire Dawa" data-am="ድሬዳዋ">Dire Dawa</option>
+                                    <option data-en="Amhara" data-am="አማራ" <?php if($pr=='Amhara') echo 'selected'; ?>>Amhara</option>
+                                    <option data-en="Oromia" data-am="ኦሮሚያ" <?php if($pr=='Oromia') echo 'selected'; ?>>Oromia</option>
+                                    <option data-en="Addis Ababa" data-am="አዲስ አበባ" <?php if($pr=='Addis Ababa') echo 'selected'; ?>>Addis Ababa</option>
+                                    <option data-en="Tigray" data-am="ትግራይ" <?php if($pr=='Tigray') echo 'selected'; ?>>Tigray</option>
+                                    <option data-en="SNNPR" data-am="ደቡብ ክልል" <?php if($pr=='SNNPR') echo 'selected'; ?>>SNNPR</option>
+                                    <option data-en="Sidama" data-am="ሲዳማ" <?php if($pr=='Sidama') echo 'selected'; ?>>Sidama</option>
+                                    <option data-en="Somali" data-am="ሶማሌ" <?php if($pr=='Somali') echo 'selected'; ?>>Somali</option>
+                                    <option data-en="Afar" data-am="አፋር" <?php if($pr=='Afar') echo 'selected'; ?>>Afar</option>
+                                    <option data-en="Gambela" data-am="ጋምቤላ" <?php if($pr=='Gambela') echo 'selected'; ?>>Gambela</option>
+                                    <option data-en="Benishangul-Gumuz" data-am="ቤኒሻንጉል-ጉሙዝ" <?php if($pr=='Benishangul-Gumuz') echo 'selected'; ?>>Benishangul-Gumuz</option>
+                                    <option data-en="Harari" data-am="ሐረሪ" <?php if($pr=='Harari') echo 'selected'; ?>>Harari</option>
+                                    <option data-en="Dire Dawa" data-am="ድሬዳዋ" <?php if($pr=='Dire Dawa') echo 'selected'; ?>>Dire Dawa</option>
                                 </select>
 
                                 </select>
 
                                 <span data-en="Zone:" data-am="ዞን:">Zone:</span>
+                                <?php $pz = $prev['pob_zone'] ?? ''; ?>
                                 <select name="pob_zone" class="inline-input" style="min-width: 150px;">
-                                    <option data-en="Select Zone" data-am="ዞን ይምረጡ">Select Zone</option>
-                                    <option data-en="East Gojjam" data-am="ምስራቅ ጎጃም">East Gojjam</option>
-                                    <option data-en="West Gojjam" data-am="ምዕራብ ጎጃም">West Gojjam</option>
-                                    <option data-en="Awi" data-am="አዊ">Awi</option>
-                                    <option data-en="Bahir Dar" data-am="ባህር ዳር">Bahir Dar</option>
-                                    <option data-en="North Gondar" data-am="ሰሜን ጎንደር">North Gondar</option>
-                                    <option data-en="South Gondar" data-am="ደቡብ ጎንደር">South Gondar</option>
-                                    <option data-en="North Wollo" data-am="ሰሜን ወሎ">North Wollo</option>
-                                    <option data-en="South Wollo" data-am="ደቡብ ወሎ">South Wollo</option>
-                                    <option data-en="Wag Hemra" data-am="ዋግ ጀምራ">Wag Hemra</option>
-                                    <option data-en="North Shewa" data-am="ሰሜን ሸዋ">North Shewa</option>
-                                    <option data-en="Oromia Zone" data-am="ኦሮሚያ ዞን">Oromia Zone</option>
-                                    <option data-en="Other" data-am="ሌላ">Other</option>
+                                    <option data-en="Select Zone" data-am="ዞን ይምረጡ" <?php if(!$pz) echo 'selected'; ?>>Select Zone</option>
+                                    <option data-en="East Gojjam" data-am="ምስራቅ ጎጃም" <?php if($pz=='East Gojjam') echo 'selected'; ?>>East Gojjam</option>
+                                    <option data-en="West Gojjam" data-am="ምዕራብ ጎጃም" <?php if($pz=='West Gojjam') echo 'selected'; ?>>West Gojjam</option>
+                                    <option data-en="Awi" data-am="አዊ" <?php if($pz=='Awi') echo 'selected'; ?>>Awi</option>
+                                    <option data-en="Bahir Dar" data-am="ባህር ዳር" <?php if($pz=='Bahir Dar') echo 'selected'; ?>>Bahir Dar</option>
+                                    <option data-en="North Gondar" data-am="ሰሜን ጎንደር" <?php if($pz=='North Gondar') echo 'selected'; ?>>North Gondar</option>
+                                    <option data-en="South Gondar" data-am="ደቡብ ጎንደር" <?php if($pz=='South Gondar') echo 'selected'; ?>>South Gondar</option>
+                                    <option data-en="North Wollo" data-am="ሰሜን ወሎ" <?php if($pz=='North Wollo') echo 'selected'; ?>>North Wollo</option>
+                                    <option data-en="South Wollo" data-am="ደቡብ ወሎ" <?php if($pz=='South Wollo') echo 'selected'; ?>>South Wollo</option>
+                                    <option data-en="Wag Hemra" data-am="ዋግ ጀምራ" <?php if($pz=='Wag Hemra') echo 'selected'; ?>>Wag Hemra</option>
+                                    <option data-en="North Shewa" data-am="ሰሜን ሸዋ" <?php if($pz=='North Shewa') echo 'selected'; ?>>North Shewa</option>
+                                    <option data-en="Oromia Zone" data-am="ኦሮሚያ ዞን" <?php if($pz=='Oromia Zone') echo 'selected'; ?>>Oromia Zone</option>
+                                    <option data-en="Other" data-am="ሌላ" <?php if($pz=='Other') echo 'selected'; ?>>Other</option>
                                 </select>
                             </div>
                             <div class="form-row">
                                 <span data-en="Woreda:" data-am="ወረዳ:">Woreda:</span>
+                                <?php $pw = $prev['pob_wereda'] ?? ''; ?>
                                 <select name="pob_wereda" class="inline-input" style="min-width: 150px;">
-                                    <option data-en="Select Woreda" data-am="ወረዳ ይምረጡ">Select Woreda</option>
-                                    <option data-en="Debre Markos" data-am="ደብረ ማርቆስ">Debre Markos</option>
-                                    <option data-en="Gozamin" data-am="ጎዛምን">Gozamin</option>
-                                    <option data-en="Machakel" data-am="ማቻከል">Machakel</option>
-                                    <option data-en="Sinan" data-am="ሲናን">Sinan</option>
-                                    <option data-en="Baso Liben" data-am="ባሶ ሊበን">Baso Liben</option>
-                                    <option data-en="Other" data-am="ሌላ">Other</option>
+                                    <option data-en="Select Woreda" data-am="ወረዳ ይምረጡ" <?php if(!$pw) echo 'selected'; ?>>Select Woreda</option>
+                                    <option data-en="Debre Markos" data-am="ደብረ ማርቆስ" <?php if($pw=='Debre Markos') echo 'selected'; ?>>Debre Markos</option>
+                                    <option data-en="Gozamin" data-am="ጎዛምን" <?php if($pw=='Gozamin') echo 'selected'; ?>>Gozamin</option>
+                                    <option data-en="Machakel" data-am="ማቻከል" <?php if($pw=='Machakel') echo 'selected'; ?>>Machakel</option>
+                                    <option data-en="Sinan" data-am="ሲናን" <?php if($pw=='Sinan') echo 'selected'; ?>>Sinan</option>
+                                    <option data-en="Baso Liben" data-am="ባሶ ሊበን" <?php if($pw=='Baso Liben') echo 'selected'; ?>>Baso Liben</option>
+                                    <option data-en="Other" data-am="ሌላ" <?php if($pw=='Other') echo 'selected'; ?>>Other</option>
                                 </select>
 
                                 </select>
 
                                 <span data-en="Town:" data-am="ከተማ:">Town:</span>
+                                <?php $pt = $prev['pob_town'] ?? ''; ?>
                                 <select name="pob_town" class="inline-input" style="min-width: 150px;">
-                                    <option data-en="Select Town" data-am="ከተማ ይምረጡ">Select Town</option>
-                                    <option data-en="Debre Markos" data-am="ደብረ ማርቆስ">Debre Markos</option>
-                                    <option data-en="Bahir Dar" data-am="ባህር ዳር">Bahir Dar</option>
-                                    <option data-en="Gondar" data-am="ጎንደር">Gondar</option>
-                                    <option data-en="Addis Ababa" data-am="አዲስ አበባ">Addis Ababa</option>
-                                    <option data-en="Other" data-am="ሌላ">Other</option>
+                                    <option data-en="Select Town" data-am="ከተማ ይምረጡ" <?php if(!$pt) echo 'selected'; ?>>Select Town</option>
+                                    <option data-en="Debre Markos" data-am="ደብረ ማርቆስ" <?php if($pt=='Debre Markos') echo 'selected'; ?>>Debre Markos</option>
+                                    <option data-en="Bahir Dar" data-am="ባህር ዳር" <?php if($pt=='Bahir Dar') echo 'selected'; ?>>Bahir Dar</option>
+                                    <option data-en="Gondar" data-am="ጎንደር" <?php if($pt=='Gondar') echo 'selected'; ?>>Gondar</option>
+                                    <option data-en="Addis Ababa" data-am="አዲስ አበባ" <?php if($pt=='Addis Ababa') echo 'selected'; ?>>Addis Ababa</option>
+                                    <option data-en="Other" data-am="ሌላ" <?php if($pt=='Other') echo 'selected'; ?>>Other</option>
                                 </select>
                             </div>
                             <div class="form-row">
                                 <span data-en="Kebele" data-am="ቀበሌ">Kebele</span> <input type="text" name="pob_kebele"
-                                    class="inline-input" size="5">
+                                    class="inline-input" size="5" value="<?php echo htmlspecialchars($prev['pob_kebele'] ?? ''); ?>">
                                 <span data-en="House No" data-am="የቤት ቁጥር">House No</span> <input type="text"
-                                    name="pob_house" class="inline-input" size="5">
+                                    name="pob_house" class="inline-input" size="5" value="<?php echo htmlspecialchars($prev['pob_house'] ?? ''); ?>">
                                 <span data-en="Phone" data-am="ስልክ ቁጥር">Phone</span> <input type="text" name="pob_phone"
                                     class="inline-input" size="12">
                                 <span data-en="P.O.Box" data-am="ፖ.ሳ.ቁ">P.O.Box</span> <input type="text" name="pob_pobox"
-                                    class="inline-input" size="6">
+                                    class="inline-input" size="6" value="<?php echo htmlspecialchars($prev['pob_pobox'] ?? ''); ?>">
                             </div>
 
                             <!-- 4. Family (Mother Split) -->
@@ -523,36 +538,40 @@ if (isset($_SESSION['agreement_success'])) {
                             </div>
                             <div class="form-row" style="padding-left: 20px;">
                                 <span data-en="First Name:" data-am="ስም:">First Name:</span> <input type="text"
-                                    name="mother_firstname" class="inline-input" style="flex:1;">
+                                    name="mother_firstname" class="inline-input" style="flex:1;" value="<?php echo htmlspecialchars($prev['mother_firstname'] ?? ''); ?>">
                                 <span data-en="Father Name:" data-am="የአባት ስም:">Father Name:</span> <input type="text"
-                                    name="mother_middlename" class="inline-input" style="flex:1;">
+                                    name="mother_middlename" class="inline-input" style="flex:1;" value="<?php echo htmlspecialchars($prev['mother_middlename'] ?? ''); ?>">
                                 <span data-en="G.Father Name:" data-am="የአያት ስም:">G.Father Name:</span> <input type="text"
-                                    name="mother_lastname" class="inline-input" style="flex:1;">
+                                    name="mother_lastname" class="inline-input" style="flex:1;" value="<?php echo htmlspecialchars($prev['mother_lastname'] ?? ''); ?>">
                             </div>
 
                             <div class="form-row">
                                 <label data-en="Mother's Address:" data-am="የእናት አድራሻ:">Mother's Address:</label>
+                                <?php $mr = $prev['mom_region'] ?? ''; ?>
                                 <span data-en="Region" data-am="ክልል">Region</span> <select name="mom_region"
                                     class="inline-input">
-                                    <option data-en="Amhara" data-am="አማራ">Amhara</option>
-                                    <option data-en="Oromia" data-am="ኦሮሚያ">Oromia</option>
-                                    <option data-en="Other" data-am="ሌላ">Other</option>
+                                    <option data-en="Amhara" data-am="አማራ" <?php if($mr=='Amhara'||!$mr) echo 'selected'; ?>>Amhara</option>
+                                    <option data-en="Oromia" data-am="ኦሮሚያ" <?php if($mr=='Oromia') echo 'selected'; ?>>Oromia</option>
+                                    <option data-en="Other" data-am="ሌላ" <?php if($mr=='Other') echo 'selected'; ?>>Other</option>
                                 </select>
+                                <?php $mz = $prev['mom_zone'] ?? ''; ?>
                                 <span data-en="Zone" data-am="ዞን">Zone</span> <select name="mom_zone" class="inline-input">
-                                    <option data-en="Select Zone" data-am="ዞን ይምረጡ">Select Zone</option>
-                                    <option>East Gojjam</option>
-                                    <option>Other</option>
+                                    <option data-en="Select Zone" data-am="ዞን ይምረጡ" <?php if(!$mz) echo 'selected'; ?>>Select Zone</option>
+                                    <option <?php if($mz=='East Gojjam') echo 'selected'; ?>>East Gojjam</option>
+                                    <option <?php if($mz=='Other') echo 'selected'; ?>>Other</option>
                                 </select>
+                                <?php $mw = $prev['mom_wereda'] ?? ''; ?>
                                 <span data-en="Woreda" data-am="ወረዳ">Woreda</span> <select name="mom_wereda"
                                     class="inline-input">
-                                    <option value="" data-en="Select Wereda" data-am="ወረዳ ይምረጡ">Select Wereda</option>
-                                    <option>Debre Markos</option>
-                                    <option>Other</option>
+                                    <option value="" data-en="Select Wereda" data-am="ወረዳ ይምረጡ" <?php if(!$mw) echo 'selected'; ?>>Select Wereda</option>
+                                    <option <?php if($mw=='Debre Markos') echo 'selected'; ?>>Debre Markos</option>
+                                    <option <?php if($mw=='Other') echo 'selected'; ?>>Other</option>
                                 </select>
+                                <?php $mt = $prev['mom_town'] ?? ''; ?>
                                 <span data-en="Town" data-am="ከተማ">Town</span> <select name="mom_town" class="inline-input">
-                                    <option value="" data-en="Select Town" data-am="ከተማ ይምረጡ">Select Town</option>
-                                    <option>Debre Markos</option>
-                                    <option>Other</option>
+                                    <option value="" data-en="Select Town" data-am="ከተማ ይምረጡ" <?php if(!$mt) echo 'selected'; ?>>Select Town</option>
+                                    <option <?php if($mt=='Debre Markos') echo 'selected'; ?>>Debre Markos</option>
+                                    <option <?php if($mt=='Other') echo 'selected'; ?>>Other</option>
                                 </select>
                             </div>
 
@@ -560,9 +579,9 @@ if (isset($_SESSION['agreement_success'])) {
                             <div class="form-row">
                                 <label data-en="5. School Name (Preparatory):" data-am="5. የመሰናዶ ትምህርት ቤት ስም:">5. School
                                     Name (Preparatory):</label>
-                                <input type="text" name="prep_school" class="inline-input" style="flex:1;">
+                                <input type="text" name="prep_school" class="inline-input" style="flex:1;" value="<?php echo htmlspecialchars($prev['prep_school'] ?? ''); ?>">
                                 <span data-en="Date Completed:" data-am="የተጠናቀቀበት ቀን:">Date Completed:</span> <input
-                                    type="date" name="prep_completed_date" class="inline-input">
+                                    type="date" name="prep_completed_date" class="inline-input" value="<?php echo htmlspecialchars($prev['prep_completed_date'] ?? ''); ?>">
                             </div>
 
                             <!-- 6. University -->
