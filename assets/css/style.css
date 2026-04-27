@@ -492,6 +492,8 @@ body.mobile-layout .sidebar.collapsed .nav-links a i {
     flex: 1;
     padding: 28px;
     background: var(--dash-bg);
+    background-image: radial-gradient(circle, #e2e8f0 0.5px, transparent 0.5px);
+    background-size: 24px 24px;
     overflow-y: auto;
     height: 100%;
 }
@@ -1543,13 +1545,13 @@ form[style*='display: grid']>div:last-child {
 .dash-stat-card {
     background: #fff;
     border-radius: 16px;
-    padding: 22px 20px;
+    padding: 24px 22px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
-    border: 1px solid rgba(0,0,0,0.04);
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.02);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
@@ -1565,30 +1567,37 @@ form[style*='display: grid']>div:last-child {
 }
 
 .dash-stat-card:hover {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
-    transform: translateY(-4px);
+    transform: translateY(-5px);
 }
 
 .dash-stat-card:hover::after { opacity: 1; }
 
+/* Colored glow shadows + accent bars per card */
 .dash-stat-card:nth-child(1)::after { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.dash-stat-card:nth-child(1):hover { box-shadow: 0 8px 28px rgba(59,130,246,0.15), 0 2px 6px rgba(0,0,0,0.03); }
 .dash-stat-card:nth-child(2)::after { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.dash-stat-card:nth-child(2):hover { box-shadow: 0 8px 28px rgba(245,158,11,0.15), 0 2px 6px rgba(0,0,0,0.03); }
 .dash-stat-card:nth-child(3)::after { background: linear-gradient(90deg, #10b981, #34d399); }
+.dash-stat-card:nth-child(3):hover { box-shadow: 0 8px 28px rgba(16,185,129,0.15), 0 2px 6px rgba(0,0,0,0.03); }
 .dash-stat-card:nth-child(4)::after { background: linear-gradient(90deg, #e11d48, #fb7185); }
+.dash-stat-card:nth-child(4):hover { box-shadow: 0 8px 28px rgba(225,29,72,0.15), 0 2px 6px rgba(0,0,0,0.03); }
 
 .dash-stat-icon {
-    width: 52px;
-    height: 52px;
+    width: 54px;
+    height: 54px;
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     flex-shrink: 0;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dash-stat-card:hover .dash-stat-icon { transform: scale(1.1); }
+.dash-stat-card:hover .dash-stat-icon {
+    transform: scale(1.12) rotate(-3deg);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
 
 .dash-stat-icon.blue { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #2563eb; }
 .dash-stat-icon.amber { background: linear-gradient(135deg, #fffbeb, #fef3c7); color: #d97706; }
@@ -1607,12 +1616,13 @@ form[style*='display: grid']>div:last-child {
 }
 
 .dash-stat-info .dash-stat-value {
-    font-size: 1.75rem;
+    font-size: 1.85rem;
     font-weight: 800;
     color: #0f172a;
     margin: 4px 0 0 0;
     letter-spacing: -0.03em;
     line-height: 1.1;
+    font-feature-settings: 'tnum';
 }
 
 /* Dashboard Content Grid */
@@ -1632,15 +1642,20 @@ form[style*='display: grid']>div:last-child {
     .dash-stats { grid-template-columns: 1fr; }
 }
 
-/* Dashboard Section Card — Premium */
+/* Dashboard Section Card — Ultra-Premium */
 .dash-section {
     background: #fff;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03), 0 4px 20px rgba(0,0,0,0.04);
-    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 6px 24px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.05);
     position: relative;
     overflow: hidden;
+    transition: all 0.35s ease;
+}
+
+.dash-section:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
 }
 
 .dash-section::before {
@@ -1649,7 +1664,7 @@ form[style*='display: grid']>div:last-child {
     top: 0; left: 0;
     width: 100%; height: 3px;
     background: linear-gradient(90deg, #6366f1, #a78bfa, #d4a017);
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 .dash-section-title {
