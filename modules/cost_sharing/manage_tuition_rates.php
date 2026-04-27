@@ -558,6 +558,15 @@ if ($sel_dept > 0 && $sel_batch > 0 && $sel_semester > 0) {
                         </button>
                     </form>
                 </div>
+
+                <!-- Prepare Cost Share Form Button -->
+                <div style="text-align:center; margin: 20px 0;">
+                    <a href="prepare_form.php" class="btn-primary" style="display:inline-flex; align-items:center; gap:10px; padding:14px 32px; font-size:1.05em; background:linear-gradient(135deg, #0a0044, #3730a3); border-radius:12px; text-decoration:none; color:#fff; font-weight:700; box-shadow:0 4px 14px rgba(10,0,68,0.25); transition:all 0.3s ease;">
+                        <i class="fas fa-file-invoice"></i>
+                        <span data-en="Prepare Cost Share Form" data-am="የወጪ መጋራት ቅጽ አዘጋጅ">Prepare Cost Share Form</span>
+                    </a>
+                </div>
+
                 <!-- All Existing Rates Table -->
                 <div class="card">
                     <h3><i class="fas fa-list"></i>
