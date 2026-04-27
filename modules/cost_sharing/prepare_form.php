@@ -49,13 +49,19 @@ $msg = $_SESSION["flash_success"] ?? ""; unset($_SESSION["flash_success"]);
         .preview-banner { background:linear-gradient(135deg,#0a0044,#3730a3); color:#fff; padding:18px 24px; border-radius:12px; margin-bottom:24px; display:flex; align-items:center; gap:14px; }
         .preview-banner i { font-size:1.5rem; }
         @media print { .no-print { display:none !important; } .paper-form { box-shadow:none; border:none; } }
+        <?php if (isset($_GET['embed'])): ?>
+        .dashboard-container, .layout-body, .main-content { all:unset !important; display:block !important; }
+        .main-content { padding:20px !important; background:#f8fafc !important; min-height:100vh; }
+        <?php endif; ?>
     </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <?php if (!isset($_GET['embed'])): ?>
         <?php include '../../includes/main_header.php'; ?>
         <div class="layout-body">
             <?php include '../../includes/sidebar.php'; ?>
+        <?php endif; ?>
             <div class="main-content">
 
                 <!-- Preview Banner -->
@@ -272,8 +278,10 @@ $msg = $_SESSION["flash_success"] ?? ""; unset($_SESSION["flash_success"]);
                     </div>
                 </div>
             </div>
+        <?php if (!isset($_GET['embed'])): ?>
         </div>
         <?php include '../../includes/footer.php'; ?>
+        <?php endif; ?>
     </div>
 
     <script>
