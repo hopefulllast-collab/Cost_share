@@ -77,11 +77,9 @@ $msg = $_SESSION["flash_success"] ?? ""; unset($_SESSION["flash_success"]);
                         <button onclick="window.print()" class="btn-primary" style="background:#fff; color:#1e1b4b; padding:8px 18px; border-radius:8px; font-size:0.85em;">
                             <i class="fas fa-print"></i> <span data-en="Print" data-am="አትም">Print</span>
                         </button>
-                        <?php if (!isset($_GET['embed'])): ?>
                         <a href="manage_tuition_rates.php" class="btn-primary" style="background:rgba(255,255,255,0.15); color:#fff; padding:8px 18px; border-radius:8px; font-size:0.85em; text-decoration:none;">
                             <i class="fas fa-arrow-left"></i> <span data-en="Back" data-am="ተመለስ">Back</span>
                         </a>
-                        <?php endif; ?>
                     </div>
                 </div>
 
