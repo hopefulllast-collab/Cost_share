@@ -48,7 +48,21 @@
             <div class="profile-info-grid" style="display: grid; gap: 15px;"></div>
         </div>
         <div style="text-align: center; margin-top: 20px;">
-            <a href="../common/update_profile.php" class="btn-primary"
+            <?php
+            // Route to the correct module wrapper so sidebar relative links work
+            $role = $_SESSION['role'] ?? '';
+            $change_pw_map = [
+                'student' => '../student/update_student_account.php',
+                'registrar' => '../registrar/update_account.php',
+                'department_head' => '../department/update_account.php',
+                'cost_sharing_pro' => '../cost_sharing/update_account.php',
+                'admin' => '../admin/update_account.php',
+                'academic_vp' => '../academic_vp/update_account.php',
+                'transcript' => '../transcript/update_account.php',
+            ];
+            $pw_href = $change_pw_map[$role] ?? '../common/update_profile.php';
+            ?>
+            <a href="<?php echo $pw_href; ?>" class="btn-primary"
                 style="text-decoration: none; padding: 10px 20px; display: inline-block;">
                 <i class="fas fa-key"></i> <span data-en="Change Password" data-am="የመለያ ቁልፉን አድስ">Change
                     Password</span>
