@@ -98,50 +98,11 @@ $approvedCount = $stmtApproved->fetchColumn();
                             <?php endif; ?>
                         </a>
                         <!-- Future actions can go here -->
-                        <a href="#" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px; opacity:0.6; cursor:not-allowed;">
-                            <i class="fas fa-chart-pie" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
+                        <a href="report_cost_sharing.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
+                            <i class="fas fa-chart-line" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
                             <span data-en="Department Reports" data-am="የክፍል ሪፖርቶች" style="font-size:0.82rem;">Department Reports</span>
                         </a>
-                        <a href="#" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px; opacity:0.6; cursor:not-allowed;">
-                            <i class="fas fa-users" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
-                            <span data-en="Student List" data-am="የተማሪ ዝርዝር" style="font-size:0.82rem;">Student List</span>
-                        </a>
                     </div>
-                </div>
-
-                <!-- Pending Agreements Table -->
-                <div class="dash-section">
-                    <h3 class="dash-section-title"><i class="fas fa-file-contract"></i> <span data-en="Pending Agreements" data-am="በመጠባበቅ ላይ ያሉ ውሎች">Pending Agreements</span></h3>
-                    <?php if ($pendingCount > 0): ?>
-                        <table class="table-list">
-                            <thead>
-                                <tr>
-                                    <th data-en="Student Name" data-am="የተማሪ ስም">Student Name</th>
-                                    <th data-en="ID" data-am="መለያ">ID</th>
-                                    <th data-en="Date" data-am="ቀን">Date</th>
-                                    <th data-en="Action" data-am="ተግባር">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($pendingAgreements as $pa): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($pa['first_name'] . ' ' . $pa['last_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($pa['student_code']); ?></td>
-                                        <td><?php echo htmlspecialchars($pa['agreement_date']); ?></td>
-                                        <td>
-                                            <a href="approve_agreement.php?id=<?php echo $pa['id']; ?>" class="btn-sm btn-primary"
-                                                data-en="View & Approve" data-am="ይመልከቱ እና ያረጋግጡ" style="font-size:0.8rem;">View & Approve</a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    <?php else: ?>
-                        <div style="text-align:center; padding:30px; color:#94a3b8;">
-                            <i class="fas fa-check-circle" style="font-size:2rem; margin-bottom:10px; display:block; color:#10b981;"></i>
-                            <p data-en="All agreements are up to date!" data-am="ሁሉም ውሎች ወቅታዊ ናቸው!">All agreements are up to date!</p>
-                        </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>
