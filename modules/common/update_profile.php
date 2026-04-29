@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                     </div>
                 <?php endif; ?>
 
-                <div class="card" style="max-width: 500px;">
+                <div class="card">
                     <form method="POST">
                         <div class="form-group">
                             <label data-en="New Password" data-am="አዲስ የይለፍ ቃል">New Password</label>
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                 </div>
 
                 <?php if ($show_signature): ?>
-                <div class="card" style="max-width: 500px; margin-top: 20px;">
+                <div class="card" style="margin-top: 20px;">
                     <h3 data-en="Update Digital Signature" data-am="ዲጂታል ፊርማ አዘምን">Update Digital Signature</h3>
                     
                     <?php if (!empty($current_signature)): ?>
