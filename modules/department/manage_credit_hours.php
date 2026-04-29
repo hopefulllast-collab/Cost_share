@@ -487,7 +487,7 @@ $special_cases = $special_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Department Info -->
                 <div class="card mb-20"
                     style="background:linear-gradient(135deg,#1a1a2e,#16213e); color:#fff; padding:20px;">
-                    <h3 style="margin:0; color: #ffffff;"><i class="fas fa-university"></i>
+                    <h3 style="margin:0; color: #ffffffff;"><i class="fas fa-university"></i>
                         <?php echo htmlspecialchars($dept_name); ?>
                     </h3>
                     <p style="margin:5px 0 0; opacity:0.8;"
