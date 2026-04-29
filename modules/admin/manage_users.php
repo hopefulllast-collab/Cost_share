@@ -7,7 +7,8 @@ checkAuth(['admin']);
 // PRG: Read flash messages from session
 $msg = $_SESSION["flash_success"] ?? "";
 unset($_SESSION["flash_success"]);
-$error = "";
+$error = $_SESSION["flash_error"] ?? "";
+unset($_SESSION["flash_error"]);
 
 // Handle Update Own Password
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_own_password'])) {
@@ -38,10 +39,30 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $action = $_GET['action'];
 
     if ($action == 'delete') {
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-        logAudit($pdo, 'USER_DELETED', 'Deleted user ID: ' . $id);
-        $_SESSION["flash_success"] = "<span data-en='Account deleted successfully.' data-am='መለያው በተሳካ ሁኔታ ተሰርዟል።'>Account deleted.</span>";
+        try {
+            $pdo->beginTransaction();
+            
+            $stmtRole = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+            $stmtRole->execute([$id]);
+            $userRole = $stmtRole->fetchColumn();
+
+            if ($userRole === 'student') {
+                $pdo->prepare("DELETE FROM cost_sharing_agreements WHERE student_id = ?")->execute([$id]);
+                $pdo->prepare("DELETE FROM feedback WHERE student_id = ?")->execute([$id]);
+                $pdo->prepare("DELETE FROM official_transcript WHERE student_id = ?")->execute([$id]);
+                $pdo->prepare("DELETE FROM students WHERE user_id = ?")->execute([$id]);
+            }
+            
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            $pdo->commit();
+            logAudit($pdo, 'USER_DELETED', 'Deleted user ID: ' . $id);
+            $_SESSION["flash_success"] = "<span data-en='Account deleted successfully.' data-am='መለያው በተሳካ ሁኔታ ተሰርዟል።'>Account deleted.</span>";
+        } catch (PDOException $e) {
+            $pdo->rollBack();
+            $_SESSION["flash_error"] = "<span data-en='Cannot delete account. Ensure related records are removed.' data-am='መለያን መሰረዝ አልተቻለም። ተዛማጅ መረጃዎች መወገዳቸውን ያረጋግጡ።'>Cannot delete account. Ensure related records are removed.</span>";
+        }
         header("Location: " . $_SERVER["PHP_SELF"]);
         exit();
     } elseif ($action == 'enable') {
