@@ -73,17 +73,9 @@ $activeCount = $pdo->query("SELECT COUNT(*) FROM users WHERE status = 'active'")
                             <i class="fas fa-user-plus"></i>
                             <span data-en="Create Account" data-am="መለያ ይፍጠሩ">Create Account</span>
                         </a>
-                        <a href="feedback_list.php" class="dash-action-link">
-                            <i class="fas fa-comment-dots"></i>
-                            <span data-en="View Feedback" data-am="ግብረመልስ ይመልከቱ">View Feedback</span>
-                        </a>
                         <a href="audit_logs.php" class="dash-action-link">
                             <i class="fas fa-history"></i>
                             <span data-en="Audit Logs" data-am="የኦዲት ምዝግብ">Audit Logs</span>
-                        </a>
-                        <a href="report_cost_share.php" class="dash-action-link">
-                            <i class="fas fa-chart-line"></i>
-                            <span data-en="Cost Share Reports" data-am="የወጪ መጋራት ሪፖርት">Cost Share Reports</span>
                         </a>
                     </div>
                 </div>
