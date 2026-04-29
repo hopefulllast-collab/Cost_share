@@ -339,7 +339,7 @@ if ($status_filter == 'all' || $status_filter == 'signed') {
                     <div class="card">
                         <h3 data-en="Students Who Have Not Signed" data-am="ያልፈረሙ ተማሪዎች">Students Who Have Not Signed</h3>
                         <?php if (empty($missing_students)): ?>
-                            <p class="success-msg" data-en="There are no unsigned students." data-am="ያልፈረሙ ተማሪዎች የሉም።">There are no unsigned students.</p>
+                            <p style="padding: 12px 15px; margin-bottom: 20px; border-radius: 6px; border-left: 4px solid #28a745; background-color: #d4edda; color: #155724; font-weight: 500;" data-en="There are no unsigned students." data-am="ያልፈረሙ ተማሪዎች የሉም።">There are no unsigned students.</p>
                         <?php else: ?>
                             <table class="table-styled">
                                 <thead>
@@ -394,7 +394,7 @@ if ($status_filter == 'all' || $status_filter == 'signed') {
                         }
                         ?>
                         <?php if (empty($display_students)): ?>
-                            <p class="error-msg" data-en="No signed agreements found." data-am="ምንም የተፈረመ ስምምነት የለም።">No signed agreements found.</p>
+                            <p style="padding: 12px 15px; margin-bottom: 20px; border-radius: 6px; border-left: 4px solid #dc3545; background-color: #f8d7da; color: #721c24; font-weight: 500;" data-en="No signed agreements found." data-am="ምንም የተፈረመ ስምምነት የለም።">No signed agreements found.</p>
                         <?php else: ?>
                             <table class="table-styled">
                                 <thead>

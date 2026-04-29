@@ -558,15 +558,6 @@ if ($sel_dept > 0 && $sel_batch > 0 && $sel_semester > 0) {
                         </button>
                     </form>
                 </div>
-
-                <!-- Prepare Cost Share Form Button -->
-                <div style="text-align:center; margin: 20px 0;">
-                    <button onclick="openFormPreview()" class="btn-primary" style="display:inline-flex; align-items:center; gap:10px; padding:14px 32px; font-size:1.05em; background:linear-gradient(135deg, #0a0044, #3730a3); border-radius:12px; border:none; cursor:pointer; color:#fff; font-weight:700; box-shadow:0 4px 14px rgba(10,0,68,0.25); transition:all 0.3s ease;">
-                        <i class="fas fa-file-invoice"></i>
-                        <span data-en="Prepare Cost Share Form" data-am="የወጪ መጋራት ቅጽ አዘጋጅ">Prepare Cost Share Form</span>
-                    </button>
-                </div>
-
                 <!-- All Existing Rates Table -->
                 <div class="card">
                     <h3><i class="fas fa-list"></i>
@@ -810,37 +801,6 @@ if ($sel_dept > 0 && $sel_batch > 0 && $sel_semester > 0) {
         if (document.getElementById('deptSelect').value) loadBatches();
     </script>
     <script src="../../assets/js/bilingual.js"></script>
-
-    <!-- Form Preview Modal -->
-    <div id="formPreviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; background:rgba(0,0,0,0.65); backdrop-filter:blur(5px);">
-        <div style="position:absolute; top:2%; left:2%; width:96%; height:96%; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 25px 80px rgba(0,0,0,0.4); animation:modalIn 0.3s ease; display:flex; flex-direction:column;">
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 22px; background:linear-gradient(135deg,#0a0044,#3730a3); color:#fff; flex-shrink:0;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <i class="fas fa-file-invoice" style="font-size:1.2rem;"></i>
-                    <strong>Cost Share Form Preview</strong>
-                </div>
-                <button onclick="closeFormPreview()" style="background:rgba(255,255,255,0.15); border:none; color:#fff; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <iframe id="formPreviewIframe" src="" style="flex:1; width:100%; border:none;"></iframe>
-        </div>
-    </div>
-    <style>@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}</style>
-    <script>
-        function openFormPreview(){
-            document.getElementById('formPreviewIframe').src='prepare_form.php?embed=1';
-            document.getElementById('formPreviewModal').style.display='block';
-            document.body.style.overflow='hidden';
-        }
-        function closeFormPreview(){
-            document.getElementById('formPreviewModal').style.display='none';
-            document.getElementById('formPreviewIframe').src='';
-            document.body.style.overflow='';
-        }
-        document.getElementById('formPreviewModal').addEventListener('click',function(e){
-            if(e.target===this) closeFormPreview();
-        });
-    </script>
 </body>
+
 </html>

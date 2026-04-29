@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
     // --- Brute Force Protection: Check failed login attempts per USERNAME in last 24 hours ---
     // (Per-username, not per-IP, so one user's failures don't lock out others on the same network)
-    $max_attempts = 3;
+    $max_attempts = 7;
     $lockout_hours = 24;
     try {
         $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM audit_logs WHERE username = ? AND action = 'LOGIN_FAILED' AND created_at > DATE_SUB(NOW(), INTERVAL ? HOUR)");

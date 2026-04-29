@@ -24,8 +24,8 @@
                         data-am="መለያ አዘምን">Update Account</span></a></li>
 
 
-        <?php
-elseif ($_SESSION['role'] === 'department_head'): ?>
+            <?php
+        elseif ($_SESSION['role'] === 'department_head'): ?>
             <li><a href="../../modules/department/dashboard.php"><i class="fas fa-tachometer-alt"></i> <span
                         data-en="Dashboard" data-am="ዳሽቦርድ">Dashboard</span></a></li>
             <li><a href="../../modules/department/approve_agreement.php"><i class="fas fa-file-contract"></i> <span
@@ -41,8 +41,8 @@ elseif ($_SESSION['role'] === 'department_head'): ?>
                         data-en="Update Account" data-am="መለያ አዘምን">Update Account</span></a></li>
 
 
-        <?php
-elseif ($_SESSION['role'] === 'registrar'): ?>
+            <?php
+        elseif ($_SESSION['role'] === 'registrar'): ?>
             <!-- 1. Approve Cost Share -->
             <li><a href="../../modules/registrar/dashboard.php"><i class="fas fa-tachometer-alt"></i> <span
                         data-en="Dashboard" data-am="ዳሽቦርድ">Dashboard</span></a></li>
@@ -101,8 +101,8 @@ elseif ($_SESSION['role'] === 'registrar'): ?>
 
             <!-- 10. Logout is shared below -->
 
-        <?php
-elseif ($_SESSION['role'] === 'cost_sharing_pro'): ?>
+            <?php
+        elseif ($_SESSION['role'] === 'cost_sharing_pro'): ?>
             <li><a href="../../modules/cost_sharing/index.php"><i class="fas fa-tachometer-alt"></i> <span
                         data-en="Dashboard" data-am="ዳሽቦርድ">Dashboard</span></a></li>
             <li><a href="../../modules/cost_sharing/approve_cost_share.php"><i class="fas fa-check-double"></i> <span
@@ -123,8 +123,8 @@ elseif ($_SESSION['role'] === 'cost_sharing_pro'): ?>
             <li><a href="../../modules/cost_sharing/update_account.php"><i class="fas fa-user-cog"></i> <span
                         data-en="Update Account" data-am="መለያ አዘምን">Update Account</span></a></li>
 
-        <?php
-elseif ($_SESSION['role'] === 'transcript_pro'): ?>
+            <?php
+        elseif ($_SESSION['role'] === 'transcript_pro'): ?>
             <li><a href="../../modules/transcript/dashboard.php"><i class="fas fa-tachometer-alt"></i> <span
                         data-en="Dashboard" data-am="ዳሽቦርድ">Dashboard</span></a></li>
             <li><a href="../../modules/transcript/issue_document.php"><i class="fas fa-file-signature"></i> <span
@@ -136,8 +136,8 @@ elseif ($_SESSION['role'] === 'transcript_pro'): ?>
             <li><a href="../../modules/transcript/update_account.php"><i class="fas fa-user-cog"></i> <span
                         data-en="Update Account" data-am="መለያ አዘምን">Update Account</span></a></li>
 
-        <?php
-elseif ($_SESSION['role'] == 'admin'): ?>
+            <?php
+        elseif ($_SESSION['role'] == 'admin'): ?>
             <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> <span data-en="Dashboard"
                         data-am="ዳሽቦርድ">Dashboard</span></a></li>
             <li><a href="create_account.php"><i class="fas fa-user-plus"></i> <span data-en="Create Account"
@@ -155,19 +155,19 @@ elseif ($_SESSION['role'] == 'admin'): ?>
             <li><a href="suspicious_activity.php"><i class="fas fa-exclamation-triangle"></i> <span
                         data-en="Suspicious Activity" data-am="አጠራጣሪ እንቅስቃሴ">Suspicious Activity</span></a></li>
 
-        <?php
-elseif ($_SESSION['role'] === 'academic_vp'): ?>
+            <?php
+        elseif ($_SESSION['role'] === 'academic_vp'): ?>
             <li><a href="../../modules/academic_vp/dashboard.php"><i class="fas fa-tachometer-alt"></i> <span
                         data-en="Dashboard" data-am="ዳሽቦርድ">Dashboard</span></a></li>
-            <li><a href="../../modules/academic_vp/view_requested_document.php"><i class="fas fa-envelope-open-text"></i> <span
-                        data-en="Send Referral Letter" data-am="የማጣቀሻ ደብዳቤ ላክ">Send Referral Letter</span></a></li>
+            <li><a href="../../modules/academic_vp/view_requested_document.php"><i class="fas fa-envelope-open-text"></i>
+                    <span data-en="Send Referral Letter" data-am="የማጣቀሻ ደብዳቤ ላክ">Send Referral Letter</span></a></li>
             <li><a href="../../modules/academic_vp/report_cost_share.php"><i class="fas fa-chart-line"></i> <span
                         data-en="Report Cost Share" data-am="የወጪ መጋራት ሪፖርት">Report Cost Share</span></a></li>
             <li><a href="../../modules/academic_vp/update_account.php"><i class="fas fa-user-cog"></i> <span
                         data-en="Update Account" data-am="መለያ አዘምን">Update Account</span></a></li>
 
-        <?php
-endif; ?>
+            <?php
+        endif; ?>
 
         <!-- Shared Links for other roles (Department, Registrar, etc. can be added here) -->
 
@@ -228,17 +228,17 @@ endif; ?>
         }
     });
 
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const currentUrlObj = new URL(window.location.href);
         const sidebarLinks = document.querySelectorAll('.sidebar .nav-links a:not(.logout-btn)');
-        
+
         sidebarLinks.forEach(link => {
             const rawHref = link.getAttribute('href');
             // Skip dropdown toggle links which have href="#"
             if (!rawHref || rawHref === '#' || rawHref.startsWith('javascript:')) return;
 
             const linkUrlObj = new URL(link.href);
-            
+
             // Highlight if exactly same path AND current URL contains all query params specified in the link
             if (currentUrlObj.pathname === linkUrlObj.pathname) {
                 let paramsMatch = true;
@@ -248,10 +248,10 @@ endif; ?>
                         break;
                     }
                 }
-                
+
                 if (paramsMatch) {
                     link.classList.add('active');
-                    
+
                     // If it's a dropdown menu item, open its parent menu
                     const submenu = link.closest('.sidebar-submenu');
                     if (submenu) {
