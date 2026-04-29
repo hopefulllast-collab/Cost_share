@@ -9,12 +9,12 @@ $totalCostShare = $pdo->query("SELECT COALESCE(SUM(tuition_fee + food_expense + 
 // Stats (First Row: Student Document Requests)
 $studentCount = $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
 $deptCount = $pdo->query("SELECT COUNT(*) FROM departments")->fetchColumn();
-$approvedCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type IN ('Original', 'Graduation', 'Transfer-Out') AND status IN ('Pending Transcript', 'Pending Registrar Signature', 'Delivered', 'Forwarded')")->fetchColumn();
-$pendingCountDocs = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type IN ('Original', 'Graduation', 'Transfer-Out') AND status = 'Pending'")->fetchColumn();
+$approvedCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type IN ('Original', 'Graduation', 'Transfer-Out') AND registrar_signature IS NOT NULL AND registrar_signature != ''")->fetchColumn();
+$pendingCountDocs = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type IN ('Original', 'Graduation', 'Transfer-Out') AND (registrar_signature IS NULL OR registrar_signature = '')")->fetchColumn();
 
 // Cost Share Summary
-$deliveredCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status IN ('Approved', 'Given')")->fetchColumn();
-$pendingCountCS = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status = 'Pending'")->fetchColumn();
+$deliveredCount = $pdo->query("SELECT COUNT(*) FROM cost_sharing_agreements WHERE signature_cost_pro IS NOT NULL AND signature_cost_pro != ''")->fetchColumn();
+$pendingCountCS = $pdo->query("SELECT COUNT(*) FROM cost_sharing_agreements WHERE signature_cost_pro IS NULL OR signature_cost_pro = ''")->fetchColumn();
 $activeAgreements = $pdo->query("SELECT COUNT(*) FROM cost_sharing_agreements WHERE status NOT IN ('Suspended','Draft')")->fetchColumn();
 
 require_once '../../includes/academic_translations.php';
