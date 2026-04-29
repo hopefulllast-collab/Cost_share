@@ -6,12 +6,15 @@ checkAuth(['registrar']);
 // Total Cost Share Amount
 $totalCostShare = $pdo->query("SELECT COALESCE(SUM(tuition_fee + food_expense + bed_expense + medication_expense), 0) FROM cost_sharing_agreements WHERE status != 'Suspended'")->fetchColumn();
 
-// Stats
+// Stats (First Row: Student Document Requests)
 $studentCount = $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
 $deptCount = $pdo->query("SELECT COUNT(*) FROM departments")->fetchColumn();
-$pendingCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status = 'Pending'")->fetchColumn();
-$approvedCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status = 'Approved'")->fetchColumn();
-$deliveredCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE status = 'Delivered'")->fetchColumn();
+$approvedCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type IN ('Original', 'Graduation', 'Transfer-Out') AND status IN ('Pending Transcript', 'Pending Registrar Signature', 'Delivered', 'Forwarded')")->fetchColumn();
+$pendingCountDocs = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type IN ('Original', 'Graduation', 'Transfer-Out') AND status = 'Pending'")->fetchColumn();
+
+// Cost Share Summary
+$deliveredCount = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status IN ('Approved', 'Given')")->fetchColumn();
+$pendingCountCS = $pdo->query("SELECT COUNT(*) FROM official_transcript WHERE request_type = 'CostSharePaper' AND status = 'Pending'")->fetchColumn();
 $activeAgreements = $pdo->query("SELECT COUNT(*) FROM cost_sharing_agreements WHERE status NOT IN ('Suspended','Draft')")->fetchColumn();
 
 require_once '../../includes/academic_translations.php';
@@ -63,7 +66,7 @@ require_once '../../includes/academic_translations.php';
                         <div class="dash-stat-icon rose"><i class="fas fa-hourglass-half"></i></div>
                         <div class="dash-stat-info">
                             <h4 data-en="Pending" data-am="በመጠባበቅ">Pending</h4>
-                            <div class="dash-stat-value"><?php echo $pendingCount; ?></div>
+                            <div class="dash-stat-value"><?php echo $pendingCountDocs; ?></div>
                         </div>
                     </div>
                 </div>
@@ -93,7 +96,7 @@ require_once '../../includes/academic_translations.php';
                             </div>
                             <div style="flex:1; text-align:center; padding:14px; background:linear-gradient(135deg, #fffbeb, #fef3c7); border-radius:12px; display:flex; flex-direction:column; justify-content:center;">
                                 <div style="font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.05em;" data-en="Pending" data-am="በመጠባበቅ">Pending</div>
-                                <div style="font-size:1.3rem; font-weight:800; color:#d97706; margin-top:2px;"><?php echo $pendingCount; ?></div>
+                                <div style="font-size:1.3rem; font-weight:800; color:#d97706; margin-top:2px;"><?php echo $pendingCountCS; ?></div>
                             </div>
                         </div>
                     </div>
@@ -109,8 +112,8 @@ require_once '../../includes/academic_translations.php';
                         <a href="approve_cost_share.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
                             <i class="fas fa-check-double" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
                             <span data-en="Approve Agreements" data-am="ውሎችን አጽድቅ" style="font-size:0.82rem;">Approve Agreements</span>
-                            <?php if ($pendingCount > 0): ?>
-                                <span class="dash-action-badge"><?php echo $pendingCount; ?></span>
+                            <?php if ($pendingCountCS > 0): ?>
+                                <span class="dash-action-badge"><?php echo $pendingCountCS; ?></span>
                             <?php endif; ?>
                         </a>
                         <a href="report_cost_share.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
