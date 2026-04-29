@@ -68,13 +68,13 @@ $activeCount = $pdo->query("SELECT COUNT(*) FROM users WHERE status = 'active'")
                         <span data-en="Quick Actions" data-am="ፈጣን ተግባራት">Quick Actions</span>
                     </h3>
                     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
-                        <a href="manage_users.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
-                            <i class="fas fa-users-cog" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
-                            <span data-en="Manage Accounts" data-am="መለያዎችን ያስተዳድሩ" style="font-size:0.82rem;">Manage Accounts</span>
-                        </a>
                         <a href="create_account.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
                             <i class="fas fa-user-plus" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
                             <span data-en="Create Account" data-am="መለያ ይፍጠሩ" style="font-size:0.82rem;">Create Account</span>
+                        </a>
+                        <a href="manage_users.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
+                            <i class="fas fa-users-cog" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>
+                            <span data-en="Manage Accounts" data-am="መለያዎችን ያስተዳድሩ" style="font-size:0.82rem;">Manage Accounts</span>
                         </a>
                         <a href="audit_logs.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
                             <i class="fas fa-history" style="width:42px; height:42px; font-size:1rem; border-radius:12px;"></i>

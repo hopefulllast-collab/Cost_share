@@ -59,7 +59,7 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
                     <i class="fas fa-calendar-day" style="font-size:0.7rem; color:#94a3b8;"></i>
                     <span id="welcome-date" style="color:#475569;"></span>
                 </span>
-                <span style="display:inline-flex; align-items:center; gap:4px;">
+                <span style="display:inline-flex; align-items:center; gap:4px; margin-left:auto;">
                     <i class="fas fa-clock" style="font-size:0.7rem; color:#94a3b8;"></i>
                     <span id="welcome-time" style="color:#475569; font-variant-numeric:tabular-nums;"></span>
                 </span>
@@ -132,14 +132,14 @@ $role_am = $role_labels[$role]['am'] ?? ucfirst($role);
             _clockStarted = true;
             function updateClock() {
                 const t = new Date();
-                let h = t.getHours(), m = t.getMinutes();
+                let h = t.getHours(), m = t.getMinutes(), s = t.getSeconds();
                 const ampm = h >= 12 ? 'PM' : 'AM';
                 h = h % 12 || 12;
                 const el = document.getElementById('welcome-time');
-                if (el) el.textContent = h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
+                if (el) el.textContent = h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s + ' ' + ampm;
             }
             updateClock();
-            setInterval(updateClock, 30000);
+            setInterval(updateClock, 1000);
         }
     }
 
