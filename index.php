@@ -2,7 +2,7 @@
 require_once 'includes/session_manager.php';
 
 // Auto-redirect if already logged in (handles browser back button scenarios smoothly)
-if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
+if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && !isset($_GET['add_account'])) {
     switch ($_SESSION['role']) {
         case 'student':
             header("Location: modules/student/dashboard.php");
@@ -314,7 +314,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     </footer>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="login-modal" <?php if ($error || $session_expired)
+    <div id="loginModal" class="login-modal" <?php if ($error || $session_expired || isset($_GET['add_account']))
         echo 'style="display:flex;"'; ?>>
         <!-- Animated Background -->
         <div class="login-bg">
