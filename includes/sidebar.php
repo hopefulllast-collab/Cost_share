@@ -170,7 +170,7 @@
         endif; ?>
 
         <!-- Shared Links for other roles (Department, Registrar, etc. can be added here) -->
-        <li><a href="../../index.php?add_account=1" target="_blank"><i class="fas fa-user-plus"></i> <span data-en="Add/Switch Role" data-am="ሌላ መለያ ክፈት">Add/Switch Role</span></a></li>
+
         <li><a href="javascript:void(0)" class="logout-btn" onclick="showLogoutModal()"><i
                     class="fas fa-sign-out-alt"></i> <span data-en="Logout" data-am="ውጣ">Logout</span></a></li>
     </ul>

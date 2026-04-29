@@ -5,19 +5,23 @@ $active_role = null;
 
 // Determine active role from current URL or Referer
 $check_url = $request_uri;
-if (strpos($check_url, '/api/') !== false || strpos($check_url, '/common/') !== false || strpos($check_url, 'logout.php') !== false) {
-    if ($referer !== '') {
-        $check_url = $referer;
+if (isset($active_role_override)) {
+    $active_role = $active_role_override;
+} else {
+    if (strpos($check_url, '/api/') !== false || strpos($check_url, '/common/') !== false || strpos($check_url, 'logout.php') !== false) {
+        if ($referer !== '') {
+            $check_url = $referer;
+        }
     }
-}
 
-if (strpos($check_url, '/modules/student/') !== false) $active_role = 'student';
-elseif (strpos($check_url, '/modules/registrar/') !== false) $active_role = 'registrar';
-elseif (strpos($check_url, '/modules/admin/') !== false) $active_role = 'admin';
-elseif (strpos($check_url, '/modules/academic_vp/') !== false) $active_role = 'academic_vp';
-elseif (strpos($check_url, '/modules/cost_sharing/') !== false) $active_role = 'cost_sharing_pro';
-elseif (strpos($check_url, '/modules/transcript/') !== false) $active_role = 'transcript_pro';
-elseif (strpos($check_url, '/modules/department/') !== false) $active_role = 'department_head';
+    if (strpos($check_url, '/modules/student/') !== false) $active_role = 'student';
+    elseif (strpos($check_url, '/modules/registrar/') !== false) $active_role = 'registrar';
+    elseif (strpos($check_url, '/modules/admin/') !== false) $active_role = 'admin';
+    elseif (strpos($check_url, '/modules/academic_vp/') !== false) $active_role = 'academic_vp';
+    elseif (strpos($check_url, '/modules/cost_sharing/') !== false) $active_role = 'cost_sharing_pro';
+    elseif (strpos($check_url, '/modules/transcript/') !== false) $active_role = 'transcript_pro';
+    elseif (strpos($check_url, '/modules/department/') !== false) $active_role = 'department_head';
+}
 
 if ($active_role) {
     $expected_name = "DMU_" . strtoupper($active_role);
