@@ -7,10 +7,17 @@ checkAuth(['cost_sharing_pro']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify'])) {
     $agreement_id = $_POST['agreement_id'];
     $verifier_id = $_SESSION['user_id'];
-    $signature = "Verified By Pro ID: " . $verifier_id . " at " . date('Y-m-d H:i:s');
 
     try {
         $pdo->beginTransaction();
+
+        $stmt_sig = $pdo->prepare("SELECT digital_signature FROM users WHERE id = ?");
+        $stmt_sig->execute([$verifier_id]);
+        $signature = $stmt_sig->fetchColumn();
+
+        if (empty($signature)) {
+            throw new Exception("You have not set up your digital signature. Please update your profile.");
+        }
 
         // 1. Check current status strictly
         $stmt = $pdo->prepare("SELECT status FROM cost_sharing_agreements WHERE id = ?");

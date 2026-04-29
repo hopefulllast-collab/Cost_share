@@ -503,13 +503,13 @@ if ($selected_id > 0) {
                                         <?php 
                                         $dept_sig = $agreement['signature_dept_head'] ?? '';
                                         if (!empty($dept_sig)) {
-                                            // If it's just a filename, prepend the uploads path
-                                            if (strpos($dept_sig, '/') === false && strpos($dept_sig, '\\') === false) {
-                                                $dept_sig_path = '../../uploads/signatures/' . $dept_sig;
+                                            if (strpos($dept_sig, 'data:image/') === 0) {
+                                                echo '<img src="' . $dept_sig . '" alt="Department Head Signature" style="max-height:60px; max-width:100%;">';
+                                            } else if (strpos($dept_sig, '/') === false && strpos($dept_sig, '\\') === false) {
+                                                echo '<img src="../../uploads/signatures/' . htmlspecialchars($dept_sig) . '" alt="Department Head Signature" style="max-height:60px; max-width:100%;">';
                                             } else {
-                                                $dept_sig_path = $dept_sig;
+                                                echo '<img src="' . htmlspecialchars($dept_sig) . '" alt="Department Head Signature" style="max-height:60px; max-width:100%;">';
                                             }
-                                            echo '<img src="' . htmlspecialchars($dept_sig_path) . '" alt="Department Head Signature" style="max-height:60px; max-width:100%;">';
                                         }
                                         ?>
                                     </div>
@@ -527,17 +527,15 @@ if ($selected_id > 0) {
                                         <?php 
                                         $cost_sig = $agreement['signature_cost_pro'] ?? '';
                                         if (!empty($cost_sig)) {
-                                            // Check if it's an image file path (contains .png, .jpg, .jpeg, .gif)
-                                            if (preg_match('/\.(png|jpg|jpeg|gif)$/i', $cost_sig)) {
-                                                // If it's just a filename, prepend the uploads path
+                                            if (strpos($cost_sig, 'data:image/') === 0) {
+                                                echo '<img src="' . $cost_sig . '" alt="Cost Sharing Pro Signature" style="max-height:60px; max-width:100%;">';
+                                            } else if (preg_match('/\.(png|jpg|jpeg|gif)$/i', $cost_sig)) {
                                                 if (strpos($cost_sig, '/') === false && strpos($cost_sig, '\\') === false) {
-                                                    $cost_sig_path = '../../uploads/signatures/' . $cost_sig;
+                                                    echo '<img src="../../uploads/signatures/' . htmlspecialchars($cost_sig) . '" alt="Cost Sharing Pro Signature" style="max-height:60px; max-width:100%;">';
                                                 } else {
-                                                    $cost_sig_path = $cost_sig;
+                                                    echo '<img src="' . htmlspecialchars($cost_sig) . '" alt="Cost Sharing Pro Signature" style="max-height:60px; max-width:100%;">';
                                                 }
-                                                echo '<img src="' . htmlspecialchars($cost_sig_path) . '" alt="Cost Sharing Pro Signature" style="max-height:60px; max-width:100%;">';
                                             } else {
-                                                // It's a text-based signature (from API verify route)
                                                 echo htmlspecialchars($cost_sig);
                                             }
                                         }

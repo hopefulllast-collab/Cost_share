@@ -14,70 +14,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['process_doc'])) {
     $cost_share_amount = $_POST['cost_share_amount'];
 
 
-    // Handle Signature Upload
-    if (isset($_FILES['signature']) && $_FILES['signature']['error'] == 0) {
-        $allowed = ['jpg', 'jpeg', 'png'];
-        $filename = $_FILES['signature']['name'];
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if (in_array($ext, $allowed)) {
-            $new_name = "sig_transcript_" . $req_id . "_" . time() . "." . $ext;
-            $upload_dir = "../../uploads/signatures/";
-            if (!file_exists($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-            }
-            move_uploaded_file($_FILES['signature']['tmp_name'], $upload_dir . $new_name);
+    $stmt = $pdo->prepare("SELECT digital_signature FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $signature = $stmt->fetchColumn();
 
-            // Generate Document Content (HTML)
-            // Retrieve Student Info for the Doc
-            $stmt = $pdo->prepare("SELECT dr.*, u.first_name, u.middle_name, u.last_name, s.student_id as real_student_id, d.name as dept_name, s.academic_year, s.batch, s.current_semester 
-                                   FROM official_transcript dr 
-                                   JOIN students s ON dr.student_id = s.user_id 
-                                   JOIN users u ON s.user_id = u.id 
-                                   LEFT JOIN departments d ON s.department_id = d.id 
-                                   WHERE dr.id = ?");
-            $stmt->execute([$req_id]);
-            $info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            // Logic: If Graduation Certificate -> Show Cost Share Amount & CGPA (Placeholder for CGPA as not in DB yet)
-            // If Original Degree -> Show Clean if paid? Prompt says "unless the system generate the original degree without the cost share amount"
-            // Let's assume we allow editing/generating based on Type.
-
-            // For now, simpler: Store specific data we need to render. 
-            // Actually, we can store the HTML to make it static and unchangeable. 
-            // Or just store the variables. Let's store the HTML for "What was signed".
-
-            $docContent = "<div class='generated-doc'>";
-            $docContent .= "<div class='header'><img src='../../assets/img/logo.png' alt='Logo' style='height:80px;'><h2>Debre Markos University</h2></div>";
-            $docContent .= "<p>Date: " . date('d/m/Y') . "</p>";
-            $docContent .= "<p>To: Whom It May Concern</p>";
-            $docContent .= "<p>This is to certify that <strong>{$info['first_name']} {$info['middle_name']} {$info['last_name']}</strong> (ID: {$info['real_student_id']}) ";
-            $docContent .= "graduated from the Department of <strong>{$info['dept_name']}</strong>.</p>";
-
-            if ($info['request_type'] == 'Graduation' || $info['request_type'] == 'original') {
-                $docContent .= "<p>Cumulative GPA: <strong>[CGPA_PLACEHOLDER]</strong></p>"; // We don't have CGPA column yet, generic placeholder
-                $docContent .= "<p>Total Cost Share to be paid: <strong>" . number_format($cost_share_amount, 2) . " Birr</strong></p>";
-            } else {
-                $docContent .= "<p>This original degree is issued free of outstanding cost share debts.</p>";
-            }
-
-            $docContent .= "<div class='signatures'>";
-            $docContent .= "<div class='sig-block'><img src='../../uploads/signatures/$new_name' style='height:50px;'><br>Transcript Professional</div>";
-            $docContent .= "<div class='sig-block'>[Registrar Signature Pending]<br>Registrar Head</div>";
-            $docContent .= "</div>";
-            $docContent .= "</div>";
-
-            $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Pending Registrar Signature', transcript_signature = ?, cost_share_amount = ?, generated_doc_content = ? WHERE id = ?");
-            $res = $stmt->execute([$new_name, $cost_share_amount, $docContent, $req_id]);
-
-
-            $_SESSION["flash_success"] = "<span data-en='Document processed, signed, and forwarded to Registrar.' data-am='ሰነዱ ተሰርቷል፣ ተፈርሟል እና ወደ ሬጂስትራር ተላልፏል።'>Document processed, signed, and forwarded to Registrar.</span>";
-            header("Location: " . $_SERVER["PHP_SELF"]);
-            exit();
-        } else {
-            $error = "<span data-en='Invalid file type. Only JPG, JPEG, PNG allowed.' data-am='ትክክል ያልሆነ የፋይል አይነት። JPG ፣ JPEG ፣ PNG ብቻ ይፈቀዳሉ።'>Invalid file type. Only JPG, JPEG, PNG allowed.</span>";
-        }
+    if (empty($signature)) {
+        $error = "<span data-en='You have not set up your digital signature. Please update your profile.' data-am='የዲጂታል ፊርማዎን አላዘጋጁም። እባክዎ ፕሮፋይልዎን ያዘምኑ።'>You have not set up your digital signature. Please <a href=\"../common/update_profile.php\">update your profile</a>.</span>";
     } else {
-        $error = "<span data-en='Signature file required.' data-am='የፊርማ ፋይል ያስፈልጋል።'>Signature file required.</span>";
+        // Generate Document Content (HTML)
+        // Retrieve Student Info for the Doc
+        $stmt = $pdo->prepare("SELECT dr.*, u.first_name, u.middle_name, u.last_name, s.student_id as real_student_id, d.name as dept_name, s.academic_year, s.batch, s.current_semester 
+                               FROM official_transcript dr 
+                               JOIN students s ON dr.student_id = s.user_id 
+                               JOIN users u ON s.user_id = u.id 
+                               LEFT JOIN departments d ON s.department_id = d.id 
+                               WHERE dr.id = ?");
+        $stmt->execute([$req_id]);
+        $info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $docContent = "<div class='generated-doc'>";
+        $docContent .= "<div class='header'><img src='../../assets/img/logo.png' alt='Logo' style='height:80px;'><h2>Debre Markos University</h2></div>";
+        $docContent .= "<p>Date: " . date('d/m/Y') . "</p>";
+        $docContent .= "<p>To: Whom It May Concern</p>";
+        $docContent .= "<p>This is to certify that <strong>{$info['first_name']} {$info['middle_name']} {$info['last_name']}</strong> (ID: {$info['real_student_id']}) ";
+        $docContent .= "graduated from the Department of <strong>{$info['dept_name']}</strong>.</p>";
+
+        if ($info['request_type'] == 'Graduation' || $info['request_type'] == 'original') {
+            $docContent .= "<p>Cumulative GPA: <strong>[CGPA_PLACEHOLDER]</strong></p>"; // We don't have CGPA column yet, generic placeholder
+            $docContent .= "<p>Total Cost Share to be paid: <strong>" . number_format((float)$cost_share_amount, 2) . " Birr</strong></p>";
+        } else {
+            $docContent .= "<p>This original degree is issued free of outstanding cost share debts.</p>";
+        }
+
+        $docContent .= "<div class='signatures'>";
+        // Using the base64 signature from DB directly instead of file path
+        $docContent .= "<div class='sig-block'><img src='{$signature}' style='height:50px;'><br>Transcript Professional</div>";
+        $docContent .= "<div class='sig-block'>[Registrar Signature Pending]<br>Registrar Head</div>";
+        $docContent .= "</div>";
+        $docContent .= "</div>";
+
+        $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Pending Registrar Signature', transcript_signature = ?, cost_share_amount = ?, generated_doc_content = ? WHERE id = ?");
+        $res = $stmt->execute([$signature, $cost_share_amount, $docContent, $req_id]);
+
+        $_SESSION["flash_success"] = "<span data-en='Document processed, signed, and forwarded to Registrar.' data-am='ሰነዱ ተሰርቷል፣ ተፈርሟል እና ወደ ሬጂስትራር ተላልፏል።'>Document processed, signed, and forwarded to Registrar.</span>";
+        header("Location: " . $_SERVER["PHP_SELF"]);
+        exit();
     }
 }
 
@@ -176,7 +157,7 @@ $pending_requests = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.stude
                 style="color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer;">&times;</span>
             <h3 data-en="Process Document Request" data-am="የሰነድ ጥያቄን ማስተናገድ">Process Document Request</h3>
             <div id="modalContent"></div>
-            <form method="POST" enctype="multipart/form-data" style="margin-top:20px;">
+            <form method="POST" style="margin-top:20px;">
                 <input type="hidden" name="req_id" id="modalReqId">
                 <input type="hidden" name="process_doc" value="1">
 
@@ -185,11 +166,6 @@ $pending_requests = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.stude
                     <label data-en="Total Cost Share Amount (Birr)" data-am="ጠቅላላ ወጪ መጋራት መጠን (ብር)">Total Cost Share
                         Amount (Birr)</label>
                     <input type="number" step="0.01" name="cost_share_amount" id="modalAmount" required>
-                </div>
-
-                <div class="form-group">
-                    <label data-en="Upload Your Signature" data-am="ፊርማዎን ይስቀሉ">Upload Your Signature</label>
-                    <input type="file" name="signature" required>
                 </div>
 
                 <div class="form-group">

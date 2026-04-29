@@ -14,49 +14,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['bulk_approve'])) {
     $dept_id = $_POST['dept_id'];
     $batch = $_POST['batch'];
 
-    // File Upload (Signature)
-    if (isset($_FILES['signature']) && $_FILES['signature']['error'] == 0) {
-        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-        $filename = $_FILES['signature']['name'];
-        $filetype = $_FILES['signature']['type'];
-        $filesize = $_FILES['signature']['size'];
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $stmt = $pdo->prepare("SELECT digital_signature FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $signature = $stmt->fetchColumn();
 
-        if (!in_array($ext, $allowed)) {
-            $error = "<span data-en='Error: Please select a valid file format.' data-am='ስህተት፡ እባክዎ ትክክለኛ የፋይል አይነት ይምረጡ።'>Error: Please select a valid file format.</span>";
-        } else {
-            if (!file_exists("../../uploads/signatures")) {
-                mkdir("../../uploads/signatures", 0777, true);
-            }
-
-            $new_filename = "sig_" . time() . "_" . $dept_id . "_" . $batch . "." . $ext;
-            $destination = "../../uploads/signatures/" . $new_filename;
-
-            if (move_uploaded_file($_FILES['signature']['tmp_name'], $destination)) {
-                // Update Database
-                // Select agreements that match Dept, Batch AND are VerifiedByDept
-                // We need to join students table to filter by batch and dept
-                $sql = "UPDATE cost_sharing_agreements csa
-                        JOIN students s ON csa.student_id = s.user_id
-                        SET csa.status = 'ApprovedByCostPro', 
-                            csa.signature_cost_pro = ?
-                        WHERE s.department_id = ? 
-                          AND s.batch = ? 
-                          AND csa.status = 'VerifiedByDept'";
-
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$destination, $dept_id, $batch]);
-
-                $count = $stmt->rowCount();
-                $_SESSION["flash_success"] = "<span data-en='Successfully approved $count agreements for this batch.' data-am='ለዚህ ባች $count ስምምነቶች በተሳካ ሁኔታ ጸድቀዋል።'>Successfully approved $count agreements for this batch.</span>";
-                header("Location: " . $_SERVER["PHP_SELF"]);
-                exit();
-            } else {
-                $error = "<span data-en='Error uploading signature file.' data-am='የፊርማ ፋይል መጫን ላይ ስህተት ተፈጥሯል።'>Error uploading signature file.</span>";
-            }
-        }
+    if (empty($signature)) {
+        $error = "<span data-en='You have not set up your digital signature. Please update your profile.' data-am='የዲጂታል ፊርማዎን አላዘጋጁም። እባክዎ ፕሮፋይልዎን ያዘምኑ።'>You have not set up your digital signature. Please <a href=\"../common/update_profile.php\">update your profile</a>.</span>";
     } else {
-        $error = "<span data-en='Please upload a signature image.' data-am='እባክዎ የፊርማ ምስል ይጫኑ።'>Please upload a signature image.</span>";
+        $sql = "UPDATE cost_sharing_agreements csa
+                JOIN students s ON csa.student_id = s.user_id
+                SET csa.status = 'ApprovedByCostPro', 
+                    csa.signature_cost_pro = ?
+                WHERE s.department_id = ? 
+                  AND s.batch = ? 
+                  AND csa.status = 'VerifiedByDept'";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$signature, $dept_id, $batch]);
+
+        $count = $stmt->rowCount();
+        $_SESSION["flash_success"] = "<span data-en='Successfully approved $count agreements for this batch.' data-am='ለዚህ ባች $count ስምምነቶች በተሳካ ሁኔታ ጸድቀዋል።'>Successfully approved $count agreements for this batch.</span>";
+        header("Location: " . $_SERVER["PHP_SELF"]);
+        exit();
     }
 }
 
@@ -176,15 +155,12 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 style="float:right; font-size:28px; cursor:pointer;">&times;</span>
             <h3 id="modalTitle"><span data-en="Verify Batch" data-am="ባች አረጋግጥ">Verify Batch</span> <span
                     id="modalDynamicInfo"></span></h3>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST">
                 <input type="hidden" name="dept_id" id="modalDeptId">
                 <input type="hidden" name="batch" id="modalBatch">
 
-                <div class="form-group" style="margin: 20px 0;">
-                    <label data-en="Upload Signature (Image):" data-am="ፊርማ ይጫኑ (ምስል):">Upload Signature
-                        (Image):</label>
-                    <input type="file" name="signature" accept="image/*" required
-                        style="display:block; margin-top:5px;">
+                <div class="form-group" style="margin: 20px 0; background: #f9f9f9; padding: 15px; border-left: 4px solid #007bff;">
+                    <p style="margin: 0;" data-en="This action will use your saved digital signature to approve all students in this batch." data-am="ይህ እርምጃ የተቀመጠውን የዲጂታል ፊርማዎን በመጠቀም በዚህ ባች ውስጥ ያሉትን ሁሉንም ተማሪዎች ያፀድቃል።">This action will use your saved digital signature to approve all students in this batch.</p>
                 </div>
 
                 <div style="text-align:right;">

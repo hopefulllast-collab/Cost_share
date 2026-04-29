@@ -36,28 +36,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     } elseif ($action == 'finalize_doc') {
         $req_id = $_POST['request_id'];
 
-        if (isset($_FILES['signature']) && $_FILES['signature']['error'] == 0) {
-            $allowed = ['jpg', 'jpeg', 'png'];
-            $filename = $_FILES['signature']['name'];
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-            if (in_array($ext, $allowed)) {
-                $new_name = "sig_reg_" . $req_id . "_" . time() . "." . $ext;
-                $upload_dir = "../../uploads/signatures/";
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
-                }
-                move_uploaded_file($_FILES['signature']['tmp_name'], $upload_dir . $new_name);
+        $stmt = $pdo->prepare("SELECT digital_signature FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $signature = $stmt->fetchColumn();
 
-                $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Delivered', registrar_signature = ? WHERE id = ?");
-                $stmt->execute([$new_name, $req_id]);
+        if (empty($signature)) {
+            $error = "<span data-en='You have not set up your digital signature. Please update your profile.' data-am='የዲጂታል ፊርማዎን አላዘጋጁም። እባክዎ ፕሮፋይልዎን ያዘምኑ።'>You have not set up your digital signature. Please <a href=\"../common/update_profile.php\">update your profile</a>.</span>";
+        } else {
+            $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Delivered', registrar_signature = ? WHERE id = ?");
+            if ($stmt->execute([$signature, $req_id])) {
                 $_SESSION['flash_success'] = "<span data-en='Document signed and delivered to student successfully.' data-am='ሰነዱ በተሳካ ሁኔታ ተፈርሞ ለተማሪው ተሰጥቷል።'>Document signed and delivered to student successfully.</span>";
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } else {
-                $error = "<span data-en='Invalid file type. Only JPG, JPEG, PNG allowed for signature.' data-am='ትክክል ያልሆነ የፋይል አይነት። ለፊርማ JPG፣ JPEG፣ PNG ብቻ ይፈቀዳሉ።'>Invalid file type. Only JPG, JPEG, PNG allowed for signature.</span>";
+                $error = "<span data-en='Failed to sign document.' data-am='ሰነዱን መፈረም አልተቻለም።'>Failed to sign document.</span>";
             }
-        } else {
-            $error = "<span data-en='Please upload your signature.' data-am='እባክዎ ፊርማዎን ይስቀሉ።'>Please upload your signature.</span>";
         }
     }
 }
@@ -146,11 +139,10 @@ $delivered_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student
                                         <td><?php echo htmlspecialchars($doc['request_type']); ?></td>
                                         <td data-en="Signed" data-am="ተፈርሟል">Signed</td>
                                         <td>
-                                            <form method="POST" enctype="multipart/form-data"
+                                            <form method="POST"
                                                 style="display:flex; gap:5px; align-items:center;">
                                                 <input type="hidden" name="request_id" value="<?php echo $doc['id']; ?>">
                                                 <input type="hidden" name="action" value="finalize_doc">
-                                                <input type="file" name="signature" required style="width:150px;">
                                                 <button type="submit" class="btn-success"
                                                     style="color: #ffffff; padding: 5px; background-color: #000000; font-size: 1.2em;"
                                                     data-en="Sign & Give" data-am="ፈርመህ ስጥ">Sign

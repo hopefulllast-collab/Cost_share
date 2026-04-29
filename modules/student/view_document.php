@@ -231,7 +231,8 @@ $is_transfer_out = ($request && $request['request_type'] == 'Transfer-Out');
                                 <div class="sig-block">
                                     <p><strong data-en="Transcript Professional:" data-am="ትራንስክሪፕት ባለሙያ:">Transcript Professional:</strong></p>
                                     <?php if (!empty($request['transcript_signature'])): ?>
-                                        <img src="../../uploads/signatures/<?php echo $request['transcript_signature']; ?>"
+                                        <?php $t_src = (strpos($request['transcript_signature'], 'data:image/') === 0) ? $request['transcript_signature'] : "../../uploads/signatures/" . $request['transcript_signature']; ?>
+                                        <img src="<?php echo $t_src; ?>"
                                             style="max-height: 80px; display: block; margin: 0 auto;" alt="Transcript Signature">
                                     <?php else: ?>
                                         <p>__________________________</p>
@@ -244,7 +245,8 @@ $is_transfer_out = ($request && $request['request_type'] == 'Transfer-Out');
                                 <div class="sig-block">
                                     <p><strong data-en="Registrar Head:" data-am="ሬጅስትራር ኃላፊ:">Registrar Head:</strong></p>
                                     <?php if (!empty($request['registrar_signature'])): ?>
-                                        <img src="../../uploads/signatures/<?php echo $request['registrar_signature']; ?>"
+                                        <?php $r_src = (strpos($request['registrar_signature'], 'data:image/') === 0) ? $request['registrar_signature'] : "../../uploads/signatures/" . $request['registrar_signature']; ?>
+                                        <img src="<?php echo $r_src; ?>"
                                             style="max-height: 80px; display: block; margin: 0 auto;" alt="Registrar Signature">
                                     <?php else: ?>
                                         <p>__________________________</p>

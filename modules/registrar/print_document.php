@@ -151,7 +151,8 @@ if ($reg) {
         <div class="signature-box">
             <p><strong data-en="Transcript Professional:" data-am="ትራንስክሪፕት ባለሙያ:">Transcript Professional:</strong></p>
             <?php if (!empty($doc['transcript_signature'])): ?>
-                <img src="../../uploads/signatures/<?php echo $doc['transcript_signature']; ?>" class="signature-img"
+                <?php $t_src = (strpos($doc['transcript_signature'], 'data:image/') === 0) ? $doc['transcript_signature'] : "../../uploads/signatures/" . $doc['transcript_signature']; ?>
+                <img src="<?php echo $t_src; ?>" class="signature-img"
                     alt="Transcript Signature">
             <?php else: ?>
                 <p>__________________________</p>
@@ -164,7 +165,8 @@ if ($reg) {
         <div class="signature-box">
             <p><strong data-en="Registrar Head:" data-am="ሬጅስትራር ኃላፊ:">Registrar Head:</strong></p>
             <?php if (!empty($doc['registrar_signature'])): ?>
-                <img src="../../uploads/signatures/<?php echo $doc['registrar_signature']; ?>" class="signature-img"
+                <?php $r_src = (strpos($doc['registrar_signature'], 'data:image/') === 0) ? $doc['registrar_signature'] : "../../uploads/signatures/" . $doc['registrar_signature']; ?>
+                <img src="<?php echo $r_src; ?>" class="signature-img"
                     alt="Registrar Signature">
             <?php else: ?>
                 <p>__________________________</p>

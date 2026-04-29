@@ -132,9 +132,9 @@ if (!$agreement) {
                             <span data-en="Current Status:" data-am="ወቅታዊ ሁኔታ:">Current Status:</span>
                             <strong><?php echo htmlspecialchars($agreement['status']); ?></strong>
                             <?php if ($agreement['status'] == 'SignedByStudent'): ?>
-                                <br><small data-en="To approve, go back and use the bulk approval with signature upload."
-                                    data-am="ለማጽደቅ ተመልሰው ፊርማ በመስቀል በጅምላ ያጽድቁ።">To approve, go back and use the bulk approval
-                                    with signature upload.</small>
+                                <br><small data-en="To approve, go back and use the bulk approval with your digital signature."
+                                    data-am="ለማጽደቅ ተመልሰው ዲጂታል ፊርማዎን በመጠቀም በጅምላ ያጽድቁ።">To approve, go back and use the bulk approval
+                                    with your digital signature.</small>
                             <?php endif; ?>
                         </div>
                     </div>

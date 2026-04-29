@@ -23,39 +23,27 @@ $error = "";
 
 // Handle Bulk Approval
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['bulk_approve'])) {
-    if (isset($_FILES['signature']) && $_FILES['signature']['error'] == 0) {
-        $allowed = ['jpg', 'jpeg', 'png'];
-        $filename = $_FILES['signature']['name'];
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $stmt = $pdo->prepare("SELECT digital_signature FROM users WHERE id = ?");
+    $stmt->execute([$dept_head_id]);
+    $signature = $stmt->fetchColumn();
 
-        if (in_array($ext, $allowed)) {
-            $new_name = "sig_dept_" . $dept_id . "_" . time() . "." . $ext;
-            $upload_dir = "../../uploads/signatures/";
-            if (!file_exists($upload_dir))
-                mkdir($upload_dir, 0777, true);
-
-            if (move_uploaded_file($_FILES['signature']['tmp_name'], $upload_dir . $new_name)) {
-                // Bulk Update
-                $sql = "UPDATE cost_sharing_agreements csa
-                        JOIN students s ON csa.student_id = s.user_id
-                        SET csa.status = 'VerifiedByDept', csa.signature_dept_head = ?
-                        WHERE s.department_id = ? AND csa.academic_year = ? AND csa.semester = ? AND csa.status = 'SignedByStudent'";
-
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$new_name, $dept_id, $year, $sem]);
-
-                $count = $stmt->rowCount();
-                $_SESSION["flash_success"] = "<span data-en='Successfully approved' data-am='በተሳካ ሁኔታ ጸድቋል'>Successfully approved</span> $count <span data-en='agreements for Batch' data-am='ስምምነቶች ለባች'>agreements for Batch</span> $year, <span data-en='Semester' data-am='ሴሚስተር'>Semester</span> $sem.";
-                header("Location: " . $_SERVER["PHP_SELF"] . "?year=" . urlencode($year) . "&sem=" . urlencode($sem));
-                exit();
-            } else {
-                $error = "<span data-en='Failed to upload signature.' data-am='ፊርማ መስቀል አልተቻለም።'>Failed to upload signature.</span>";
-            }
-        } else {
-            $error = "<span data-en='Invalid file type. Only JPG, JPEG, PNG allowed.' data-am='የማይሰራ የፋይል ዓይነት። JPG፣ JPEG፣ PNG ብቻ ይፈቀዳሉ።'>Invalid file type. Only JPG, JPEG, PNG allowed.</span>";
-        }
+    if (empty($signature)) {
+        $error = "<span data-en='You have not set up your digital signature. Please update your profile.' data-am='የዲጂታል ፊርማዎን አላዘጋጁም። እባክዎ ፕሮፋይልዎን ያዘምኑ።'>You have not set up your digital signature. Please <a href=\"../common/update_profile.php\">update your profile</a>.</span>";
     } else {
-        $error = "<span data-en='Department Head Signature is required.' data-am='የዲፓርትመንት ኃላፊ ፊርማ ያስፈልጋል።'>Department Head Signature is required.</span>";
+        $sql = "UPDATE cost_sharing_agreements csa
+                JOIN students s ON csa.student_id = s.user_id
+                SET csa.status = 'VerifiedByDept', csa.signature_dept_head = ?
+                WHERE s.department_id = ? AND csa.academic_year = ? AND csa.semester = ? AND csa.status = 'SignedByStudent'";
+
+        $stmt = $pdo->prepare($sql);
+        if ($stmt->execute([$signature, $dept_id, $year, $sem])) {
+            $count = $stmt->rowCount();
+            $_SESSION["flash_success"] = "<span data-en='Successfully approved' data-am='በተሳካ ሁኔታ ጸድቋል'>Successfully approved</span> $count <span data-en='agreements for Batch' data-am='ስምምነቶች ለባች'>agreements for Batch</span> $year, <span data-en='Semester' data-am='ሴሚስተር'>Semester</span> $sem.";
+            header("Location: " . $_SERVER["PHP_SELF"] . "?year=" . urlencode($year) . "&sem=" . urlencode($sem));
+            exit();
+        } else {
+            $error = "<span data-en='Failed to approve agreements.' data-am='ስምምነቶችን ማፅደቅ አልተቻለም።'>Failed to approve agreements.</span>";
+        }
     }
 }
 
@@ -152,36 +140,25 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <div class="details-panel card">
                         <h3 data-en="Bulk Approval" data-am="የጅምላ ማፅደቅ">Bulk Approval</h3>
-                        <p data-en="Upload your signature to approve and forward ALL listed agreements to the Cost Sharing Professional."
-                            data-am="ፊርማዎን ይስቀሉ ሁሉንም ስምምነቶች ለወጪ ክፍፍል ባለሙያ ለማፅደቅና ለማስተላለፍ።">Upload your signature to approve
-                            and forward ALL listed agreements to the Cost Sharing
+                        <p data-en="Approve and forward ALL listed agreements to the Cost Sharing Professional."
+                            data-am="ሁሉንም ስምምነቶች ለወጪ ክፍፍል ባለሙያ ማፅደቅና ማስተላለፍ።">Approve and forward ALL listed agreements to the Cost Sharing
                             Professional.</p>
-                        <form method="POST" enctype="multipart/form-data">
+                        <form method="POST">
                             <input type="hidden" name="bulk_approve" value="1">
-                            <div class="form-group">
-                                <label data-en="Department Head Signature (Image):" data-am="የክፍል ሃላፊ ፊርማ (ምስል):">Department
-                                    Head Signature (Image):</label>
-                                <input type="file" name="signature" required accept=".jpg,.jpeg,.png">
-                            </div>
+                            
                             <button type="button" id="bulkApproveBtn" class="btn-success"
-                                onclick="var sigFile = document.querySelector('input[name=signature]'); if(!sigFile.value){document.getElementById('sigError').style.display='block'; return;} document.getElementById('sigError').style.display='none'; document.getElementById('bulkApproveConfirm').style.display='block'; this.style.display='none';"
+                                onclick="document.getElementById('bulkApproveConfirm').style.display='block'; this.style.display='none';"
                                 style="color:white; background:black; padding:10px 20px; font-size:1.1em;"
                                 data-en="Sign & Approve All" data-am="ፈርም እና ሁሉንም አፅድቅ">
                                 Sign & Approve All
                             </button>
-                            <div id="sigError"
-                                style="display:none; margin-top:10px; padding:10px 15px; background:#f8d7da; border:1px solid #f5c6cb; border-radius:5px; color:#721c24;">
-                                <i class="fas fa-exclamation-circle"></i> <span
-                                    data-en="Please select a signature image file before proceeding."
-                                    data-am="እባክዎ ከመቀጠልዎ በፊት የፊርማ ምስል ፋይል ይምረጡ።">Please select a signature image file before
-                                    proceeding.</span>
-                            </div>
+                            
                             <div id="bulkApproveConfirm"
                                 style="display:none; margin-top:10px; padding:15px; background:#fff3cd; border:1px solid #ffc107; border-radius:5px;">
                                 <p style="margin:0 0 10px; font-weight:bold; color:#856404;"
-                                    data-en="Approve all <?php echo count($students); ?> agreements?"
-                                    data-am="ሁሉንም <?php echo count($students); ?> ስምምነቶች ያፀድቃሉ?">Approve all
-                                    <?php echo count($students); ?> agreements?
+                                    data-en="Approve all <?php echo count($students); ?> agreements using your saved signature?"
+                                    data-am="በተቀመጠው ፊርማዎ ሁሉንም <?php echo count($students); ?> ስምምነቶች ያፀድቃሉ?">Approve all
+                                    <?php echo count($students); ?> agreements using your saved signature?
                                 </p>
                                 <button type="submit" class="btn-success"
                                     style="color:white; background:black; padding:8px 16px; margin-right:10px;"
