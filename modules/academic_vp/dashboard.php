@@ -100,7 +100,8 @@ require_once '../../includes/academic_translations.php';
         </div>
         <?php include '../../includes/footer.php'; ?>
     </div>
-    <script src="../../assets/js/bilingual.js"></script>      
+    <script src="../../assets/js/bilingual.js"></script>
+    <script src="../../assets/js/responsive.js"></script>
 </body>
 
 </html>
