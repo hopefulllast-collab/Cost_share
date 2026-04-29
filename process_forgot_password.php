@@ -65,7 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email']) && isset($_PO
             // Construct Reset Link
             $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
             $host = $_SERVER['HTTP_HOST'];
-            $reset_link = $protocol . "://" . $host . "/Cost_share/reset_password.php?token=" . $token;
+            $base_dir = rtrim(dirname($_SERVER['PHP_SELF']), '\\/');
+            $reset_link = $protocol . "://" . $host . $base_dir . "/reset_password.php?token=" . $token;
 
             require_once 'includes/mailer.php';
 

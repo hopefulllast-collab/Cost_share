@@ -170,7 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
             $email_status_msg = "";
             if (!empty($email_insert)) {
                 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-                $login_link = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/Cost_share/index.php";
+                $base_dir = rtrim(dirname(dirname(dirname($_SERVER['PHP_SELF']))), '\\/');
+                $login_link = $protocol . "://" . $_SERVER['HTTP_HOST'] . $base_dir . "/index.php";
 
                 $subject = "Welcome to DMU Cost Sharing System";
                 $body = "Dear " . htmlspecialchars($fname) . " " . htmlspecialchars($lname) . ",<br><br>";

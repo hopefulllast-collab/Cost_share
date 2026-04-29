@@ -258,7 +258,7 @@ if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'registr
     const chatConfig = {
         role: "<?php echo $_SESSION['role'] ?? ''; ?>",
         userId: <?php echo $_SESSION['user_id'] ?? 0; ?>,
-        apiUrl: '/Cost_share/modules/common/chat_api.php',
+        apiUrl: '../../modules/common/chat_api.php',
         currentPartner: null,
         isOpen: false,
         pollInterval: null

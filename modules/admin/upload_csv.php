@@ -288,7 +288,8 @@ try {
     $emails_sent = 0;
     if (isset($_SESSION['created_accounts']) && is_array($_SESSION['created_accounts'])) {
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-        $login_link = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/Cost_share/index.php";
+        $base_dir = rtrim(dirname(dirname(dirname($_SERVER['PHP_SELF']))), '\\/');
+        $login_link = $protocol . "://" . $_SERVER['HTTP_HOST'] . $base_dir . "/index.php";
 
         foreach ($_SESSION['created_accounts'] as $acc) {
             if (!empty($acc['email'])) {

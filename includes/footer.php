@@ -95,7 +95,7 @@
 </script>
 
 <!-- Responsive Layout Script -->
-<script src="/Cost_share/assets/js/responsive.js?v=1"></script>
+<script src="../../assets/js/responsive.js?v=1"></script>
 
 <!-- Floating Chat Widget -->
 <?php include_once __DIR__ . '/../modules/common/chat_overlay.php'; ?>

@@ -6,6 +6,8 @@ checkAuth(['cost_sharing_pro']);
 $pendingCount = $pdo->query("SELECT COUNT(*) FROM cost_sharing_agreements WHERE status = 'VerifiedByDept'")->fetchColumn();
 $approvedCount = $pdo->query("SELECT COUNT(*) FROM cost_sharing_agreements WHERE signature_cost_pro IS NOT NULL AND signature_cost_pro != ''")->fetchColumn();
 $totalStudents = $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
+$totalCostShare = $pdo->query("SELECT COALESCE(SUM(tuition_fee + food_expense + bed_expense + medication_expense), 0) FROM cost_sharing_agreements WHERE status != 'Suspended'")->fetchColumn();
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -53,6 +55,11 @@ $totalStudents = $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
 
                 <!-- Quick Actions -->
                 <div class="dash-section">
+                    <!-- Main Amount -->
+                    <div class="dash-amount-display" style="grid-column:1/2;">
+                        <div class="amount-label" data-en="Total Cost Share" data-am="ጠቅላላ የወጪ መጋራት">Total Cost Share</div>
+                        <div class="amount-value"><?php echo number_format($totalCostShare, 2); ?> <span class="amount-currency" data-en="ETB" data-am="ብር">ETB</span></div>
+                    </div>
                     <h3 class="dash-section-title"><i class="fas fa-bolt"></i> <span data-en="Quick Actions" data-am="ፈጣን ተግባራት">Quick Actions</span></h3>
                     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
                         <a href="approve_cost_share.php" class="dash-action-link" style="flex-direction:column; text-align:center; padding:20px 14px; gap:10px;">
