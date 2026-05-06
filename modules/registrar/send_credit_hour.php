@@ -15,76 +15,95 @@ $departments = $pdo->query("SELECT id, name, study_years FROM departments ORDER 
 
 // Handle Submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
-    $dept_id = $_POST['department_id'] ?? '';
-    $ac_year = $_POST['academic_year'] ?? '';
-    $batch = $_POST['batch'] ?? '';
-    $semester = $_POST['semester'] ?? '';
-    $credit_hour = $_POST['credit_hour'] ?? '';
+    $dept_id = trim($_POST['department_id'] ?? '');
+    $ac_year = trim($_POST['academic_year'] ?? '');
+    $batch = trim($_POST['batch'] ?? '');
+    $semester = trim($_POST['semester'] ?? '');
+    $credit_hour = trim($_POST['credit_hour'] ?? '');
     $min_credit = (int) ($_POST['min_credit_hours'] ?? 0);
     $max_credit = (int) ($_POST['max_credit_hours'] ?? 0);
     $sem_min_credit = (int) ($_POST['semester_min_credits'] ?? 0);
     $sem_max_credit = (int) ($_POST['semester_max_credits'] ?? 0);
 
+    // Collect missing fields for a clear error message
+    $missing = [];
+    if (empty($dept_id)) $missing[] = 'Department';
+    if (empty($ac_year)) $missing[] = 'Academic Year';
+    if (empty($batch)) $missing[] = 'Year of Study';
+    if (empty($semester)) $missing[] = 'Semester';
+    if (empty($credit_hour)) $missing[] = 'Total Billing Credit Hour';
 
     // Validation
-    if (empty($dept_id) || empty($ac_year) || empty($batch) || empty($semester) || empty($credit_hour)) {
-        $error = "<span data-en='All fields are required.' data-am='ሁሉንም የግድ መሙላት አለብዎት'>All fields are required.</span>";
+    if (!empty($missing)) {
+        $fields = implode(', ', $missing);
+        $error = "<span data-en='Please fill in: $fields' data-am='እባክዎ ይሙሉ: $fields'>Please fill in: $fields</span>";
     } elseif ($min_credit < 1 || $max_credit < 1) {
         $error = "<span data-en='Course Min and Max credit hour must be at least 1.' data-am='የኮርሱ ዝቅተኛ እና ከፍተኛ ክሬዲት ሰዓት ቢያንስ 1 መሆን አለበት'>Course Min and Max credit hour must be at least 1.</span>";
     } elseif ($min_credit > $max_credit) {
         $error = "<span data-en='Course Minimum credit hour cannot be greater than Maximum.' data-am='የኮርሱ ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Course Minimum credit hour cannot be greater than Maximum.</span>";
     } elseif ($sem_min_credit > $sem_max_credit) {
         $error = "<span data-en='Semester Minimum credit hour cannot be greater than Maximum.' data-am='የሴሚስተር ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Semester Minimum credit hour cannot be greater than Maximum.</span>";
-    } elseif ($credit_hour < $sem_min_credit || $credit_hour > $sem_max_credit) {
+    } elseif ((int)$credit_hour < $sem_min_credit || (int)$credit_hour > $sem_max_credit) {
         $error = "<span data-en='Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).' data-am='ጠቅላላ የክፍያ ክሬዲት ሰዓት ($credit_hour) በሴሚስተር ዝቅተኛ ($sem_min_credit) እና ከፍተኛ ($sem_max_credit) መካከል መሆን አለበት'>Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).</span>";
     } else {
-        // Check Duplicate (ignore academic_year so one combination of dept+batch+sem exists)
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM courses 
-                               WHERE department_id = ? AND batch = ? AND semester = ?");
-        $stmt->execute([$dept_id, $batch, $semester]);
-        if ($stmt->fetchColumn() > 0) {
-            $error = "<span data-en='Credit hour already exists for this combination. Please edit the existing record.' data-am='ለዚህ ጥምረት የክሬዲት ሰዓት ቀድሞውኑ አለ። እባክዎ ያለውን መዝገብ ያርትዑ'>Credit hour already exists for this combination.</span>";
+        // Cast to proper types for database
+        $dept_id = (int) $dept_id;
+        $batch = (int) $batch;
+        $semester = (int) $semester;
+        $credit_hour = (int) $credit_hour;
+
+        // Final safeguard - never insert zero/null values
+        if ($dept_id < 1 || $batch < 1 || $semester < 1 || $credit_hour < 1) {
+            $error = "<span data-en='Invalid values detected. Please re-select all fields.' data-am='ትክክል ያልሆነ ዋጋ ተገኝቷል። እባክዎ ሁሉንም ዋጋዎች እንደገና ይምረጡ።'>Invalid values detected. Please re-select all fields.</span>";
         } else {
-            // Insert
-            try {
-                $pdo->beginTransaction();
+            // Check Duplicate (ignore academic_year so one combination of dept+batch+sem exists)
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM courses 
+                                   WHERE department_id = ? AND batch = ? AND semester = ?");
+            $stmt->execute([$dept_id, $batch, $semester]);
+            if ($stmt->fetchColumn() > 0) {
+                $error = "<span data-en='Credit hour already exists for this combination. Please edit the existing record.' data-am='ለዚህ ጥምረት የክሬዲት ሰዓት ቀድሞውኑ አለ። እባክዎ ያለውን መዝገብ ያርትዑ'>Credit hour already exists for this combination.</span>";
+            } else {
+                // Insert
+                try {
+                    $pdo->beginTransaction();
 
-                $stmt = $pdo->prepare("INSERT INTO courses 
-                    (department_id, academic_year, batch, semester, credit_hours, min_credit_hours, max_credit_hours, semester_min_credits, semester_max_credits, rate_status, course_name, credit_hour) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending_Dept', 'Semester Credit', 0)");
-                $stmt->execute([$dept_id, $ac_year, $batch, $semester, $credit_hour, $min_credit, $max_credit, $sem_min_credit, $sem_max_credit]);
+                    $stmt = $pdo->prepare("INSERT INTO courses 
+                        (department_id, academic_year, batch, semester, credit_hours, min_credit_hours, max_credit_hours, semester_min_credits, semester_max_credits, rate_status, course_name, credit_hour) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending_Dept', 'Semester Credit', 0)");
+                    $stmt->execute([$dept_id, $ac_year, $batch, $semester, $credit_hour, $min_credit, $max_credit, $sem_min_credit, $sem_max_credit]);
 
-                // Auto-create cost_sharing_agreements for students in this dept/batch/semester
-                $students = $pdo->prepare("SELECT user_id FROM students WHERE department_id = ? AND batch = ?");
-                $students->execute([$dept_id, $batch]);
+                    // Auto-create cost_sharing_agreements for students in this dept/batch/semester
+                    $students = $pdo->prepare("SELECT user_id FROM students WHERE department_id = ? AND batch = ?");
+                    $students->execute([$dept_id, $batch]);
 
-                $tuition = 0;
-                $food = 0;
-                $bed = 0;
-                $med = 0;
+                    $tuition = 0;
+                    $food = 0;
+                    $bed = 0;
+                    $med = 0;
 
-                $stmt_check = $pdo->prepare("SELECT id FROM cost_sharing_agreements 
-                                             WHERE student_id = ? AND academic_year = ? AND semester = ?");
+                    $stmt_check = $pdo->prepare("SELECT id FROM cost_sharing_agreements 
+                                                 WHERE student_id = ? AND academic_year = ? AND semester = ?");
 
-                $stmt_insert = $pdo->prepare("INSERT INTO cost_sharing_agreements (student_id, academic_year, semester, tuition_fee, food_expense, bed_expense, medication_expense, recorded_by, status) 
-                                              VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'Pending')");
+                    $stmt_insert = $pdo->prepare("INSERT INTO cost_sharing_agreements (student_id, academic_year, semester, tuition_fee, food_expense, bed_expense, medication_expense, recorded_by, status) 
+                                                  VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'Draft')");
 
-                foreach ($students->fetchAll(PDO::FETCH_ASSOC) as $stu) {
-                    $stmt_check->execute([$stu['user_id'], $ac_year, $semester]);
-                    if ($stmt_check->fetchColumn() == 0) {
-                        $stmt_insert->execute([$stu['user_id'], $ac_year, $semester, $tuition, $food, $bed, $med]);
-                        // Recalculate cumulative total_amount for this student
-                        $pdo->prepare("UPDATE cost_sharing_agreements SET total_amount = (SELECT t.total FROM (SELECT COALESCE(SUM(tuition_fee + food_expense + bed_expense + medication_expense), 0) as total FROM cost_sharing_agreements WHERE student_id = ?) as t) WHERE student_id = ?")->execute([$stu['user_id'], $stu['user_id']]);
+                    foreach ($students->fetchAll(PDO::FETCH_ASSOC) as $stu) {
+                        $stmt_check->execute([$stu['user_id'], $ac_year, $semester]);
+                        if ($stmt_check->fetchColumn() == 0) {
+                            $stmt_insert->execute([$stu['user_id'], $ac_year, $semester, $tuition, $food, $bed, $med]);
+                            // Recalculate cumulative total_amount for this student
+                            $pdo->prepare("UPDATE cost_sharing_agreements SET total_amount = (SELECT t.total FROM (SELECT COALESCE(SUM(tuition_fee + food_expense + bed_expense + medication_expense), 0) as total FROM cost_sharing_agreements WHERE student_id = ?) as t) WHERE student_id = ?")->execute([$stu['user_id'], $stu['user_id']]);
+                        }
                     }
-                }
 
-                $pdo->commit();
-                $_SESSION['flash_success'] = "<span data-en='Credit hour sent successfully to Department Head.' data-am='የክሬዲት ሰዓት ለዲፓርትመንት ኃላፊ በተሳካ ሁኔታ ተልኳል።'>Credit hour sent successfully to Department Head.</span>";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
-            } catch (PDOException $e) {
-                $pdo->rollBack();
-                $error = "<span data-en='Database Error: " . $e->getMessage() . "' data-am='የውሂብ ጎታ ስህተት: " . $e->getMessage() . "'>Database Error: " . $e->getMessage() . "</span>";
+                    $pdo->commit();
+                    $_SESSION['flash_success'] = "<span data-en='Credit hour sent successfully to Department Head.' data-am='የክሬዲት ሰዓት ለዲፓርትመንት ኃላፊ በተሳካ ሁኔታ ተልኳል።'>Credit hour sent successfully to Department Head.</span>";
+                    header("Location: " . $_SERVER['PHP_SELF']);
+                    exit();
+                } catch (PDOException $e) {
+                    $pdo->rollBack();
+                    $error = "<span data-en='Database Error: " . $e->getMessage() . "' data-am='የውሂብ ጎታ ስህተት: " . $e->getMessage() . "'>Database Error: " . $e->getMessage() . "</span>";
+                }
             }
         }
     }
