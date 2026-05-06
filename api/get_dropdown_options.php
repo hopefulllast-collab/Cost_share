@@ -56,7 +56,7 @@ if (isset($_GET['action'])) {
         $stmt = $pdo->prepare("SELECT name, study_years, college FROM departments WHERE id = ?");
         $stmt->execute([$dept_id]);
         $dept = $stmt->fetch(PDO::FETCH_ASSOC);
-        $study_years = $dept['study_years'] ?? 4;
+        $study_years = (int)($dept['study_years'] ?? 4);
         $college = $dept['college'] ?? '';
         $deptName = $dept['name'] ?? '';
 
@@ -65,66 +65,26 @@ if (isset($_GET['action'])) {
         $batches = [];
         $semesters = [];
 
-        if (stripos($deptName, 'Medicine') !== false || $deptName === 'ህክምና') {
-            $batches = [1, 2, 3, 4, 5, 6, 7, 8];
-            $semesters = [
-                1 => [2],
-                2 => [1, 2],
-                3 => [1, 2],
-                4 => [1, 2],
-                5 => [1, 2],
-                6 => [1, 2],
-                7 => [1, 2],
-                8 => [1, 2]
-            ];
-        } elseif (stripos($deptName, 'Law') !== false || $deptName === 'ህግ') {
-            $batches = [1, 2, 3, 4, 5];
-            $semesters = [
-                1 => [2],
-                2 => [1, 2],
-                3 => [1, 2],
-                4 => [1, 2],
-                5 => [1, 2]
-            ];
-        } elseif (
-            stripos($deptName, 'Software') !== false || 
-            stripos($deptName, 'Electrical') !== false || 
-            stripos($deptName, 'Mechanical') !== false || 
-            stripos($deptName, 'Health Science') !== false || 
-            stripos($deptName, 'Animal Science') !== false || 
-            stripos($deptName, 'Veterinary') !== false || 
-            stripos($deptName, 'ሶፍትዌር ምህንድስና') !== false ||
-            stripos($deptName, 'ኤሌክትሪካል ምህንድስና') !== false ||
-            stripos($deptName, 'ሜካኒካል ምህንድስና') !== false ||
-            stripos($deptName, 'ጤና ሳይንስ') !== false ||
-            stripos($deptName, 'እንስሳት ሳይንስ') !== false ||
-            stripos($deptName, 'እንስሳት ህክምና') !== false
-        ) {
-            $batches = [2, 3, 4, 5];
-            $semesters = [
-                2 => [1, 2],
-                3 => [1, 2],
-                4 => [1, 2],
-                5 => [1, 2]
-            ];
-        } elseif (stripos($college, 'Remedial') !== false || stripos($deptName, 'Remedial') !== false || stripos($deptName, 'ሪሚዲያል') !== false) {
+        // Detect Remedial departments
+        if (stripos($college, 'Remedial') !== false || stripos($deptName, 'Remedial') !== false || stripos($deptName, 'ሪሚዲያል') !== false) {
             $dept_type = 'remedial';
             $batches = [];
             $semesters = [];
-        } elseif (stripos($college, 'Freshman') !== false || stripos($deptName, 'Freshman') !== false || stripos($deptName, 'ፍሬሽማን') !== false) {
+        }
+        // Detect Freshman departments
+        elseif (stripos($college, 'Freshman') !== false || stripos($deptName, 'Freshman') !== false || stripos($deptName, 'ፍሬሽማን') !== false) {
             $dept_type = 'freshman';
             $batches = [1];
             $semesters = [
                 1 => [1, 2]
             ];
-        } else {
-            // Other departments
-            $batches = [2, 3, 4];
-            $semesters = [
-                2 => [1, 2],
-                3 => [1, 2],
-                4 => [1, 2]
-            ];
+        }
+        // All other departments: dynamically generate batches from 2 to study_years
+        else {
+            for ($i = 2; $i <= $study_years; $i++) {
+                $batches[] = $i;
+                $semesters[$i] = [1, 2];
+            }
         }
 
         echo json_encode(['dept_type' => $dept_type, 'batches' => $batches, 'semesters' => $semesters]);
