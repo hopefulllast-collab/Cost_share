@@ -79,6 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
     <title data-en="Update Account - DMU" data-am="መለያ አዘምን - DMU">Update Account - DMU</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .profile-center-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -87,9 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
         <div class="layout-body">
             <?php include '../../includes/sidebar.php'; ?>
             <div class="main-content">
-                <div class="top-bar">
+                <div class="top-bar" style="text-align:center;">
                     <h2 data-en="Update Account" data-am="መለያ አዘምን">Update Account</h2>
                 </div>
+
+                <div class="profile-center-wrapper">
 
                 <?php if ($msg): ?>
                     <div class="success-msg" style="color: green; border: 1px solid green; background: #e8f5e9;">
@@ -112,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                 placeholder="Enter new password" data-en="Enter new password"
                                 data-en-placeholder="Enter new password" data-am-placeholder="አዲስ የይለፍ ቃል ያስገቡ">
                         </div>
-
                         <div class="form-group">
                             <label data-en="Confirm Password" data-am="የይለፍ ቃል ያረጋግጡ">Confirm Password</label>
                             <input type="password" name="confirm_password" required minlength="4"
@@ -160,6 +167,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                     </form>
                 </div>
                 <?php endif; ?>
+
+                </div><!-- end profile-center-wrapper -->
 
             </div>
         </div>
