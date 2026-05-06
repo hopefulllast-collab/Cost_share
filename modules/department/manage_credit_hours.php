@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once '../../includes/auth_check.php';
 require_once '../../config/db_connect.php';
 checkAuth(['department_head']);
@@ -663,17 +663,36 @@ $special_cases = $special_stmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
 
                             <?php if (count($courses) > 0 && $can_edit): ?>
-                                <form method="POST" style="display:inline;"
-                                    onsubmit="event.preventDefault(); var form = this; Swal.fire({title: 'Are you sure?', text: 'Do you want to submit these credit hours to Cost Sharing Professional?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, submit it!'}).then((result) => { if (result.isConfirmed) { form.submit(); } });">
+                                <form method="POST" id="submitCostSharingForm">
                                     <input type="hidden" name="batch" value="<?php echo $sel_batch; ?>">
                                     <input type="hidden" name="semester" value="<?php echo $sel_semester; ?>">
-                                    <button type="submit" name="submit_to_cost_sharing" class="btn-primary"
-                                        style="background:#28a745;">
+                                    <button type="button" name="submit_to_cost_sharing" class="btn-primary"
+                                        style="background:#28a745;" onclick="confirmSubmitCostSharing()">
                                         <i class="fas fa-paper-plane"></i>
-                                        <span data-en="Submit to Cost Sharing" data-am="??? ???? ????">Submit to Cost
+                                        <span data-en="Submit to Cost Sharing" data-am="ወጪ ክፍፍል ላክ">Submit to Cost
                                             Sharing</span>
                                     </button>
+                                    <input type="hidden" name="submit_to_cost_sharing" value="1">
                                 </form>
+                                <script>
+                                function confirmSubmitCostSharing() {
+                                    var lang = localStorage.getItem('dmu_lang') || 'en';
+                                    Swal.fire({
+                                        title: lang === 'am' ? 'እርግጠኛ ነዎት?' : 'Are you sure?',
+                                        text: lang === 'am' ? 'እነዚህን የክሬዲት ሰዓቶች ለወጪ ክፍፍል ባለሙያ ማስገባት ይፈልጋሉ?' : 'Do you want to submit these credit hours to Cost Sharing Professional?',
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#28a745',
+                                        cancelButtonColor: '#d33',
+                                        confirmButtonText: lang === 'am' ? 'አዎ፣ ላክ!' : 'Yes, submit it!',
+                                        cancelButtonText: lang === 'am' ? 'ተው' : 'Cancel'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            document.getElementById('submitCostSharingForm').submit();
+                                        }
+                                    });
+                                }
+                                </script>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -1170,7 +1189,30 @@ $special_cases = $special_stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         }
     }
+
 </script>
+<?php if ($msg): ?>
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: '<span data-en="Success" data-am="ተሳክቷል">Success</span>',
+        html: '<?php echo addslashes($msg); ?>',
+        confirmButtonColor: '#28a745',
+        timer: 3000,
+        timerProgressBar: true
+    });
+</script>
+<?php endif; ?>
+<?php if ($error): ?>
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: '<span data-en="Error" data-am="ስህተት">Error</span>',
+        html: '<?php echo addslashes($error); ?>',
+        confirmButtonColor: '#d33'
+    });
+</script>
+<?php endif; ?>
 </body>
 
 </html>
