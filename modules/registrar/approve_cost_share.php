@@ -114,11 +114,11 @@ $delivered_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student
                 <?php if ($error)
                     echo "<div class='error-msg'>$error</div>"; ?>
                 <!-- Document Requests (Final Signature) -->
-                <div class="card mt-20">
+                <div class="card mt-20" style="text-align:center;">
                     <h3 data-en="Ready for Final Signature (From Transcript Pro)"
                         data-am="ለመጨረሻ ፊርማ ዝግጁ (ከትራንስክሪፕት ባለሙያ)">Ready for Final Signature (From Transcript Pro)</h3>
                     <?php if (empty($signing_docs)): ?>
-                        <p data-en="No documents waiting for final signature." data-am="ለመጨረሻ ፊርማ የሚጠብቁ ሰነዶች የሉም።">No
+                        <p style="color:#888; padding:20px 0;" data-en="No documents waiting for final signature." data-am="ለመጨረሻ ፊርማ የሚጠብቁ ሰነዶች የሉም።">No
                             documents waiting for final signature.</p>
                     <?php else: ?>
                         <table class="table">
@@ -156,11 +156,11 @@ $delivered_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student
                     <?php endif; ?>
                 </div>
                 <!-- Approved/Delivered Documents (Ready for Print) -->
-                <div class="card mt-20">
+                <div class="card mt-20" style="text-align:center;">
                     <h3 data-en="Finalized Documents (Signed & Ready to Print)"
                         data-am="የተጠናቀቁ ሰነዶች (የተፈረሙ እና ለማተም ዝግጁ)">Finalized Documents (Signed & Ready to Print)</h3>
                     <?php if (empty($delivered_docs)): ?>
-                        <p data-en="No finalized documents available." data-am="ያልተጠናቀቁ ሰነዶች የሉም።">No finalized documents
+                        <p style="color:#888; padding:20px 0;" data-en="No finalized documents available." data-am="ያልተጠናቀቁ ሰነዶች የሉም።">No finalized documents
                             available.</p>
                     <?php else: ?>
                         <table class="table">
