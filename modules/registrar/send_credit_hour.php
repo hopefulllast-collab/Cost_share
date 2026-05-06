@@ -15,15 +15,15 @@ $departments = $pdo->query("SELECT id, name, study_years FROM departments ORDER 
 
 // Handle Submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
-    $dept_id = $_POST['department_id'];
-    $ac_year = $_POST['academic_year'];
-    $batch = $_POST['batch'];
-    $semester = $_POST['semester'];
-    $credit_hour = $_POST['credit_hour'];
-    $min_credit = (int) $_POST['min_credit_hours'];
-    $max_credit = (int) $_POST['max_credit_hours'];
-    $sem_min_credit = (int) $_POST['semester_min_credits'];
-    $sem_max_credit = (int) $_POST['semester_max_credits'];
+    $dept_id = $_POST['department_id'] ?? '';
+    $ac_year = $_POST['academic_year'] ?? '';
+    $batch = $_POST['batch'] ?? '';
+    $semester = $_POST['semester'] ?? '';
+    $credit_hour = $_POST['credit_hour'] ?? '';
+    $min_credit = (int) ($_POST['min_credit_hours'] ?? 0);
+    $max_credit = (int) ($_POST['max_credit_hours'] ?? 0);
+    $sem_min_credit = (int) ($_POST['semester_min_credits'] ?? 0);
+    $sem_max_credit = (int) ($_POST['semester_max_credits'] ?? 0);
 
 
     // Validation
@@ -254,6 +254,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                             <i class="fas fa-paper-plane"></i> Send Credit Hour
                         </button>
                     </form>
+                    <script>
+                    // Enable disabled selects before form submission so their values are included in POST
+                    document.querySelector('form[method="POST"]').addEventListener('submit', function() {
+                        var batchSel = document.getElementById('batchSelect');
+                        var semSel = document.getElementById('semesterSelect');
+                        if (batchSel) batchSel.disabled = false;
+                        if (semSel) semSel.disabled = false;
+                    });
+                    </script>
                 </div>
 
                 <!-- Existing Records -->
