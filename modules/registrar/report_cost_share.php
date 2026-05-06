@@ -119,13 +119,6 @@ $status_map = [
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            align-items: end;
-        }
-
         @media print {
             body { background: white; }
             /* Hide all navigation, sidebars, topbars, forms, and buttons */

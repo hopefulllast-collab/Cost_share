@@ -567,6 +567,45 @@ body.mobile-layout .sidebar.collapsed .nav-links a i {
 }
 
 /* =========================================
+   FILTER GRID — Compact Filter Controls
+   ========================================= */
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    align-items: end;
+}
+
+.filter-grid label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--dash-text-medium);
+    margin-bottom: 2px;
+    display: block;
+}
+
+.filter-grid select,
+.filter-grid input[type="text"],
+.filter-grid input[type="number"] {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    border: 1px solid var(--dash-border);
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--dash-white);
+    color: var(--dash-text);
+    height: 34px;
+}
+
+.filter-grid select:focus,
+.filter-grid input:focus {
+    outline: none;
+    border-color: var(--dash-primary-vivid);
+    box-shadow: 0 0 0 2px rgba(55, 48, 163, 0.12);
+}
+
+/* =========================================
    11. TOP BAR
    ========================================= */
 .top-bar {
