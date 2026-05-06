@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
 
 
                 <div class="card">
-                    <form method="POST">
+                    <form method="POST" id="sendCreditForm" onsubmit="return validateCreditForm()">
                         <div class="form-group">
                             <label data-en="Department" data-am="ዲፓርትመንት">Department</label>
                             <select name="department_id" id="deptSelect" onchange="loadBatches()" required>
@@ -255,13 +255,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         </button>
                     </form>
                     <script>
-                    // Enable disabled selects before form submission so their values are included in POST
-                    document.querySelector('form[method="POST"]').addEventListener('submit', function() {
-                        var batchSel = document.getElementById('batchSelect');
-                        var semSel = document.getElementById('semesterSelect');
-                        if (batchSel) batchSel.disabled = false;
-                        if (semSel) semSel.disabled = false;
-                    });
+                    function validateCreditForm() {
+                        var dept = document.getElementById('deptSelect');
+                        var batch = document.getElementById('batchSelect');
+                        var sem = document.getElementById('semesterSelect');
+                        var lang = localStorage.getItem('dmu_lang') || 'en';
+                        
+                        if (!dept.value) {
+                            Swal.fire({icon:'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ ዲፓርትመንት ይምረጡ' : 'Please select a Department'});
+                            return false;
+                        }
+                        if (!batch.value) {
+                            Swal.fire({icon:'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ የጥናት ዓመት ይምረጡ' : 'Please select Year of Study'});
+                            return false;
+                        }
+                        if (!sem.value) {
+                            Swal.fire({icon:'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ ሴሚስተር ይምረጡ' : 'Please select a Semester'});
+                            return false;
+                        }
+                        // Enable disabled selects so their values get submitted
+                        batch.disabled = false;
+                        sem.disabled = false;
+                        return true;
+                    }
                     </script>
                 </div>
 
