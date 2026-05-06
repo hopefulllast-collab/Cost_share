@@ -80,9 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .profile-center-wrapper {
-            max-width: 600px;
-            margin: 0 auto;
+        .main-content .card {
+            text-align: center;
+        }
+        .main-content .card .form-group {
+            text-align: left;
         }
     </style>
 </head>
@@ -96,8 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                 <div class="top-bar" style="text-align:center;">
                     <h2 data-en="Update Account" data-am="መለያ አዘምን">Update Account</h2>
                 </div>
-
-                <div class="profile-center-wrapper">
 
                 <?php if ($msg): ?>
                     <div class="success-msg" style="color: green; border: 1px solid green; background: #e8f5e9;">
@@ -167,8 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                     </form>
                 </div>
                 <?php endif; ?>
-
-                </div><!-- end profile-center-wrapper -->
 
             </div>
         </div>
