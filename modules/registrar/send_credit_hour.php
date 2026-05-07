@@ -27,11 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
 
     // Collect missing fields for a clear error message
     $missing = [];
-    if (empty($dept_id)) $missing[] = 'Department';
-    if (empty($ac_year)) $missing[] = 'Academic Year';
-    if (empty($batch)) $missing[] = 'Year of Study';
-    if (empty($semester)) $missing[] = 'Semester';
-    if (empty($credit_hour)) $missing[] = 'Total Billing Credit Hour';
+    if (empty($dept_id))
+        $missing[] = 'Department';
+    if (empty($ac_year))
+        $missing[] = 'Academic Year';
+    if (empty($batch))
+        $missing[] = 'Year of Study';
+    if (empty($semester))
+        $missing[] = 'Semester';
+    if (empty($credit_hour))
+        $missing[] = 'Total Billing Credit Hour';
 
     // Validation
     if (!empty($missing)) {
@@ -43,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
         $error = "<span data-en='Course Minimum credit hour cannot be greater than Maximum.' data-am='የኮርሱ ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Course Minimum credit hour cannot be greater than Maximum.</span>";
     } elseif ($sem_min_credit > $sem_max_credit) {
         $error = "<span data-en='Semester Minimum credit hour cannot be greater than Maximum.' data-am='የሴሚስተር ዝቅተኛ ክሬዲት ሰዓት ከከፍተኛው በላይ ሊሆን አይችልም'>Semester Minimum credit hour cannot be greater than Maximum.</span>";
-    } elseif ((int)$credit_hour < $sem_min_credit || (int)$credit_hour > $sem_max_credit) {
+    } elseif ((int) $credit_hour < $sem_min_credit || (int) $credit_hour > $sem_max_credit) {
         $error = "<span data-en='Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).' data-am='ጠቅላላ የክፍያ ክሬዲት ሰዓት ($credit_hour) በሴሚስተር ዝቅተኛ ($sem_min_credit) እና ከፍተኛ ($sem_max_credit) መካከል መሆን አለበት'>Total Billing Credit Hour ($credit_hour) must be between Semester Min ($sem_min_credit) and Max ($sem_max_credit).</span>";
     } else {
         // Cast to proper types for database
@@ -69,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
 
                     $stmt = $pdo->prepare("INSERT INTO courses 
                         (department_id, academic_year, batch, semester, credit_hours, min_credit_hours, max_credit_hours, semester_min_credits, semester_max_credits, rate_status, course_name, credit_hour) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending_Dept', 'Semester Credit', 0)");
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending_Dept', NULL, 0)");
                     $stmt->execute([$dept_id, $ac_year, $batch, $semester, $credit_hour, $min_credit, $max_credit, $sem_min_credit, $sem_max_credit]);
 
                     // Auto-create cost_sharing_agreements for students in this dept/batch/semester
@@ -168,13 +173,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @keyframes modalFadeIn {
-            from { transform: scale(0.9) translateY(-20px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
+            from {
+                transform: scale(0.9) translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
         }
-        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid #f0f0f0; }
-        .modal-header h3 { margin:0; font-size:1.2rem; color:#1a1a2e; }
-        .modal-header .close { font-size:28px; cursor:pointer; color:#999; transition:color 0.2s; line-height:1; }
-        .modal-header .close:hover { color:#e74c3c; }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #1a1a2e;
+        }
+
+        .modal-header .close {
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .modal-header .close:hover {
+            color: #e74c3c;
+        }
     </style>
 </head>
 
@@ -251,12 +286,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         <div class="form-group"
                             style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top:15px;">
                             <div>
-                                <label data-en="Semester Min Credits (Total)" data-am="ሴሚስተር ዝቅተኛ የክሬዲት ሰዓት (ጠቅላላ)">Semester
+                                <label data-en="Semester Min Credits (Total)"
+                                    data-am="ሴሚስተር ዝቅተኛ የክሬዲት ሰዓት (ጠቅላላ)">Semester
                                     Min</label>
                                 <input type="number" name="semester_min_credits" min="0" max="50" value="15" required>
                             </div>
                             <div>
-                                <label data-en="Semester Max Credits (Total)" data-am="ሴሚስተር ከፍተኛ የክሬዲት ሰዓት (ጠቅላላ)">Semester
+                                <label data-en="Semester Max Credits (Total)"
+                                    data-am="ሴሚስተር ከፍተኛ የክሬዲት ሰዓት (ጠቅላላ)">Semester
                                     Max</label>
                                 <input type="number" name="semester_max_credits" min="0" max="60" value="21" required>
                             </div>
@@ -274,29 +311,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                         </button>
                     </form>
                     <script>
-                    function validateCreditForm() {
-                        var dept = document.getElementById('deptSelect');
-                        var batch = document.getElementById('batchSelect');
-                        var sem = document.getElementById('semesterSelect');
-                        var lang = localStorage.getItem('dmu_lang') || 'en';
-                        
-                        if (!dept.value) {
-                            Swal.fire({icon:'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ ዲፓርትመንት ይምረጡ' : 'Please select a Department'});
-                            return false;
+                        function validateCreditForm() {
+                            var dept = document.getElementById('deptSelect');
+                            var batch = document.getElementById('batchSelect');
+                            var sem = document.getElementById('semesterSelect');
+                            var lang = localStorage.getItem('dmu_lang') || 'en';
+
+                            if (!dept.value) {
+                                Swal.fire({ icon: 'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ ዲፓርትመንት ይምረጡ' : 'Please select a Department' });
+                                return false;
+                            }
+                            if (!batch.value) {
+                                Swal.fire({ icon: 'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ የጥናት ዓመት ይምረጡ' : 'Please select Year of Study' });
+                                return false;
+                            }
+                            if (!sem.value) {
+                                Swal.fire({ icon: 'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ ሴሚስተር ይምረጡ' : 'Please select a Semester' });
+                                return false;
+                            }
+                            // Enable disabled selects so their values get submitted
+                            batch.disabled = false;
+                            sem.disabled = false;
+                            return true;
                         }
-                        if (!batch.value) {
-                            Swal.fire({icon:'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ የጥናት ዓመት ይምረጡ' : 'Please select Year of Study'});
-                            return false;
-                        }
-                        if (!sem.value) {
-                            Swal.fire({icon:'error', title: lang === 'am' ? 'ስህተት' : 'Error', text: lang === 'am' ? 'እባክዎ ሴሚስተር ይምረጡ' : 'Please select a Semester'});
-                            return false;
-                        }
-                        // Enable disabled selects so their values get submitted
-                        batch.disabled = false;
-                        sem.disabled = false;
-                        return true;
-                    }
                     </script>
                 </div>
 
@@ -315,80 +352,89 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                     ?>
                     <?php if (count($existing) > 0): ?>
                         <div style="overflow-x:auto;">
-                        <table class="table-list">
-                            <thead>
-                                <tr>
-                                    <th data-en="Department" data-am="ትምህርት ክፍል">Department</th>
-                                    <th data-en="Year" data-am="ዓመት">Year</th>
-                                    <th data-en="Batch" data-am="የጥናት አመት">Batch</th>
-                                    <th data-en="Sem" data-am="ሴሚስተር">Semester</th>
-                                    <th data-en="Cr.Hrs" data-am="ክ.ሰዓት">Credit Hour</th>
-                                    <th data-en="Min" data-am="ዝቅተኛ ክ.ሰዓት">Minimum Credit Hour</th>
-                                    <th data-en="Max" data-am="ከፍተኛ ክ.ሰዓት">Maximum Credit Hour</th>
-                                    <th data-en="Sem Min" data-am="ሴሚስተር ዝ.ዝ.ሰዓት">Semester Minimum Credit Hour</th>
-                                    <th data-en="Sem Max" data-am="ሴሚስተር ከ.ከ.ሰዓት">Semester Maximum Credit Hour</th>
-                                    <th data-en="Status" data-am="ሁኔታ">Status</th>
-                                    <th data-en="Action" data-am="ድርጊት">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($existing as $r): ?>
+                            <table class="table-list">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <?php
-                                            $dept_am = $academic_translations[$r['dept_name']] ?? $r['dept_name'];
-                                            ?>
-                                            <span data-en="<?php echo htmlspecialchars($r['dept_name']); ?>"
-                                                data-am="<?php echo htmlspecialchars($dept_am); ?>">
-                                                <?php echo htmlspecialchars($r['dept_name']); ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <?php echo $r['academic_year'] ?: '-'; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $r['batch']; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $r['semester']; ?>
-                                        </td>
-                                        <td><strong>
-                                                <?php echo $r['credit_hours']; ?>
-                                            </strong></td>
-                                        <td>
-                                            <?php echo $r['min_credit_hours']; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $r['max_credit_hours']; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $r['semester_min_credits']; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $r['semester_max_credits']; ?>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $st = $r['rate_status'] ?? 'Pending_Dept';
-                                            $bg = ($st == 'Submitted') ? '#28a745' : '#6c757d';
-                                            ?>
-                                            <span
-                                                style="background:<?php echo $bg; ?>; color:#fff; padding:3px 8px; border-radius:10px; font-size:12px;">
-                                                <?php echo $st; ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button onclick='openEditModal(<?php echo htmlspecialchars(json_encode($r), JSON_HEX_APOS | JSON_HEX_QUOT); ?>)' class='btn-secondary' style='padding: 3px 8px; font-size: 11px; margin-bottom:4px;' data-en='Edit' data-am='አስተካክል'>Edit</button>
-                                            <form style="display:inline-block;" method="POST" id="deleteForm_<?php echo $r['id']; ?>">
-                                                <input type="hidden" name="course_id" value="<?php echo $r['id']; ?>">
-                                                <input type="hidden" name="delete_credit_hour" value="1">
-                                                <button type="button" onclick="showBilingualConfirm('Are you sure you want to delete this record?', 'ይህን መዝገብ መሰረዝ ይፈልጋሉ?', function(){ document.getElementById('deleteForm_<?php echo $r['id']; ?>').submit(); })" class='btn-danger' style='padding: 3px 8px; font-size: 11px;' data-en='Delete' data-am='ሰርዝ'><i class='fas fa-trash'></i> Delete</button>
-                                            </form>
-                                        </td>
+                                        <th data-en="Department" data-am="ትምህርት ክፍል">Department</th>
+                                        <th data-en="Year" data-am="ዓመት">Year</th>
+                                        <th data-en="Batch" data-am="የጥናት አመት">Batch</th>
+                                        <th data-en="Sem" data-am="ሴሚስተር">Semester</th>
+                                        <th data-en="Cr.Hrs" data-am="ክ.ሰዓት">Credit Hour</th>
+                                        <th data-en="Min" data-am="ዝቅተኛ ክ.ሰዓት">Minimum Credit Hour</th>
+                                        <th data-en="Max" data-am="ከፍተኛ ክ.ሰዓት">Maximum Credit Hour</th>
+                                        <th data-en="Sem Min" data-am="ሴሚስተር ዝ.ዝ.ሰዓት">Semester Minimum Credit Hour</th>
+                                        <th data-en="Sem Max" data-am="ሴሚስተር ከ.ከ.ሰዓት">Semester Maximum Credit Hour</th>
+                                        <th data-en="Status" data-am="ሁኔታ">Status</th>
+                                        <th data-en="Action" data-am="ድርጊት">Action</th>
                                     </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($existing as $r): ?>
+                                        <tr>
+                                            <td>
+                                                <?php
+                                                $dept_am = $academic_translations[$r['dept_name']] ?? $r['dept_name'];
+                                                ?>
+                                                <span data-en="<?php echo htmlspecialchars($r['dept_name']); ?>"
+                                                    data-am="<?php echo htmlspecialchars($dept_am); ?>">
+                                                    <?php echo htmlspecialchars($r['dept_name']); ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php echo $r['academic_year'] ?: '-'; ?>
+                                            </td>
+                                            <td>
+                                                <?php echo $r['batch']; ?>
+                                            </td>
+                                            <td>
+                                                <?php echo $r['semester']; ?>
+                                            </td>
+                                            <td><strong>
+                                                    <?php echo $r['credit_hours']; ?>
+                                                </strong></td>
+                                            <td>
+                                                <?php echo $r['min_credit_hours']; ?>
+                                            </td>
+                                            <td>
+                                                <?php echo $r['max_credit_hours']; ?>
+                                            </td>
+                                            <td>
+                                                <?php echo $r['semester_min_credits']; ?>
+                                            </td>
+                                            <td>
+                                                <?php echo $r['semester_max_credits']; ?>
+                                            </td>
+                                            <td>
+                                                <?php
+                                                $st = $r['rate_status'] ?? 'Pending_Dept';
+                                                $bg = ($st == 'Submitted') ? '#28a745' : '#6c757d';
+                                                ?>
+                                                <span
+                                                    style="background:<?php echo $bg; ?>; color:#fff; padding:3px 8px; border-radius:10px; font-size:12px;">
+                                                    <?php echo $st; ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button
+                                                    onclick='openEditModal(<?php echo htmlspecialchars(json_encode($r), JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'
+                                                    class='btn-secondary'
+                                                    style='padding: 3px 8px; font-size: 11px; margin-bottom:4px;' data-en='Edit'
+                                                    data-am='አስተካክል'>Edit</button>
+                                                <form style="display:inline-block;" method="POST"
+                                                    id="deleteForm_<?php echo $r['id']; ?>">
+                                                    <input type="hidden" name="course_id" value="<?php echo $r['id']; ?>">
+                                                    <input type="hidden" name="delete_credit_hour" value="1">
+                                                    <button type="button"
+                                                        onclick="showBilingualConfirm('Are you sure you want to delete this record?', 'ይህን መዝገብ መሰረዝ ይፈልጋሉ?', function(){ document.getElementById('deleteForm_<?php echo $r['id']; ?>').submit(); })"
+                                                        class='btn-danger' style='padding: 3px 8px; font-size: 11px;'
+                                                        data-en='Delete' data-am='ሰርዝ'><i class='fas fa-trash'></i>
+                                                        Delete</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
                         </div>
                     <?php else: ?>
                         <p style="text-align:center; padding:20px; color:#999;" data-en="No records yet."
@@ -399,70 +445,86 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
             </div>
         </div>
 
-    <!-- Edit Modal -->
-    <div id="editModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; justify-content:center; align-items:center;">
-        <div class="modal-content" style="max-width:600px; width:90%; background:#fff; border-radius:16px; padding:30px; box-shadow:0 20px 60px rgba(0,0,0,0.3); position:relative; animation:modalFadeIn 0.3s ease;">
-            <div class="modal-header">
-                <h3 data-en="Edit Credit Hour" data-am="የክሬዲት ሰዓት ማስተካከያ">Edit Credit Hour</h3>
-                <span class="close" onclick="closeEditModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form method="POST">
-                    <input type="hidden" name="course_id" id="edit_course_id">
-                    
-                    <div class="form-group three-col" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                        <div>
-                            <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
-                            <input type="text" id="edit_dept_name" readonly style="background:#f0f0f0;" disabled>
-                        </div>
-                        <div>
-                            <label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label>
-                            <input type="text" id="edit_batch" readonly style="background:#f0f0f0;" disabled>
-                        </div>
-                        <div>
-                            <label data-en="Semester" data-am="ሴሚስተር">Semester</label>
-                            <input type="text" id="edit_semester" readonly style="background:#f0f0f0;" disabled>
-                        </div>
-                    </div>
+        <!-- Edit Modal -->
+        <div id="editModal"
+            style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; justify-content:center; align-items:center;">
+            <div class="modal-content"
+                style="max-width:600px; width:90%; background:#fff; border-radius:16px; padding:30px; box-shadow:0 20px 60px rgba(0,0,0,0.3); position:relative; animation:modalFadeIn 0.3s ease;">
+                <div class="modal-header">
+                    <h3 data-en="Edit Credit Hour" data-am="የክሬዲት ሰዓት ማስተካከያ">Edit Credit Hour</h3>
+                    <span class="close" onclick="closeEditModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form method="POST">
+                        <input type="hidden" name="course_id" id="edit_course_id">
 
-                    <div class="form-group" style="margin-top:15px;">
-                        <label data-en="Academic Year" data-am="የትምህርት ዘመን">Academic Year</label>
-                        <input type="text" name="academic_year" id="edit_academic_year" required>
-                    </div>
+                        <div class="form-group three-col"
+                            style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                            <div>
+                                <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
+                                <input type="text" id="edit_dept_name" readonly style="background:#f0f0f0;" disabled>
+                            </div>
+                            <div>
+                                <label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label>
+                                <input type="text" id="edit_batch" readonly style="background:#f0f0f0;" disabled>
+                            </div>
+                            <div>
+                                <label data-en="Semester" data-am="ሴሚስተር">Semester</label>
+                                <input type="text" id="edit_semester" readonly style="background:#f0f0f0;" disabled>
+                            </div>
+                        </div>
 
-                    <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;">
-                        <div>
-                            <label data-en="Min Credit Hour (Per Course)" data-am="ዝቅተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ትምህርት)">Min Credit Hour (Per Course)</label>
-                            <input type="number" name="min_credit_hours" id="edit_min_credit_hours" min="1" max="20" required>
+                        <div class="form-group" style="margin-top:15px;">
+                            <label data-en="Academic Year" data-am="የትምህርት ዘመን">Academic Year</label>
+                            <input type="text" name="academic_year" id="edit_academic_year" required>
                         </div>
-                        <div>
-                            <label data-en="Max Credit Hour (Per Course)" data-am="ከፍተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ትምህርት)">Max Credit Hour (Per Course)</label>
-                            <input type="number" name="max_credit_hours" id="edit_max_credit_hours" min="1" max="20" required>
-                        </div>
-                    </div>
 
-                    <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top:15px;">
-                        <div>
-                            <label data-en="Semester Min Credits (Total)" data-am="ዝቅተኛ የሴሚስተር ክሬዲት (ጠቅላላ)">Semester Min</label>
-                            <input type="number" name="semester_min_credits" id="edit_sem_min" min="0" max="50" required>
+                        <div class="form-group"
+                            style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;">
+                            <div>
+                                <label data-en="Min Credit Hour (Per Course)"
+                                    data-am="ዝቅተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ትምህርት)">Min Credit Hour (Per Course)</label>
+                                <input type="number" name="min_credit_hours" id="edit_min_credit_hours" min="1" max="20"
+                                    required>
+                            </div>
+                            <div>
+                                <label data-en="Max Credit Hour (Per Course)"
+                                    data-am="ከፍተኛ የክሬዲት ሰዓት (ለእያንዳንዱ ትምህርት)">Max Credit Hour (Per Course)</label>
+                                <input type="number" name="max_credit_hours" id="edit_max_credit_hours" min="1" max="20"
+                                    required>
+                            </div>
                         </div>
-                        <div>
-                            <label data-en="Semester Max Credits (Total)" data-am="ከፍተኛ የሴሚስተር ክሬዲት (ጠቅላላ)">Semester Max</label>
-                            <input type="number" name="semester_max_credits" id="edit_sem_max" min="0" max="60" required>
-                        </div>
-                        <div>
-                            <label data-en="Total Billing Credit Hour" data-am="ጠቅላላ የክፍያ ክሬዲት ሰዓት">Billing Cr.Hr</label>
-                            <input type="number" name="credit_hour" id="edit_credit_hour" min="1" max="60" required>
-                        </div>
-                    </div>
 
-                    <button type="submit" name="edit_credit_hour" class="btn-primary" style="width: 100%; margin-top:15px;" data-en="Update and Send to Dept Head" data-am="አድስ እና ለትምህርት ክፍሉ ኃላፊ ላክ">
-                        <i class="fas fa-save"></i> Update and Send to Dept Head
-                    </button>
-                </form>
+                        <div class="form-group"
+                            style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top:15px;">
+                            <div>
+                                <label data-en="Semester Min Credits (Total)" data-am="ዝቅተኛ የሴሚስተር ክሬዲት (ጠቅላላ)">Semester
+                                    Min</label>
+                                <input type="number" name="semester_min_credits" id="edit_sem_min" min="0" max="50"
+                                    required>
+                            </div>
+                            <div>
+                                <label data-en="Semester Max Credits (Total)" data-am="ከፍተኛ የሴሚስተር ክሬዲት (ጠቅላላ)">Semester
+                                    Max</label>
+                                <input type="number" name="semester_max_credits" id="edit_sem_max" min="0" max="60"
+                                    required>
+                            </div>
+                            <div>
+                                <label data-en="Total Billing Credit Hour" data-am="ጠቅላላ የክፍያ ክሬዲት ሰዓት">Billing
+                                    Cr.Hr</label>
+                                <input type="number" name="credit_hour" id="edit_credit_hour" min="1" max="60" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" name="edit_credit_hour" class="btn-primary"
+                            style="width: 100%; margin-top:15px;" data-en="Update and Send to Dept Head"
+                            data-am="አድስ እና ለትምህርት ክፍሉ ኃላፊ ላክ">
+                            <i class="fas fa-save"></i> Update and Send to Dept Head
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
         <?php include '../../includes/footer.php'; ?>
     </div>
     <script>
@@ -471,23 +533,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
             document.getElementById('edit_dept_name').value = record.dept_name;
             document.getElementById('edit_batch').value = 'Batch ' + record.batch;
             document.getElementById('edit_semester').value = 'Sem ' + record.semester;
-            
+
             document.getElementById('edit_academic_year').value = record.academic_year || '';
             document.getElementById('edit_min_credit_hours').value = record.min_credit_hours;
             document.getElementById('edit_max_credit_hours').value = record.max_credit_hours;
             document.getElementById('edit_sem_min').value = record.semester_min_credits;
             document.getElementById('edit_sem_max').value = record.semester_max_credits;
             document.getElementById('edit_credit_hour').value = record.credit_hours;
-            
+
             document.getElementById('editModal').style.display = 'flex';
-            if(typeof updateLanguage === 'function') updateLanguage();
+            if (typeof updateLanguage === 'function') updateLanguage();
         }
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
         }
 
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             let modal = document.getElementById('editModal');
             if (event.target == modal) {
                 closeEditModal();
@@ -521,12 +583,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                 .then(result => {
                     const batches = result.batches || result;
                     currentSemesters = result.semesters || {};
-                    
+
                     if (batchSelect) {
                         batchSelect.disabled = false;
                         batchSelect.style.opacity = '1';
                         batchSelect.style.cursor = 'pointer';
-                        
+
                         batches.forEach(batch => {
                             const option = document.createElement('option');
                             option.value = batch;
@@ -540,10 +602,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                             // check if form has year attribute instead of selectedBatch
                             const yearInput = document.getElementById('yearSelect');
                             if (yearInput && typeof selectedYear !== 'undefined' && batch == selectedYear) option.selected = true;
-                            
+
                             batchSelect.appendChild(option);
                         });
-                        
+
                         // Automatically load semesters if batch is already selected
                         if (typeof selectedBatch !== 'undefined' && selectedBatch) {
                             loadSemesters();
@@ -573,10 +635,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
             const batchSelect = document.getElementById('batchSelect') || document.getElementById('yearSelect');
             const semesterSelect = document.getElementById('semesterSelect');
             if (!semesterSelect) return;
-            
+
             const batch = batchSelect ? batchSelect.value : null;
             const currentLang = localStorage.getItem('dmu_lang') || 'en';
-            
+
             // clear it only if it's a filter, if it's required (form), maybe don't put 'All Sem'
             const isRequired = semesterSelect.hasAttribute('required');
             if (!isRequired) {
@@ -605,7 +667,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const batchSelect = document.getElementById('batchSelect');
             if (batchSelect) {
                 batchSelect.addEventListener('change', loadSemesters);
@@ -636,26 +698,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
 
     <!-- SweetAlert Popups for Success/Error -->
     <?php if ($msg): ?>
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: '<span data-en="Success" data-am="ተሳክቷል">Success</span>',
-            html: '<?php echo addslashes($msg); ?>',
-            confirmButtonColor: '#28a745',
-            timer: 3000,
-            timerProgressBar: true
-        });
-    </script>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: '<span data-en="Success" data-am="ተሳክቷል">Success</span>',
+                html: '<?php echo addslashes($msg); ?>',
+                confirmButtonColor: '#28a745',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        </script>
     <?php endif; ?>
     <?php if ($error): ?>
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: '<span data-en="Error" data-am="ስህተት">Error</span>',
-            html: '<?php echo addslashes($error); ?>',
-            confirmButtonColor: '#d33'
-        });
-    </script>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: '<span data-en="Error" data-am="ስህተት">Error</span>',
+                html: '<?php echo addslashes($error); ?>',
+                confirmButtonColor: '#d33'
+            });
+        </script>
     <?php endif; ?>
 
     <script>

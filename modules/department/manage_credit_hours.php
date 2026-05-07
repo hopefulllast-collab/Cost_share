@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['remove_special_case'])
 }
 
 // --- Fetch Courses for selected batch/semester ---
-$courses_stmt = $pdo->prepare("SELECT * FROM courses WHERE department_id = ? AND batch = ? AND semester = ? ORDER BY course_name");
+$courses_stmt = $pdo->prepare("SELECT * FROM courses WHERE department_id = ? AND batch = ? AND semester = ? AND credit_hour > 0 ORDER BY course_name");
 $courses_stmt->execute([$dept_id, $sel_batch, $sel_semester]);
 $courses = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -662,7 +662,7 @@ $special_cases = $special_stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </span>
                             </div>
 
-                            <?php if (count($courses) > 0 && $can_edit): ?>
+                            <?php if (count($courses) > 0): ?>
                                 <form method="POST" id="submitCostSharingForm">
                                     <input type="hidden" name="batch" value="<?php echo $sel_batch; ?>">
                                     <input type="hidden" name="semester" value="<?php echo $sel_semester; ?>">
