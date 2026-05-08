@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
         $error = "<span data-en='Too many failed login attempts. Your access has been temporarily locked for 24 hours. Please try again later.' data-am='በጣም ብዙ ያልተሳኩ የመግቢያ ሙከራዎች። ለ24 ሰዓት ጊዜያዊ እገዳ ተደርጓል። እባክዎ ቆይተው እንደገና ይሞክሩ።'>Too many failed login attempts. Your access has been temporarily locked for 24 hours. Please try again later.</span>";
     } else {
         // Check in users table
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE BINARY username = :username");
         $stmt->execute([':username' => $username]);
         $user = $stmt->fetch();
 
