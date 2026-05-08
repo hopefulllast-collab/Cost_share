@@ -347,7 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_credit_hour']))
                     $existing = $pdo->query("SELECT r.*, d.name as dept_name 
                                              FROM courses r 
                                              JOIN departments d ON r.department_id = d.id 
-                                             WHERE r.course_name = 'Semester Credit'
+                                             WHERE r.credit_hour = 0
                                              ORDER BY d.name, r.batch, r.semester")->fetchAll(PDO::FETCH_ASSOC);
                     ?>
                     <?php if (count($existing) > 0): ?>
