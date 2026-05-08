@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_credit_hour'])) {
 
                     $stmt = $pdo->prepare("INSERT INTO courses 
                         (department_id, academic_year, batch, semester, credit_hours, min_credit_hours, max_credit_hours, semester_min_credits, semester_max_credits, rate_status, course_name, credit_hour) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending_Dept', NULL, 0)");
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending_Dept', '', 0)");
                     $stmt->execute([$dept_id, $ac_year, $batch, $semester, $credit_hour, $min_credit, $max_credit, $sem_min_credit, $sem_max_credit]);
 
                     // Auto-create cost_sharing_agreements for students in this dept/batch/semester
