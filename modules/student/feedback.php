@@ -173,6 +173,7 @@ $banned_keywords_json = json_encode($banned_keywords);
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
+                <div class="content-centered">
                 <div class="top-bar">
                     <h2 data-en="Feedback" data-am="አስተያየት">Feedback</h2>
                 </div>
@@ -254,6 +255,7 @@ $banned_keywords_json = json_encode($banned_keywords);
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
+                </div><!-- .content-centered -->
             </div>
         </div>
         <?php include '../../includes/footer.php'; ?>

@@ -104,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
+                <div class="content-centered">
                 <div class="top-bar">
                     <h2 data-en="Request Official Document" data-am="ኦፊሺያል ሰነድ ይጠይቁ">Request Official Document</h2>
                 </div>
@@ -173,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
                             data-am="ጥያቄ አቅርብ">Submit Request</button>
                     </form>
                 </div>
+                </div><!-- .content-centered -->
             </div>
         </div>
         <?php include '../../includes/footer.php'; ?>

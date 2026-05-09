@@ -60,6 +60,7 @@ $notices = $pdo->query("SELECT * FROM notices WHERE expiry_date >= '$today' ORDE
             <?php include '../../includes/sidebar.php'; ?>
 
             <div class="main-content">
+                <div class="content-centered">
                 <div class="top-bar">
                     <h2 data-en="Notices" data-am="ማስታወቂያዎች">Notices</h2>
                 </div>
@@ -96,6 +97,7 @@ $notices = $pdo->query("SELECT * FROM notices WHERE expiry_date >= '$today' ORDE
                     <p data-en="No active notices at this time." data-am="በዚህ ጊዜ ምንም ንቁ ማስታወቂያዎች የሉም።">No active notices at
                         this time.</p>
                 <?php endif; ?>
+                </div><!-- .content-centered -->
             </div>
         </div>
         <?php include '../../includes/footer.php'; ?>

@@ -95,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
         <div class="layout-body">
             <?php include '../../includes/sidebar.php'; ?>
             <div class="main-content">
+                <div class="content-centered">
                 <div class="top-bar" style="text-align:center;">
                     <h2 data-en="Update Account" data-am="መለያ አዘምን">Update Account</h2>
                 </div>
@@ -168,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                 </div>
                 <?php endif; ?>
 
+                </div><!-- .content-centered -->
             </div>
         </div>
         <?php include '../../includes/footer.php'; ?>

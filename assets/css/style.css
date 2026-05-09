@@ -498,6 +498,12 @@ body.mobile-layout .sidebar.collapsed .nav-links a i {
     height: 100%;
 }
 
+/* Centered content wrapper for simpler pages */
+.content-centered {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
 /* Smooth scrollbar for main content */
 .main-content::-webkit-scrollbar {
     width: 6px;
