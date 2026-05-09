@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['promote'])) {
             $pdo->beginTransaction();
 
             if ($new_batch === 'Graduated') {
-                // When graduating: update batch, semester, year AND set students.status to 'graduated'
+                // When graduating: keep batch and semester as-is, only set status to 'graduated'
                 // Note: users.status stays 'active' (account-level) so students can still log in
                 $sql = "UPDATE students 
-                        SET batch = ?, current_semester = ?, academic_year = ?, status = 'graduated' 
+                        SET status = 'graduated', academic_year = ? 
                         WHERE department_id = ? AND batch = ? AND status = 'active'";
                 $stmt = $pdo->prepare($sql);
-                $stmt->execute([$new_batch, $new_semester, $new_academic_year, $dept_id, $current_batch]);
+                $stmt->execute([$new_academic_year, $dept_id, $current_batch]);
                 $count = $stmt->rowCount();
             } else {
                 // Normal promotion: just update batch, semester, and academic year
