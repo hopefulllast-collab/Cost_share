@@ -167,7 +167,7 @@
 
                 // Status
                 const statusEn = u.status;
-                const statusAm = u.status === 'active' ? 'ንቁ' : (u.status === 'inactive' ? 'ቦዘኔ' : u.status);
+                const statusAm = u.status === 'active' ? 'ንቁ' : (u.status === 'suspended' ? 'ታግዷል' : u.status);
                 const statusColor = u.status === 'active' ? '#27ae60' : '#e74c3c';
                 const statusVal = `<span style="color:${statusColor};text-transform:capitalize;" data-en="${statusEn}" data-am="${statusAm}">${localStorage.getItem('dmu_lang') === 'am' ? statusAm : statusEn}</span>`;
 

@@ -8,8 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
     $student_user_id = $_POST['student_user_id']; // This is users.id
     $new_status = $_POST['status'];
 
-    // Update users table status
-    $stmt = $pdo->prepare("UPDATE users SET status = :s WHERE id = :id");
+    // Update students table status (academic status, not account status)
+    $stmt = $pdo->prepare("UPDATE students SET status = :s WHERE user_id = :id");
     $stmt->execute([':s' => $new_status, ':id' => $student_user_id]);
 
     $_SESSION["flash_success"] = "<span data-en='Student status updated to " . $new_status . "' data-am='የተማሪ ሁኔታ ወደ " . $new_status . " ተዘምኗል'>Student status updated to " . $new_status . "</span>";
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
 $students = [];
 if (isset($_GET['search'])) {
     $search = "%" . $_GET['search'] . "%";
-    $stmt = $pdo->prepare("SELECT u.id, u.first_name, u.last_name, u.username, u.status, s.student_id 
+    $stmt = $pdo->prepare("SELECT u.id, u.first_name, u.last_name, u.username, s.status, s.student_id 
                            FROM users u 
                            JOIN students s ON u.id = s.user_id 
                            WHERE u.username LIKE :s OR u.first_name LIKE :s OR s.student_id LIKE :s");

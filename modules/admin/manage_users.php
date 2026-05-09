@@ -73,7 +73,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         header("Location: " . $_SERVER["PHP_SELF"]);
         exit();
     } elseif ($action == 'disable') {
-        $stmt = $pdo->prepare("UPDATE users SET status = 'inactive' WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE users SET status = 'suspended' WHERE id = ?");
         $stmt->execute([$id]);
         logAudit($pdo, 'USER_DISABLED', 'Disabled user ID: ' . $id);
         $_SESSION["flash_success"] = "<span data-en='User disabled.' data-am='ተጠቃሚው ተሰናክሏል'>User disabled.</span>";
