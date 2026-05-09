@@ -33,10 +33,14 @@ $agreement = null;
 $content = [];
 
 if ($selected_id > 0) {
-    $stmt = $pdo->prepare("SELECT csa.*, s.student_id, d.name as dept_name, d.college
+    $stmt = $pdo->prepare("SELECT csa.*, s.student_id, d.name as dept_name, d.college,
+                            dh.first_name as dept_head_fname, dh.middle_name as dept_head_mname,
+                            cp.first_name as cost_pro_fname, cp.middle_name as cost_pro_mname
                             FROM cost_sharing_agreements csa
                             JOIN students s ON csa.student_id = s.user_id
                             JOIN departments d ON s.department_id = d.id
+                            LEFT JOIN users dh ON csa.head_user_id = dh.id
+                            LEFT JOIN users cp ON cp.role = 'cost_sharing_pro' AND csa.signature_cost_pro IS NOT NULL AND csa.signature_cost_pro != ''
                             WHERE csa.id = ? AND csa.student_id = ?");
     $stmt->execute([$selected_id, $user_id]);
     $agreement = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -45,10 +49,14 @@ if ($selected_id > 0) {
     foreach ($all_agreements as $ag) {
         if ($ag['status'] === 'ApprovedByCostPro') { $default_id = $ag['id']; break; }
     }
-    $stmt = $pdo->prepare("SELECT csa.*, s.student_id, d.name as dept_name, d.college
+    $stmt = $pdo->prepare("SELECT csa.*, s.student_id, d.name as dept_name, d.college,
+                            dh.first_name as dept_head_fname, dh.middle_name as dept_head_mname,
+                            cp.first_name as cost_pro_fname, cp.middle_name as cost_pro_mname
                             FROM cost_sharing_agreements csa
                             JOIN students s ON csa.student_id = s.user_id
                             JOIN departments d ON s.department_id = d.id
+                            LEFT JOIN users dh ON csa.head_user_id = dh.id
+                            LEFT JOIN users cp ON cp.role = 'cost_sharing_pro' AND csa.signature_cost_pro IS NOT NULL AND csa.signature_cost_pro != ''
                             WHERE csa.id = ? AND csa.student_id = ?");
     $stmt->execute([$default_id, $user_id]);
     $agreement = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -503,6 +511,11 @@ if ($selected_id > 0) {
                                         <?php 
                                         $dept_sig = $agreement['signature_dept_head'] ?? '';
                                         if (!empty($dept_sig)) {
+                                            // Show signer name
+                                            $dh_name = trim(($agreement['dept_head_fname'] ?? '') . ' ' . ($agreement['dept_head_mname'] ?? ''));
+                                            if (!empty($dh_name)) {
+                                                echo '<p style="font-size:0.85em; color:#333; margin-bottom:5px; font-weight:600;">' . htmlspecialchars($dh_name) . '</p>';
+                                            }
                                             if (strpos($dept_sig, 'data:image/') === 0) {
                                                 echo '<img src="' . $dept_sig . '" alt="Department Head Signature" style="max-height:60px; max-width:100%;">';
                                             } else if (strpos($dept_sig, '/') === false && strpos($dept_sig, '\\') === false) {
@@ -527,6 +540,11 @@ if ($selected_id > 0) {
                                         <?php 
                                         $cost_sig = $agreement['signature_cost_pro'] ?? '';
                                         if (!empty($cost_sig)) {
+                                            // Show signer name
+                                            $cp_name = trim(($agreement['cost_pro_fname'] ?? '') . ' ' . ($agreement['cost_pro_mname'] ?? ''));
+                                            if (!empty($cp_name)) {
+                                                echo '<p style="font-size:0.85em; color:#333; margin-bottom:5px; font-weight:600;">' . htmlspecialchars($cp_name) . '</p>';
+                                            }
                                             if (strpos($cost_sig, 'data:image/') === 0) {
                                                 echo '<img src="' . $cost_sig . '" alt="Cost Sharing Pro Signature" style="max-height:60px; max-width:100%;">';
                                             } else if (preg_match('/\.(png|jpg|jpeg|gif)$/i', $cost_sig)) {

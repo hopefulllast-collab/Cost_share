@@ -61,8 +61,8 @@ $notices = $pdo->query("SELECT * FROM notices WHERE expiry_date >= '$today' ORDE
 
             <div class="main-content">
                 <div class="content-centered">
-                <div class="top-bar">
-                    <h2 data-en="Notices" data-am="ማስታወቂያዎች">Notices</h2>
+                <div class="top-bar" >
+                    <h2 data-en="Notices" data-am="ማስታወቂያዎች" >Notices</h2>
                 </div>
 
                 <?php if (count($notices) > 0): ?>

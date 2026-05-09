@@ -500,7 +500,7 @@ body.mobile-layout .sidebar.collapsed .nav-links a i {
 
 /* Centered content wrapper for simpler pages */
 .content-centered {
-    max-width: 800px;
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -1982,4 +1982,4 @@ form[style*='display: grid']>div:last-child {
     .dash-section [style*="grid-template-columns:1fr 1fr 1fr"] {
         grid-template-columns: 1fr !important;
     }
-}
+}
