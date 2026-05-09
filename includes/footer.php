@@ -16,25 +16,12 @@
         });
 
         if (activeAlerts.length > 0) {
-            // Auto-refresh after 5 seconds to clear the form and state completely
-            setTimeout(function () {
-                var newUrl = window.location.href;
-                // Strip out dynamically injected GET errors to prevent infinite loops
-                if (newUrl.indexOf('error=') > -1) {
-                    newUrl = newUrl.replace(/([&?])error=[^&]*(&|$)/, function (m, p1, p2) {
-                        return (p1 === '?' && p2 === '&') ? '?' : (p2 === '&' ? '&' : '');
-                    });
-                    newUrl = newUrl.replace(/\?$/, ''); // Clean trailing query string token
-                }
-                // Refresh effectively as GET, discarding POST warning block
-                window.location.href = newUrl;
-            }, 5000);
-
-            // Fade out messages slightly before refresh
+            // Fade out messages after 5 seconds
             activeAlerts.forEach(function (el) {
                 el.style.transition = 'opacity 0.5s ease';
                 setTimeout(function () {
                     el.style.opacity = '0';
+                    setTimeout(function () { el.style.display = 'none'; }, 500);
                 }, 4500);
             });
         }
