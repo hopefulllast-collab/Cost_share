@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['promote'])) {
             $pdo->beginTransaction();
 
             if ($new_batch === 'Graduated') {
-                // When graduating: update batch, semester, academic_year AND status
+                // When graduating: update batch, semester, year AND set status to 'graduated'
                 $sql = "UPDATE students 
                         SET batch = ?, current_semester = ?, academic_year = ?, status = 'graduated' 
                         WHERE department_id = ? AND batch = ? AND status = 'active'";
@@ -35,16 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['promote'])) {
                 $stmt->execute([$new_batch, $new_semester, $new_academic_year, $dept_id, $current_batch]);
                 $count = $stmt->rowCount();
 
-                // Also update users.status to 'graduated' for these students
+                // Also update the users table status for these students
                 if ($count > 0) {
-                    $sql2 = "UPDATE users u 
-                             JOIN students s ON u.id = s.user_id 
-                             SET u.status = 'graduated' 
-                             WHERE s.department_id = ? AND s.batch = 'Graduated' AND s.status = 'graduated'";
-                    $pdo->prepare($sql2)->execute([$dept_id]);
+                    $sql_users = "UPDATE users u 
+                                  JOIN students s ON u.id = s.user_id 
+                                  SET u.status = 'graduated' 
+                                  WHERE s.department_id = ? AND s.batch = 'Graduated' AND s.status = 'graduated'";
+                    $pdo->prepare($sql_users)->execute([$dept_id]);
                 }
             } else {
-                // Normal promotion: update batch, semester, academic_year only
+                // Normal promotion: just update batch, semester, and academic year
                 $sql = "UPDATE students 
                         SET batch = ?, current_semester = ?, academic_year = ? 
                         WHERE department_id = ? AND batch = ? AND status = 'active'";
@@ -56,7 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['promote'])) {
             $pdo->commit();
 
             if ($count > 0) {
-                $_SESSION["flash_success"] = "<span data-en='Successfully promoted' data-am='በተሳካ ሁኔታ አድገዋል'>Successfully promoted</span> $count <span data-en='students' data-am='ተማሪዎች'>students</span>.";
+                $action_label = ($new_batch === 'Graduated') 
+                    ? "<span data-en='Successfully graduated' data-am='በተሳካ ሁኔታ ተመርቀዋል'>Successfully graduated</span>" 
+                    : "<span data-en='Successfully promoted' data-am='በተሳካ ሁኔታ አድገዋል'>Successfully promoted</span>";
+                $_SESSION["flash_success"] = "$action_label $count <span data-en='students' data-am='ተማሪዎች'>students</span>.";
                 header("Location: " . $_SERVER["PHP_SELF"]);
                 exit();
             } else {
@@ -64,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['promote'])) {
             }
 
         } catch (PDOException $e) {
-            $pdo->rollBack();
             $error = "<span data-en='Database Error: " . $e->getMessage() . "' data-am='የውሂብ ጎታ ስህተት: " . $e->getMessage() . "'>Database Error: " . $e->getMessage() . "</span>";
         }
     }

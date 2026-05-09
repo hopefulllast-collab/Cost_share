@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
 
     // 2. Check Eligibility (Graduated only for Original/Graduation)
     if (!$error && ($doc_type == 'Original' || $doc_type == 'Graduation')) {
-        if (strtolower($info['status']) != 'graduated') {
+        if ($info['status'] != 'Graduated') {
             $error = "<span data-en='You are not eligible, you must wait upto graduate.' data-am='እርስዎ ብቁ አይደሉም፣ እስኪመረቁ ድረስ መጠበቅ አለብዎት።'>You are not eligible, you must wait upto graduate.</span>";
         }
     }
@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
 
             // Client-side Eligibility Check
             if (type === 'Original' || type === 'Graduation') {
-                if (studentStatus.toLowerCase() !== 'graduated') {
+                if (studentStatus !== 'Graduated') {
                     // Show inline error instead of alert
                     const msg = localStorage.getItem('dmu_lang') === 'am' ? 'እርስዎ ብቁ አይደሉም፣ እስኪመረቁ ድረስ መጠበቅ አለብዎት።' : 'You are not eligible, you must wait upto graduate.';
                     errorDiv.innerText = msg;
