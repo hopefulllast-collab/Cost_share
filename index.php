@@ -55,6 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
                 $_SESSION['username'] = $user['username'];
+                $_SESSION['is_first_login'] = $user['is_first_login'];
 
                 logAudit($pdo, 'LOGIN_SUCCESS', 'User logged in as ' . $user['role']);
 

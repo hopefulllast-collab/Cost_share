@@ -23,11 +23,11 @@ set_time_limit(600);
 function parse_csv_row(array $row): array
 {
     $known_roles = ['student', 'registrar', 'department_head', 'cost_sharing_pro', 'transcript_pro', 'admin'];
-    
+
     // Format B heuristic: 8 to 15 columns (to allow for invisible trailing excel columns) 
     $first_col_lower = strtolower(trim($row[0] ?? ''));
     $raw_count = count($row);
-    
+
     if (($raw_count >= 8 && $raw_count <= 15) && !in_array($first_col_lower, $known_roles)) {
         return [
             'format' => 'student_list',
@@ -119,8 +119,9 @@ fseek($handle, $first_line_pos); // Return to the start of the first line inside
 fgetcsv($handle, 0, $delimiter); // Skip header row
 $rows = [];
 while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
-    if (empty(array_filter($data, 'trim'))) continue;
-    $data = array_map(function($val) {
+    if (empty(array_filter($data, 'trim')))
+        continue;
+    $data = array_map(function ($val) {
         return trim(str_replace("\0", "", $val));
     }, $data);
     $rows[] = $data;
@@ -136,6 +137,7 @@ while ($dept = $deptStmt->fetch(PDO::FETCH_ASSOC)) {
 
 $success_count = 0;
 $errors = [];
+$skipped_students = []; // Students skipped due to duplicate email
 
 $pdo->beginTransaction();
 
@@ -150,12 +152,12 @@ try {
         $lname = $parsed['last_name'];
         $phone = $parsed['phone'];
         $dept_name = strtolower($parsed['dept_name']);
-        
+
         $debug_str = htmlspecialchars($parsed['raw_debug'] ?? '');
 
         // Validate: names must contain letters only or spaces
         if (empty($fname) || empty($mname) || empty($lname)) {
-             $errors[] = "<span data-en='Line $line: Names cannot be empty. Debug: $debug_str' data-am='መስመር $line: ስሞች ባዶ መሆን አይችሉም። (Debug: $debug_str)'>Line $line: Names cannot be empty. <b>(System parsed: $debug_str)</b></span>";
+            $errors[] = "<span data-en='Line $line: Names cannot be empty. Debug: $debug_str' data-am='መስመር $line: ስሞች ባዶ መሆን አይችሉም። (Debug: $debug_str)'>Line $line: Names cannot be empty. <b>(System parsed: $debug_str)</b></span>";
         } elseif (!preg_match('/^[A-Za-z\s]+$/', $fname) || !preg_match('/^[A-Za-z\s]+$/', $mname) || !preg_match('/^[A-Za-z\s]+$/', $lname)) {
             $errors[] = "<span data-en='Line $line: Names must contain letters only. (You provided: $fname, $mname, $lname)' data-am='መስመር $line: ስሞች ፊደላት ብቻ መሆን አለባቸው።'>Line $line: Names must contain letters only. (You provided: $fname, $mname, $lname)</span>";
         }
@@ -215,8 +217,43 @@ try {
         $batch = $parsed['batch'];
         $semester = $parsed['semester'];
 
-        $username = strtolower($fname) . rand(10, 99);
-        $password_raw = ($role === 'student') ? $student_id : 'password';
+        // Check for duplicate email - skip this student if email already exists
+        if (!empty($email)) {
+            $emailCheck = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+            $emailCheck->execute([$email]);
+            if ($emailCheck->fetchColumn() > 0) {
+                $skipped_students[] = [
+                    'student_id' => $student_id,
+                    'first_name' => $fname,
+                    'middle_name' => $mname,
+                    'last_name' => $lname,
+                    'email' => $email,
+                    'department' => $parsed['dept_name'],
+                    'batch' => $batch,
+                    'reason' => 'Email already registered'
+                ];
+                continue; // Skip this student
+            }
+        }
+
+        // Username: for students append random 3-char suffix, for others just add random digits
+        if ($role === 'student') {
+            $random_suffix = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, 3);
+            $username = strtolower($fname) . $random_suffix;
+        } else {
+            $username = strtolower($fname) . rand(10, 99);
+        }
+
+        // Password: for students use student_id, for staff auto-generate random
+        if ($role === 'student') {
+            $password_raw = $student_id;
+        } else {
+            $pw_chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+            $password_raw = '';
+            for ($pi = 0; $pi < 8; $pi++) {
+                $password_raw .= $pw_chars[random_int(0, strlen($pw_chars) - 1)];
+            }
+        }
         $hashed = password_hash($password_raw, PASSWORD_DEFAULT);
         $email_insert = !empty($email) ? $email : null;
         $phone_insert = !empty($phone) ? $phone : null;
@@ -263,23 +300,12 @@ try {
             }
         }
 
-        // Store created account in session for CSV download
-        if (!isset($_SESSION['created_accounts'])) {
-            $_SESSION['created_accounts'] = [];
-        }
-        $_SESSION['created_accounts'][] = [
-            'username' => $username,
-            'password' => $password_raw,
-            'role' => $role,
-            'first_name' => $fname,
-            'middle_name' => $mname,
-            'last_name' => $lname,
-            'phone' => $phone_insert ?? '',
-            'email' => $email_insert ?? '',
-            'student_id' => $student_id ?? ''
-        ];
-
         $success_count++;
+    }
+
+    // Store skipped students in session for CSV download
+    if (!empty($skipped_students)) {
+        $_SESSION['skipped_students'] = $skipped_students;
     }
 
     $pdo->commit();
@@ -302,7 +328,7 @@ try {
                 $body .= "We recommend that you change your password immediately upon first login.<br><br>";
                 $body .= "<a href='{$login_link}'>Click here to login</a><br><br>";
                 $body .= "Best Regards,<br>DMU System Administration";
-                
+
                 if (sendSystemEmail($acc['email'], $acc['first_name'] . ' ' . $acc['last_name'], $subject, $body)) {
                     $emails_sent++;
                 }
@@ -311,7 +337,7 @@ try {
     }
 
     $email_notice = ($emails_sent > 0) ? " ($emails_sent email credentials sent.)" : "";
-    
+
     $msg = urlencode("<span data-en='Success! $success_count user(s) imported.$email_notice' data-am='በተሳካ ሁኔታ! $success_count ተጠቃሚ(ዎች) ገብተዋል።$email_notice'>Success! $success_count user(s) imported.</span>");
     header("Location: create_account.php?msg=$msg");
     exit();

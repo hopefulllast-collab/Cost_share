@@ -1,6 +1,96 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$is_first_login = $_SESSION['is_first_login'] ?? 0;
+$fp_error = '';
+
+if ($is_first_login == 1 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['force_change_password'])) {
+    $new_pw = $_POST['new_password'];
+    $confirm_pw = $_POST['confirm_password'];
+
+    if ($new_pw !== $confirm_pw) {
+        $fp_error = "Passwords do not match.";
+    } elseif (strlen($new_pw) < 6) {
+        $fp_error = "Password must be at least 6 characters.";
+    } else {
+        require_once(__DIR__ . '/../config/db_connect.php');
+        $hashed = password_hash($new_pw, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("UPDATE users SET password = ?, is_first_login = 0 WHERE id = ?");
+        if ($stmt->execute([$hashed, $_SESSION['user_id']])) {
+            $_SESSION['is_first_login'] = 0;
+            echo "<script>window.location.href = window.location.href;</script>";
+            exit();
+        } else {
+            $fp_error = "Database error. Please try again.";
+        }
+    }
+}
+?>
+
+<?php if ($is_first_login == 1): ?>
+    <!-- Full Page Overlay for Forced Password Change -->
+    <div id="firstLoginModal"
+        style="position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 999999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div
+            style="background: #fff; padding: 35px; border-radius: 8px; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Plus Jakarta Sans', sans-serif;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <i class="fas fa-user-shield" style="font-size: 45px; color: #2e7d32; margin-bottom: 12px;"></i>
+                <h2 data-en="Update Your Password" data-am="የይለፍ ቃልዎን ይቀይሩ"
+                    style="margin:0; margin-bottom:8px; color:#222; font-size: 22px;">Update Your Password</h2>
+                <p data-en="Welcome! For your security, you must securely change your password before accessing the system."
+                    data-am="እንኳን በደህና መጡ! ለደህንነትዎ ሲባል ሲስተሙን ከመጠቀምዎ በፊት የይለፍ ቃልዎን ደህንነቱ በተጠበቀ ሁኔታ መቀየር አለብዎት።"
+                    style="color: #666; font-size: 14px; line-height: 1.5; margin:0;">
+                    Welcome! For your security, you must securely change your password before accessing the system.
+                </p>
+            </div>
+
+            <?php if ($fp_error): ?>
+                <div
+                    style="background: #ffebee; color: #c62828; padding: 12px; border-radius: 4px; border-left: 4px solid #c62828; margin-bottom: 20px; text-align: center; font-size: 14px;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i> <?php echo $fp_error; ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST">
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #444;"
+                        data-en="New Password" data-am="አዲስ የይለፍ ቃል">New Password</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-lock"
+                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                        <input type="password" name="new_password" required minlength="6"
+                            style="width: 100%; padding: 12px 12px 12px 35px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; transition: border-color 0.3s;"
+                            onfocus="this.style.borderColor='#2e7d32'" onblur="this.style.borderColor='#ddd'">
+                    </div>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #444;"
+                        data-en="Confirm Password" data-am="የይለፍ ቃል ያረጋግጡ">Confirm Password</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-lock"
+                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                        <input type="password" name="confirm_password" required minlength="6"
+                            style="width: 100%; padding: 12px 12px 12px 35px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; transition: border-color 0.3s;"
+                            onfocus="this.style.borderColor='#2e7d32'" onblur="this.style.borderColor='#ddd'">
+                    </div>
+                </div>
+                <button type="submit" name="force_change_password"
+                    style="width: 100%; padding: 14px; background: #2e7d32; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s;"
+                    onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
+                    <i class="fas fa-save" style="margin-right: 5px;"></i> <span data-en="Update Password"
+                        data-am="ፓስዎርድ ቀይር">Update Password</span>
+                </button>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
 <header class="admin-header" style="background-color: #bbb2b2;">
     <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
-        <button id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle Sidebar" style="background: none; border: none; font-size: 1.4rem; color: #000; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: background 0.3s; border-radius: 4px;">
+        <button id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle Sidebar"
+            style="background: none; border: none; font-size: 1.4rem; color: #000; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: background 0.3s; border-radius: 4px;">
             <i class="fas fa-bars"></i>
         </button>
         <?php
@@ -27,7 +117,8 @@
         </button>
         <div class="user-profile" onclick="showProfileModal()"
             style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; transition: background 0.3s;">
-            <img src="../../assets/images/dmulogo.png" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+            <img src="../../assets/images/dmulogo.png" alt="Profile"
+                style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
             <span style="font-weight: 500;">
                 <?php echo $_SESSION['username'] ?? $role; ?>
             </span>
@@ -40,7 +131,8 @@
     <div class="modal-content" style="max-width: 500px;">
         <span class="close-btn" onclick="closeProfileModal()">&times;</span>
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="../../assets/images/dmulogo.png" alt="Profile" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
+            <img src="../../assets/images/dmulogo.png" alt="Profile"
+                style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
             <h2 id="profileFullName" style="margin: 10px 0 5px 0;">Loading...</h2>
             <p id="profileRole" style="color: #7f8c8d; margin: 0;"></p>
         </div>
@@ -111,7 +203,7 @@
 <script>
     function showProfileModal() { document.getElementById('profileModal').style.display = 'flex'; loadProfileData(); }
     function closeProfileModal() { document.getElementById('profileModal').style.display = 'none'; }
-    
+
     function toggleSidebar() {
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) {

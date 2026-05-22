@@ -15,14 +15,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['post_notice'])) {
     $expiry = $_POST['expiry_date'];
     $has_link = isset($_POST['has_link']) ? 1 : 0;
 
+    // Process file upload if any
+    $signature_seal = null;
+    if (isset($_FILES['signature_seal']) && $_FILES['signature_seal']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = '../../uploads/seals/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        $fileinfo = pathinfo($_FILES['signature_seal']['name']);
+        $ext = strtolower($fileinfo['extension']);
+        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+        if (in_array($ext, $allowed)) {
+            $filename = uniqid('seal_') . '.' . $ext;
+            $destination = $uploadDir . $filename;
+            if (move_uploaded_file($_FILES['signature_seal']['tmp_name'], $destination)) {
+                $signature_seal = $filename;
+            }
+        }
+    }
+
     // Server-side: expiry must be today or future
     if ($expiry < date('Y-m-d')) {
         $error = "<span data-en='Expiry date must be today or a future date.' data-am='የሚያበቃበት ቀን ዛሬ ወይም የወደፊት ቀን መሆን አለበት።'>Expiry date must be today or a future date.</span>";
     } else {
         try {
-            $stmt = $pdo->prepare("INSERT INTO notices (title, content, posted_by, expiry_date, has_form_link)
-                                   VALUES (:t, :c, :uid, :e, :l)");
-            $stmt->execute([':t' => $title, ':c' => $content, ':uid' => $_SESSION['user_id'], ':e' => $expiry, ':l' => $has_link]);
+            $stmt = $pdo->prepare("INSERT INTO notices (title, content, posted_by, expiry_date, has_form_link, signature_seal)
+                                   VALUES (:t, :c, :uid, :e, :l, :s)");
+            $stmt->execute([':t' => $title, ':c' => $content, ':uid' => $_SESSION['user_id'], ':e' => $expiry, ':l' => $has_link, ':s' => $signature_seal]);
             $_SESSION["flash_success"] = "<span data-en='Notice posted successfully!' data-am='ማስታወቂያው በተሳካ ሁኔታ ተለጥፏል!'>Notice posted successfully!</span>";
             header("Location: " . $_SERVER["PHP_SELF"]);
             exit();
@@ -45,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_notice'])) {
     }
 }
 
-$notices = $pdo->query("SELECT * FROM notices ORDER BY posted_date DESC")->fetchAll();
+$notices = $pdo->query("SELECT n.*, u.digital_signature as pro_signature FROM notices n LEFT JOIN users u ON n.posted_by = u.id ORDER BY n.posted_date DESC")->fetchAll();
 $today = date('Y-m-d');
 ?>
 <!DOCTYPE html>
@@ -108,6 +127,82 @@ $today = date('Y-m-d');
         .btn-delete:hover {
             background: #b02a37;
         }
+
+        /* Official Paper Layout Elements */
+        .official-paper {
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #ddd;
+            padding: 40px;
+            margin-bottom: 30px;
+            width: 100%;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .paper-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .paper-header-text h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #1a1a2e;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .paper-header-text h2 {
+            margin: 5px 0 0 0;
+            font-size: 18px;
+            color: #555;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .paper-content {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+
+        .paper-title {
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 25px;
+            text-decoration: underline;
+        }
+
+        .seal-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 40px;
+        }
+
+        .seal-container img {
+            max-width: 200px;
+            max-height: 120px;
+            object-fit: contain;
+        }
+
+        .notice-action-bar {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed #ccc;
+            margin-top: 20px;
+            margin-left: -40px;
+            margin-right: -40px;
+            margin-bottom: -40px;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
     </style>
 </head>
 
@@ -131,7 +226,7 @@ $today = date('Y-m-d');
                 <!-- Post Form -->
                 <div class="card">
                     <h3 data-en="Post New Notice" data-am="አዲስ ማስታወቂያ ይለጥፉ">Post New Notice</h3>
-                    <form method="POST" id="noticeForm">
+                    <form method="POST" id="noticeForm" enctype="multipart/form-data">
                         <div class="form-group">
                             <label data-en="Title" data-am="ርዕስ">Title</label>
                             <input type="text" name="title" required placeholder="Notice title" data-en="Notice title"
@@ -151,10 +246,17 @@ $today = date('Y-m-d');
                             <input type="date" name="expiry_date" id="expiryInput" required>
                             <small id="expiryHint" style="color:#888; font-size:0.83em;"></small>
                         </div>
-                        <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                        <div class="form-group"
+                            style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
                             <input type="checkbox" name="has_link" id="hasLink" style="width: auto; margin: 0;">
                             <label for="hasLink" style="margin: 0;" data-en="Include Link to Fill Cost Share Form"
                                 data-am="የወጪ መጋራት ቅጽን ለማካተት የሳጥን ምልክቷን ይንኩ">Include Link to Fill Cost Share Form</label>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Digital Seal & Signature (Optional)"
+                                data-am="ዲጂታል ማህተም እና ፊርማ (አማራጭ)">Digital Seal & Signature (Optional)</label>
+                            <input type="file" name="signature_seal" accept="image/*"
+                                style="border: none; background: transparent; padding: 0; box-shadow: none;">
                         </div>
                         <button type="submit" name="post_notice" class="btn-primary" data-en="Post Notice"
                             data-am="ማስታወቂያ ይለጥፉ">Post Notice</button>
@@ -162,51 +264,117 @@ $today = date('Y-m-d');
                 </div>
 
                 <!-- Notice List -->
-                <div class="card mt-20">
-                    <h3 data-en="All Notices" data-am="ሁሉም ማስታወቂያዎች">All Notices</h3>
-                    <table class="table-list">
-                        <thead>
-                            <tr>
-                                <th data-en="Title" data-am="ርዕስ">Title</th>
-                                <th data-en="Posted Date" data-am="የተለጠፈበት ቀን">Posted Date</th>
-                                <th data-en="Expiry Date" data-am="የሚያበቃበት ቀን">Expiry Date</th>
-                                <th data-en="Status" data-am="ሁኔታ">Status</th>
-                                <th data-en="Action" data-am="እርምጃ">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($notices as $n): ?>
-                                <?php
-                                $isExpired = (substr($n['expiry_date'], 0, 10) < $today);
-                                $rowClass = $isExpired ? 'expired-row' : '';
-                                ?>
-                                <tr class="<?php echo $rowClass; ?>"
-                                    data-expiry="<?php echo htmlspecialchars($n['expiry_date']); ?>">
-                                    <td><?php echo htmlspecialchars($n['title']); ?></td>
-                                    <td><?php echo substr($n['posted_date'], 0, 10); ?></td>
-                                    <td><?php echo substr($n['expiry_date'], 0, 10); ?></td>
-                                    <td>
-                                        <!-- Status badge rendered by JS based on expiry_date -->
+                <div class="mt-20">
+                    <h3 style="margin-bottom:20px;" data-en="All Published Notices" data-am="ሁሉም የታተሙ ማስታወቂያዎች">All
+                        Published Notices</h3>
+
+                    <?php if (empty($notices)): ?>
+                        <div class="card">
+                            <p data-en="No notices posted yet." data-am="እስካሁን ምንም ማስታወቂያ አልተለጠፈም።">No notices posted yet.
+                            </p>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($notices as $n): ?>
+                            <?php
+                            $isExpired = (substr($n['expiry_date'], 0, 10) < $today);
+                            $opacity = $isExpired ? '0.6' : '1';
+                            ?>
+                            <div class="official-paper" data-expiry="<?php echo htmlspecialchars($n['expiry_date']); ?>"
+                                style="opacity: <?php echo $opacity; ?>;">
+                                <!-- Header -->
+                                <div class="paper-header">
+                                    <div class="paper-header-text">
+                                        <h1>Debre Markos University</h1>
+                                        <h2>ደብረ ማርቆስ ዩኒቨርሲቲ</h2>
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="display: flex; justify-content: space-between; margin-bottom: 20px; color:#555; font-size:14px;">
+                                    <div><strong>Ref No:</strong> DMU-CS/<?php echo $n['id']; ?>/<?php echo date('Y'); ?></div>
+                                    <div><strong>Date:</strong> <?php echo substr($n['posted_date'], 0, 10); ?></div>
+                                </div>
+
+                                <div class="paper-title"><?php echo htmlspecialchars($n['title']); ?></div>
+
+                                <div class="paper-content">
+                                    <?php echo nl2br(htmlspecialchars($n['content'])); ?>
+                                </div>
+
+                                <div class="seal-container"
+                                    style="display: flex; align-items: center; justify-content: flex-end; margin-top: 40px; gap: 30px;">
+                                    <?php if (!empty($n['signature_seal'])): ?>
+                                        <img src="../../uploads/seals/<?php echo htmlspecialchars($n['signature_seal']); ?>"
+                                            alt="Digital Seal / Signature"
+                                            style="max-width: 250px; max-height: 120px; object-fit: contain;">
+                                    <?php else: ?>
+                                        <!-- Embedded Graphic SVG Signature -->
+                                        <div class="signature-box" style="text-align: center; color: #1a1a2e; margin-right: 20px;">
+                                            <?php if (!empty($n['pro_signature'])): ?>
+                                                <img src="<?php echo htmlspecialchars($n['pro_signature']); ?>" style="max-height: 80px; max-width: 150px; object-fit: contain; margin-bottom: 5px;">
+                                            <?php else: ?>
+                                                <svg width="150" height="60" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(-5deg); opacity: 0.8;">
+                                                    <path d="M 20 50 C 30 20, 40 10, 50 30 C 60 50, 55 70, 70 40 C 85 10, 80 50, 95 40 C 110 30, 105 15, 120 25 C 135 35, 125 60, 145 45 C 165 30, 155 45, 175 40" fill="none" stroke="#001845" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M 120 15 L 125 45 M 115 30 L 135 25" fill="none" stroke="#001845" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                            <?php endif; ?>
+                                            <div style="border-top: 1px solid #333; width: 160px; margin: 0 auto; padding-top: 5px; font-size: 13px; font-weight: bold;">
+                                                <span data-en="Cost Sharing Professional" data-am="የወጪ መጋራት ባለሙያ">Cost Sharing
+                                                    Professional</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Embedded Official Circular SVG Seal -->
+                                        <div class="svg-seal" style="width: 140px; height: 140px;">
+                                            <svg viewBox="0 0 200 200" width="140" height="140"
+                                                style="opacity:0.85; transform: rotate(-10deg);">
+                                                <circle cx="100" cy="100" r="95" fill="none" stroke="#1c3b70" stroke-width="4" />
+                                                <circle cx="100" cy="100" r="88" fill="none" stroke="#1c3b70" stroke-width="1.5" />
+                                                <circle cx="100" cy="100" r="50" fill="none" stroke="#1c3b70" stroke-width="1.5" />
+                                                <defs>
+                                                    <path id="top-path" d="M 25, 100 A 75 75 0 0 1 175, 100" />
+                                                    <path id="bottom-path" d="M 25, 100 A 75 75 0 0 0 175, 100" />
+                                                </defs>
+                                                <text fill="#1c3b70" font-family="Arial, sans-serif" font-size="14"
+                                                    font-weight="bold" letter-spacing="1">
+                                                    <textPath href="#top-path" startOffset="50%" text-anchor="middle">DEBRE MARKOS
+                                                        UNIVERSITY</textPath>
+                                                </text>
+                                                <text fill="#1c3b70" font-family="Arial, sans-serif" font-size="13"
+                                                    font-weight="bold" letter-spacing="1.5">
+                                                    <textPath href="#bottom-path" startOffset="50%" text-anchor="middle">COST
+                                                        SHARING OFFICE</textPath>
+                                                </text>
+                                                <text x="100" y="110" font-family="Times New Roman, serif" font-size="34"
+                                                    font-weight="bold" text-anchor="middle" fill="#1c3b70">DMU</text>
+                                            </svg>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Action bar at the bottom -->
+                                <div class="notice-action-bar">
+                                    <div>
                                         <span class="notice-status-badge"></span>
-                                        <div class="countdown-text notice-countdown"></div>
-                                    </td>
-                                    <td>
-                                        <form method="POST" id="deleteForm_<?php echo $n['id']; ?>"
-                                            class="delete-notice-form">
+                                        <span class="countdown-text notice-countdown" style="margin-left: 10px;"></span>
+                                        <div style="font-size: 13px; color:#777; margin-top:5px;">
+                                            <span><strong>Expires:</strong>
+                                                <?php echo substr($n['expiry_date'], 0, 10); ?></span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <form method="POST" id="deleteForm_<?php echo $n['id']; ?>" class="delete-notice-form">
                                             <input type="hidden" name="notice_id" value="<?php echo $n['id']; ?>">
                                             <button type="button" class="btn-delete"
-                                                onclick="confirmDelete(<?php echo $n['id']; ?>)">
+                                                onclick="confirmDelete(<?php echo $n['id']; ?>)" style="padding: 6px 15px;">
                                                 <i class="fas fa-trash"></i>
-                                                <span data-en="Delete" data-am="ሰርዝ">Delete</span>
+                                                <span data-en="Delete Notice" data-am="ማስታወቂያውን ሰርዝ">Delete Notice</span>
                                             </button>
                                         </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                    <?php if (empty($notices)): ?>
-                        <p data-en="No notices posted yet." data-am="እስካሁን ምንም ማስታወቂያ አልተለጠፈም።">No notices posted yet.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -237,7 +405,7 @@ $today = date('Y-m-d');
         });
 
         // ── Notice table: render status badge + countdown for each row ─────────
-        document.querySelectorAll('tr[data-expiry]').forEach(function (row) {
+        document.querySelectorAll('.official-paper[data-expiry]').forEach(function (row) {
             const expiryStr = row.dataset.expiry;
             const badge = row.querySelector('.notice-status-badge');
             const countdown = row.querySelector('.notice-countdown');

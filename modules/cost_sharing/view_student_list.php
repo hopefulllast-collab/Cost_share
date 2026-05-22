@@ -42,7 +42,7 @@ if (!empty($_GET['status'])) {
 $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
 
 // Fetch from students table directly
-$sql = "SELECT s.first_name, s.middle_name, s.last_name, s.sex, s.student_id, d.name as dept_name, s.batch, s.current_semester, s.academic_year 
+$sql = "SELECT s.first_name, s.middle_name, s.last_name, s.sex, s.student_id, d.name as dept_name, s.batch, s.current_semester, s.academic_year, csa.id as agreement_id 
         FROM students s 
         JOIN departments d ON s.department_id = d.id 
         LEFT JOIN cost_sharing_agreements csa ON s.user_id = csa.student_id
@@ -135,14 +135,15 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <th data-en="Sex" data-am="ጾታ">Sex</th>
                                 <th data-en="Department" data-am="ትምህርት ክፍል">Department</th>
                                 <th data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</th>
-                                <th data-en="Sem" data-am="ሴሚስተርem</th>
+                                <th data-en="Sem" data-am="ሴሚስተር">Sem</th>
                                 <th data-en="Academic Year" data-am="የትምህርት ዘመን">Academic Year</th>
+                                <th data-en="Action" data-am="ድርጊት">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($students)): ?>
                                 <tr>
-                                    <td colspan="7" data-en="No students found." data-am="ምንም ተማሪዎች አልተገኙም።">No students
+                                    <td colspan="8" data-en="No students found." data-am="ምንም ተማሪዎች አልተገኙም።">No students
                                         found.</td>
                                 </tr>
                             <?php else: ?>
@@ -171,6 +172,13 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </td>
                                         <td>
                                             <?php echo htmlspecialchars($stu['academic_year'] ?? '-'); ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($stu['agreement_id'])): ?>
+                                                <a href="view_agreement_detail.php?id=<?php echo $stu['agreement_id']; ?>" class="btn-secondary btn-sm"><i class="fas fa-eye"></i> <span data-en="View Details" data-am="ዝርዝር ይመልከቱ">View Details</span></a>
+                                            <?php else: ?>
+                                                -
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

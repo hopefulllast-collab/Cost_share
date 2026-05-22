@@ -124,7 +124,7 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                                 <div class="batch-actions">
                                     <!-- View List Button -->
-                                    <a href="view_student_list.php?department_id=<?php echo $group['dept_id']; ?>&year=<?php echo $group['batch']; ?>&status=VerifiedByDept"
+                                    <a href="approve_cost_share_list.php?department_id=<?php echo $group['dept_id']; ?>&batch=<?php echo $group['batch']; ?>"
                                         class="btn-secondary" style="margin-right: 10px;">
                                         <i class="fas fa-list"></i> <span data-en="View List" data-am="ዝርዝር ይመልከቱ">View
                                             List</span>

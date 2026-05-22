@@ -118,7 +118,8 @@ $delivered_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student
                     <h3 data-en="Ready for Final Signature (From Transcript Pro)"
                         data-am="ለመጨረሻ ፊርማ ዝግጁ (ከትራንስክሪፕት ባለሙያ)">Ready for Final Signature (From Transcript Pro)</h3>
                     <?php if (empty($signing_docs)): ?>
-                        <p style="color:#888; padding:20px 0;" data-en="No documents waiting for final signature." data-am="ለመጨረሻ ፊርማ የሚጠብቁ ሰነዶች የሉም።">No
+                        <p style="color:#888; padding:20px 0;" data-en="No documents waiting for final signature."
+                            data-am="ለመጨረሻ ፊርማ የሚጠብቁ ሰነዶች የሉም።">No
                             documents waiting for final signature.</p>
                     <?php else: ?>
                         <table class="table">
@@ -139,15 +140,12 @@ $delivered_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student
                                         <td><?php echo htmlspecialchars($doc['request_type']); ?></td>
                                         <td data-en="Signed" data-am="ተፈርሟል">Signed</td>
                                         <td>
-                                            <form method="POST"
-                                                style="display:flex; gap:5px; align-items:center;">
-                                                <input type="hidden" name="request_id" value="<?php echo $doc['id']; ?>">
-                                                <input type="hidden" name="action" value="finalize_doc">
-                                                <button type="submit" class="btn-success"
-                                                    style="color: #ffffff; padding: 5px; background-color: #000000; font-size: 1.2em;"
-                                                    data-en="Sign & Give" data-am="ፈርመህ ስጥ">Sign
-                                                    & Give</button>
-                                            </form>
+                                            <a href="preview_and_sign.php?id=<?php echo $doc['id']; ?>" class="btn-success"
+                                                style="color: #ffffff; padding: 6px 12px; background-color: #000000; font-size: 1.1em; text-decoration:none; display:inline-block;"
+                                                data-en="Review & Sign" data-am="ገምግመህ ፈርም">
+                                                <i class="fas fa-search-plus"></i> <span data-en="Review & Sign"
+                                                    data-am="ገምግመህ ፈርም">Review & Sign</span>
+                                            </a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -160,7 +158,8 @@ $delivered_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student
                     <h3 data-en="Finalized Documents (Signed & Ready to Print)"
                         data-am="የተጠናቀቁ ሰነዶች (የተፈረሙ እና ለማተም ዝግጁ)">Finalized Documents (Signed & Ready to Print)</h3>
                     <?php if (empty($delivered_docs)): ?>
-                        <p style="color:#888; padding:20px 0;" data-en="No finalized documents available." data-am="ያልተጠናቀቁ ሰነዶች የሉም።">No finalized documents
+                        <p style="color:#888; padding:20px 0;" data-en="No finalized documents available."
+                            data-am="ያልተጠናቀቁ ሰነዶች የሉም።">No finalized documents
                             available.</p>
                     <?php else: ?>
                         <table class="table">

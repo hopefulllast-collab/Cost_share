@@ -72,7 +72,7 @@ $departments = $pdo->query("SELECT * FROM departments ORDER BY name ASC")->fetch
                     <div class="error-msg"><?php echo $error; ?></div>
                 <?php endif; ?>
 
-                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <div class="card">
                     <form method="POST">
                         <div class="form-group">
                             <label data-en="Department Name" data-am="የዲፓርትመንት ስም">Department Name</label>

@@ -19,12 +19,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 
-// Fetch only Cost Sharing Issue feedback for Registrar
-$feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as real_student_id 
+// Fetch Registrar's own feedback
+$my_feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as real_student_id 
                           FROM feedback f 
                           JOIN users u ON f.student_id = u.id 
                           LEFT JOIN students s ON u.id = s.user_id 
                           WHERE f.subject = 'Cost Sharing Issue'
+                          ORDER BY f.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch System Performance feedbacks (Admin)
+$system_feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as real_student_id 
+                          FROM feedback f 
+                          JOIN users u ON f.student_id = u.id 
+                          LEFT JOIN students s ON u.id = s.user_id 
+                          WHERE f.subject = 'System Performance'
+                          ORDER BY f.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Tuition Rate feedbacks (Cost Pro)
+$tuition_feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as real_student_id 
+                          FROM feedback f 
+                          JOIN users u ON f.student_id = u.id 
+                          LEFT JOIN students s ON u.id = s.user_id 
+                          WHERE f.subject = 'Tuition Rate'
+                          ORDER BY f.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Other feedbacks
+$other_misc_feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as real_student_id 
+                          FROM feedback f 
+                          JOIN users u ON f.student_id = u.id 
+                          LEFT JOIN students s ON u.id = s.user_id 
+                          WHERE f.subject = 'Other'
                           ORDER BY f.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
@@ -81,10 +105,10 @@ $feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as
                     echo "<div class='success-msg'>$msg</div>"; ?>
 
                 <div class="card">
-                    <?php if (empty($feedbacks)): ?>
+                    <?php if (empty($my_feedbacks)): ?>
                         <p data-en="No feedback received." data-am="ምንም ግንዛቤ አልተቀበለም።">No feedback received.</p>
                     <?php else: ?>
-                        <?php foreach ($feedbacks as $fb): ?>
+                        <?php foreach ($my_feedbacks as $fb): ?>
                             <div class="feedback-item">
                                 <div class="feedback-header">
                                     <strong>
@@ -110,8 +134,6 @@ $feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as
                                     <?php echo nl2br(htmlspecialchars(decryptData($fb['message']))); ?>
                                 </p>
 
-
-
                                 <?php if ($fb['status'] != 'Resolved'): ?>
                                     <div style="margin-top: 10px;">
                                         <form method="POST" style="display:inline;">
@@ -121,6 +143,113 @@ $feedbacks = $pdo->query("SELECT f.*, u.first_name, u.last_name, s.student_id as
                                         </form>
                                     </div>
                                 <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <div class="top-bar" style="margin-top: 30px;">
+                    <h2 data-en="System Performance Feedback (Admin)" data-am="የስርዓት አፈጻጸም ግንዛቤ (አድሚን)">System
+                        Performance Feedback (Admin)</h2>
+                </div>
+                <div class="card">
+                    <?php if (empty($system_feedbacks)): ?>
+                        <p data-en="No system performance feedback received." data-am="ምንም የስርዓት አፈጻጸም ግንዛቤ አልተቀበለም።">No
+                            system performance feedback received.</p>
+                    <?php else: ?>
+                        <?php foreach ($system_feedbacks as $fb): ?>
+                            <div class="feedback-item">
+                                <div class="feedback-header">
+                                    <strong>
+                                        <?php echo htmlspecialchars($fb['first_name'] . ' ' . $fb['last_name']); ?> (
+                                        <?php echo htmlspecialchars($fb['real_student_id']); ?>)
+                                    </strong>
+                                    <span class="text-sm text-gray">
+                                        <?php echo $fb['created_at']; ?>
+                                    </span>
+                                </div>
+                                <div style="margin-bottom: 5px;">
+                                    <span
+                                        class="<?php echo $fb['status'] == 'Resolved' ? 'badge-resolved' : 'badge-pending'; ?>"
+                                        data-en="<?php echo $fb['status'] ?? 'Pending'; ?>"
+                                        data-am="<?php echo ($fb['status'] == 'Resolved') ? 'ተፈቷል' : 'በመጠባበቅ ላይ'; ?>">
+                                        <?php echo $fb['status'] ?? 'Pending'; ?>
+                                    </span>
+                                </div>
+                                <p>
+                                    <?php echo nl2br(htmlspecialchars(decryptData($fb['message']))); ?>
+                                </p>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <div class="top-bar" style="margin-top: 30px;">
+                    <h2 data-en="Tuition Rate Feedback (Cost Sharing Pro)" data-am="የትምህርት ተመን ግንዛቤ (የወጪ መጋራት ባለሙያ)">
+                        Tuition Rate Feedback (Cost Sharing Pro)</h2>
+                </div>
+                <div class="card">
+                    <?php if (empty($tuition_feedbacks)): ?>
+                        <p data-en="No tuition rate feedback received." data-am="ምንም የትምህርት ተመን ግንዛቤ አልተቀበለም።">No tuition
+                            rate feedback received.</p>
+                    <?php else: ?>
+                        <?php foreach ($tuition_feedbacks as $fb): ?>
+                            <div class="feedback-item">
+                                <div class="feedback-header">
+                                    <strong>
+                                        <?php echo htmlspecialchars($fb['first_name'] . ' ' . $fb['last_name']); ?> (
+                                        <?php echo htmlspecialchars($fb['real_student_id']); ?>)
+                                    </strong>
+                                    <span class="text-sm text-gray">
+                                        <?php echo $fb['created_at']; ?>
+                                    </span>
+                                </div>
+                                <div style="margin-bottom: 5px;">
+                                    <span
+                                        class="<?php echo $fb['status'] == 'Resolved' ? 'badge-resolved' : 'badge-pending'; ?>"
+                                        data-en="<?php echo $fb['status'] ?? 'Pending'; ?>"
+                                        data-am="<?php echo ($fb['status'] == 'Resolved') ? 'ተፈቷል' : 'በመጠባበቅ ላይ'; ?>">
+                                        <?php echo $fb['status'] ?? 'Pending'; ?>
+                                    </span>
+                                </div>
+                                <p>
+                                    <?php echo nl2br(htmlspecialchars(decryptData($fb['message']))); ?>
+                                </p>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <div class="top-bar" style="margin-top: 30px;">
+                    <h2 data-en="Other Feedback" data-am="ልዩ ልዩ ግንዛቤ">Other Feedback</h2>
+                </div>
+                <div class="card">
+                    <?php if (empty($other_misc_feedbacks)): ?>
+                        <p data-en="No other feedback received." data-am="ምንም ሌላ ልዩ ልዩ ግንዛቤ አልተቀበለም።">No other feedback
+                            received.</p>
+                    <?php else: ?>
+                        <?php foreach ($other_misc_feedbacks as $fb): ?>
+                            <div class="feedback-item">
+                                <div class="feedback-header">
+                                    <strong>
+                                        <?php echo htmlspecialchars($fb['first_name'] . ' ' . $fb['last_name']); ?> (
+                                        <?php echo htmlspecialchars($fb['real_student_id']); ?>)
+                                    </strong>
+                                    <span class="text-sm text-gray">
+                                        <?php echo $fb['created_at']; ?>
+                                    </span>
+                                </div>
+                                <div style="margin-bottom: 5px;">
+                                    <span
+                                        class="<?php echo $fb['status'] == 'Resolved' ? 'badge-resolved' : 'badge-pending'; ?>"
+                                        data-en="<?php echo $fb['status'] ?? 'Pending'; ?>"
+                                        data-am="<?php echo ($fb['status'] == 'Resolved') ? 'ተፈቷል' : 'በመጠባበቅ ላይ'; ?>">
+                                        <?php echo $fb['status'] ?? 'Pending'; ?>
+                                    </span>
+                                </div>
+                                <p>
+                                    <?php echo nl2br(htmlspecialchars(decryptData($fb['message']))); ?>
+                                </p>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>

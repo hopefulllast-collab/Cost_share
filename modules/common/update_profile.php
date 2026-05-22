@@ -13,7 +13,7 @@ $msg = $_SESSION["flash_success"] ?? "";
 unset($_SESSION["flash_success"]);
 $error = "";
 
-$signature_roles = ['cost_sharing_pro', 'registrar', 'department_head', 'transcript_pro'];
+$signature_roles = ['cost_sharing_pro', 'registrar', 'department_head', 'transcript_pro', 'student'];
 $show_signature = in_array($_SESSION['role'] ?? '', $signature_roles);
 
 if ($show_signature) {

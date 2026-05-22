@@ -43,10 +43,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
         $error = "<span data-en='You already have an active document request. Please wait until it is processed before submitting a new one.' data-am='ቀድሞ ያቀረቡት ሰነድ ጥያቄ ያልተጠናቀቀ አለ። አዲስ ከማቅረብዎ በፊት እባክዎ ይጠብቁ።'>You already have an active document request. Please wait until it is processed.</span>";
     }
 
-    // 2. Check Eligibility (Graduated only for Original/Graduation)
-    if (!$error && ($doc_type == 'Original' || $doc_type == 'Graduation')) {
-        if ($info['status'] != 'Graduated') {
+    // 2. Check if this specific document type has already been requested and completed (Delivered) or is already pending
+    if (!$error) {
+        $check_type = $pdo->prepare("SELECT count(*) FROM official_transcript WHERE student_id = ? AND request_type = ? AND status != 'Rejected'");
+        $check_type->execute([$user_id, $doc_type]);
+        if ($check_type->fetchColumn() > 0) {
+            $error = "<span data-en='You have already requested this document type before.' data-am='ይህን የሰነድ አይነት ከዚህ በፊት አስቀድመው ጠይቀዋል።'>You have already requested this document type before.</span>";
+        }
+    }
+
+    // 3. Check Eligibility Status
+    if (!$error) {
+        if (($doc_type == 'Original' || $doc_type == 'Graduation') && $info['status'] != 'Graduated') {
             $error = "<span data-en='You are not eligible, you must wait upto graduate.' data-am='እርስዎ ብቁ አይደሉም፣ እስኪመረቁ ድረስ መጠበቅ አለብዎት።'>You are not eligible, you must wait upto graduate.</span>";
+        } elseif ($doc_type == 'Transfer-Out' && $info['status'] != 'Active') {
+            $error = "<span data-en='You are not eligible. Only Active students can request Transfer-Out.' data-am='እርስዎ ብቁ አይደሉም። Transfer-Out መጠየቅ የሚችሉት ንቁ (Active) ተማሪዎች ብቻ ናቸው።'>You are not eligible. Only Active students can request Transfer-Out.</span>";
         }
     }
 
@@ -105,75 +116,79 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
 
             <div class="main-content">
                 <div class="content-centered">
-                <div class="top-bar">
-                    <h2 data-en="Request Official Document" data-am="ኦፊሺያል ሰነድ ይጠይቁ">Request Official Document</h2>
-                </div>
+                    <div class="top-bar">
+                        <h2 data-en="Request Official Document" data-am="ኦፊሺያል ሰነድ ይጠይቁ">Request Official Document</h2>
+                    </div>
 
-                <?php if ($msg)
-                    echo "<div class='success-msg'>$msg</div>"; ?>
-                <?php if ($error)
-                    echo "<div class='error-msg'>$error</div>"; ?>
+                    <?php if ($msg)
+                        echo "<div class='success-msg'>$msg</div>"; ?>
+                    <?php if ($error)
+                        echo "<div class='error-msg'>$error</div>"; ?>
 
-                <div id="js-error" class="error-msg" style="display:none;"></div>
+                    <div id="js-error" class="error-msg" style="display:none;"></div>
 
-                <div class="card">
-                    <form method="POST" enctype="multipart/form-data">
-                        <div class="form-group two-col">
-                            <div>
-                                <label data-en="Full Name" data-am="ሙሉ ስም">Full Name</label>
-                                <input type="text"
-                                    value="<?php echo $info['first_name'] . ' ' . $info['middle_name'] . ' ' . $info['last_name']; ?>"
-                                    readonly>
+                    <div class="card">
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="form-group two-col">
+                                <div>
+                                    <label data-en="Full Name" data-am="ሙሉ ስም">Full Name</label>
+                                    <input type="text"
+                                        value="<?php echo $info['first_name'] . ' ' . $info['middle_name'] . ' ' . $info['last_name']; ?>"
+                                        readonly>
+                                </div>
+                                <div>
+                                    <label data-en="Student ID" data-am="የተማሪ መለያ ቁጥር">Student ID</label>
+                                    <input type="text" value="<?php echo $info['student_id']; ?>" readonly>
+                                </div>
                             </div>
-                            <div>
-                                <label data-en="Student ID" data-am="የተማሪ መለያ ቁጥር">Student ID</label>
-                                <input type="text" value="<?php echo $info['student_id']; ?>" readonly>
+
+                            <div class="form-group">
+                                <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
+                                <?php
+                                $dept_en = $info['dept_name'] ?? 'N/A';
+                                $dept_am = $academic_translations[$dept_en] ?? $dept_en;
+                                ?>
+                                <span class="form-control"
+                                    style="background-color: #e9ecef; display: block; padding: 10px; border: 1px solid #ccc;"
+                                    data-en="<?php echo htmlspecialchars($dept_en); ?>"
+                                    data-am="<?php echo htmlspecialchars($dept_am); ?>">
+                                    <?php echo htmlspecialchars($dept_en); ?>
+                                </span>
+                                <input type="hidden" name="department"
+                                    value="<?php echo htmlspecialchars($dept_en); ?>">
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
-                            <?php
-                            $dept_en = $info['dept_name'] ?? 'N/A';
-                            $dept_am = $academic_translations[$dept_en] ?? $dept_en;
-                            ?>
-                            <span class="form-control"
-                                style="background-color: #e9ecef; display: block; padding: 10px; border: 1px solid #ccc;"
-                                data-en="<?php echo htmlspecialchars($dept_en); ?>"
-                                data-am="<?php echo htmlspecialchars($dept_am); ?>">
-                                <?php echo htmlspecialchars($dept_en); ?>
-                            </span>
-                            <input type="hidden" name="department" value="<?php echo htmlspecialchars($dept_en); ?>">
-                        </div>
+                            <div class="form-group">
+                                <label data-en="Document Type" data-am="የሰነድ አይነት">Document Type</label>
+                                <select name="document_type" id="docType" onchange="toggleUpload()" required>
+                                    <option value="" data-en="Select Type" data-am="የሰነድ አይነት ይምረጡ">Select Type</option>
+                                    <option value="Graduation" data-en="Graduation Certificate (Temporary)"
+                                        data-am="የምረቃ የምስክር ወረቀት (ጊዜያዊ)">Graduation Certificate (Temporary)</option>
+                                    <option value="Original" data-en="Original Document (Diploma/Transcript)"
+                                        data-am="ኦሪጅናል ሰነድ (ዲፕሎማ/ግልባጭ)">Original Document (Diploma/Transcript)</option>
+                                    <option value="Transfer-Out" data-en="Transfer-Out Cost Share Debt"
+                                        data-am="ግቢ ለመቀየር ወጪ ዕዳ ይጠይቁ">Transfer-Out Cost Share Debt</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label data-en="Document Type" data-am="የሰነድ አይነት">Document Type</label>
-                            <select name="document_type" id="docType" onchange="toggleUpload()" required>
-                                <option value="" data-en="Select Type" data-am="የሰነድ አይነት ይምረጡ">Select Type</option>
-                                <option value="Graduation" data-en="Graduation Certificate (Temporary)"
-                                    data-am="የምረቃ የምስክር ወረቀት (ጊዜያዊ)">Graduation Certificate (Temporary)</option>
-                                <option value="Original" data-en="Original Document (Diploma/Transcript)"
-                                    data-am="ኦሪጅናል ሰነድ (ዲፕሎማ/ግልባጭ)">Original Document (Diploma/Transcript)</option>
-                                <option value="Transfer-Out" data-en="Transfer-Out Cost Share Debt"
-                                    data-am="ግቢ ለመቀየር ወጪ ዕዳ ይጠይቁ">Transfer-Out Cost Share Debt</option>
-                            </select>
-                        </div>
+                            <div id="uploadSection" class="form-group hidden">
+                                <label
+                                    data-en="Upload Legal Acceptance Letter (From the university academic department, academic vice president office or inland revenue only)"
+                                    data-am="የህግ ተቀባይነት ደብዳቤ ስቀል
+                                (ከዩኒቨርሲቲው የአካዳሚክ ክፍል፣ የአካዳሚክ ምክትል ፕሬዘዳንት ቢሮ ወይም የሀገር ውስጥ ገቢ ብቻ)">Upload Legal
+                                    Acceptance Letter
+                                    <br>(From the university academic department, academic vice president office or
+                                    inland revenue only)</label>
+                                <input type="file" name="clearance_file" accept=".pdf,.jpg,.png">
+                                <small data-en="Required for all document requests."
+                                    data-am="ለሁሉም የሰነድ ጥያቄዎች ያስፈልጋል።">Required
+                                    for all document requests.</small>
+                            </div>
 
-                        <div id="uploadSection" class="form-group hidden">
-                            <label
-                                data-en="Upload Legal Acceptance Letter (From the university academic department, academic vice president office or inland revenue only)"
-                                data-am="የህግ ተቀባይነት ደብዳቤ ስቀል
-                                (ከዩኒቨርሲቲው የአካዳሚክ ክፍል፣ የአካዳሚክ ምክትል ፕሬዘዳንት ቢሮ ወይም የሀገር ውስጥ ገቢ ብቻ)">Upload Legal Acceptance Letter
-                                <br>(From the university academic department, academic vice president office or inland revenue only)</label>
-                            <input type="file" name="clearance_file" accept=".pdf,.jpg,.png">
-                            <small data-en="Required for all document requests." data-am="ለሁሉም የሰነድ ጥያቄዎች ያስፈልጋል።">Required
-                                for all document requests.</small>
-                        </div>
-
-                        <button type="submit" name="request_doc" class="btn-primary" data-en="Submit Request"
-                            data-am="ጥያቄ አቅርብ">Submit Request</button>
-                    </form>
-                </div>
+                            <button type="submit" name="request_doc" class="btn-primary" data-en="Submit Request"
+                                data-am="ጥያቄ አቅርብ">Submit Request</button>
+                        </form>
+                    </div>
                 </div><!-- .content-centered -->
             </div>
         </div>
@@ -188,32 +203,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['request_doc'])) {
             const section = document.getElementById('uploadSection');
             const errorDiv = document.getElementById('js-error');
 
-            // Reset Error
+            // Reset Error and Upload section
             errorDiv.style.display = 'none';
-            errorDiv.innerText = '';
+            errorDiv.innerHTML = '';
+            section.style.display = 'none';
+            section.classList.add('hidden');
 
-            // Toggle Upload Section
+            if (!type) return;
+
+            // Eligibility logic checks
+            let hasError = false;
+            
+            if ((type === 'Original' || type === 'Graduation') && studentStatus !== 'Graduated') {
+                errorDiv.innerHTML = "<span data-en='You must be Graduated to request this document.' data-am='ይህንን ሰነድ ለመጠየቅ የተመረቁ መሆን አለብዎት።'>You must be Graduated to request this document.</span>";
+                hasError = true;
+            } else if (type === 'Transfer-Out' && studentStatus !== 'Active') {
+                errorDiv.innerHTML = "<span data-en='You must be an Active student to request Transfer-Out.' data-am='ትራንስፈር-አውት ለመጠየቅ ንቁ (Active) ተማሪ መሆን አለብዎት።'>You must be an Active student to request Transfer-Out.</span>";
+                hasError = true;
+            }
+
+            if (hasError) {
+                errorDiv.style.display = 'block';
+                document.getElementById('docType').value = ""; // Reset dropdown to prevent submission
+                return;
+            }
+
+            // Show Upload if applicable
             if (type === 'Original' || type === 'Transfer-Out') {
                 section.style.display = 'block';
                 section.classList.remove('hidden');
-            } else {
-                section.style.display = 'none';
-                section.classList.add('hidden');
-            }
-
-            // Client-side Eligibility Check
-            if (type === 'Original' || type === 'Graduation') {
-                if (studentStatus !== 'Graduated') {
-                    // Show inline error instead of alert
-                    const msg = localStorage.getItem('dmu_lang') === 'am' ? 'እርስዎ ብቁ አይደሉም፣ እስኪመረቁ ድረስ መጠበቅ አለብዎት።' : 'You are not eligible, you must wait upto graduate.';
-                    errorDiv.innerText = msg;
-                    errorDiv.style.display = 'block';
-
-                    document.getElementById('docType').value = ""; // Reset selection
-                    section.style.display = 'none';
-                }
             }
         }
+
         // Init state
         document.addEventListener('DOMContentLoaded', toggleUpload);
     </script>

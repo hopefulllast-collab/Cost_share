@@ -15,20 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['vp_action'])) {
     $action = $_POST['vp_action'];
     $req_id = $_POST['request_id'];
 
-    if ($action == 'forward') {
-        $referral_note = $_POST['referral_note'] ?? '';
-
-        $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Forwarded', description = ? WHERE id = ? AND request_type = 'Transfer-Out'");
-        if ($stmt->execute([$referral_note, $req_id])) {
-            $_SESSION['flash_success'] = "<span data-en='Document request forwarded to Registrar successfully.' data-am='የሰነድ ጥያቄ ወደ ሬጅስትራር በተሳካ ሁኔታ ተላልፏል።'>Document request forwarded to Registrar successfully.</span>";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
-        } else {
-            $error = "<span data-en='Failed to forward request.' data-am='ጥያቄውን ማስተላለፍ አልተቻለም።'>Failed to forward request.</span>";
-        }
-    } elseif ($action == 'reject') {
-        $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Rejected' WHERE id = ? AND request_type = 'Transfer-Out'");
-        if ($stmt->execute([$req_id])) {
+    if ($action == 'reject') {
+        $reason = $_POST['rejection_reason'] ?? 'No reason provided';
+        $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Rejected', rejection_reason = ? WHERE id = ? AND request_type = 'Transfer-Out'");
+        if ($stmt->execute([$reason, $req_id])) {
             $_SESSION['flash_success'] = "<span data-en='Document request rejected successfully.' data-am='የሰነድ ጥያቄ በተሳካ ሁኔታ ውድቅ ተደርጓል።'>Document request rejected successfully.</span>";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
@@ -70,26 +60,37 @@ $transfer_docs = $pdo->query("SELECT dr.*, u.first_name, u.middle_name, u.last_n
                     <h2 data-en="Send Referral Letter" data-am="የማጣቀሻ ደብዳቤ ላክ">Send Referral Letter</h2>
                 </div>
 
-                <?php if ($msg) echo "<div class='success-msg'>$msg</div>"; ?>
-                <?php if ($error) echo "<div class='error-msg'>$error</div>"; ?>
+                <?php if ($msg)
+                    echo "<div class='success-msg'>$msg</div>"; ?>
+                <?php if ($error)
+                    echo "<div class='error-msg'>$error</div>"; ?>
 
                 <div class="card">
-                    <h3 data-en="Transfer-Out Cost Share Debt Requests" data-am="ግቢ ለመቀየር ወጪ ዕዳ ጥያቄዎች">Transfer-Out Cost Share Debt Requests</h3>
-                    
+                    <h3 data-en="Transfer-Out Cost Share Debt Requests" data-am="ግቢ ለመቀየር ወጪ ዕዳ ጥያቄዎች">Transfer-Out Cost
+                        Share Debt Requests</h3>
+
                     <?php if (empty($transfer_docs)): ?>
-                        <p data-en="No Transfer-Out document requests found." data-am="ምንም ዓይነት የዝውውር ሰነድ ጥያቄዎች አልተገኙም።">No Transfer-Out document requests found.</p>
+                        <p data-en="No Transfer-Out document requests found." data-am="ምንም ዓይነት የዝውውር ሰነድ ጥያቄዎች አልተገኙም።">No
+                            Transfer-Out document requests found.</p>
                     <?php else: ?>
                         <div class="table-responsive">
                             <table class="table" style="width:100%; border-collapse:collapse; margin-top:10px;">
                                 <thead>
                                     <tr style="background:#f9f9f9; text-align:left;">
-                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Date" data-am="ቀን">Date</th>
-                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Student ID" data-am="የተማሪ መታወቂያ">Student ID</th>
-                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Name" data-am="ስም">Name</th>
-                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Department" data-am="ትምህርት ክፍል">Department</th>
-                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Clearance" data-am="ክሊራንስ">Clearance</th>
-                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Status" data-am="ሁኔታ">Status</th>
-                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Action" data-am="እርምጃ">Action</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Date" data-am="ቀን">Date
+                                        </th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Student ID"
+                                            data-am="የተማሪ መታወቂያ">Student ID</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Name" data-am="ስም">Name
+                                        </th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Department"
+                                            data-am="ትምህርት ክፍል">Department</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Clearance"
+                                            data-am="ክሊራንስ">Clearance</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Status" data-am="ሁኔታ">
+                                            Status</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Action" data-am="እርምጃ">
+                                            Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -105,11 +106,12 @@ $transfer_docs = $pdo->query("SELECT dr.*, u.first_name, u.middle_name, u.last_n
                                                 <?php echo htmlspecialchars($doc['first_name'] . ' ' . trim($doc['middle_name'] . ' ' . $doc['last_name'])); ?>
                                             </td>
                                             <td style="padding:10px; border:1px solid #ddd;">
-                                                <?php 
-                                                  $d_name_en = $doc['dept_name'] ?: 'N/A';
-                                                  $d_name_am = $academic_translations[$d_name_en] ?? $d_name_en;
+                                                <?php
+                                                $d_name_en = $doc['dept_name'] ?: 'N/A';
+                                                $d_name_am = $academic_translations[$d_name_en] ?? $d_name_en;
                                                 ?>
-                                                <span data-en="<?php echo htmlspecialchars($d_name_en); ?>" data-am="<?php echo htmlspecialchars($d_name_am); ?>">
+                                                <span data-en="<?php echo htmlspecialchars($d_name_en); ?>"
+                                                    data-am="<?php echo htmlspecialchars($d_name_am); ?>">
                                                     <?php echo htmlspecialchars($d_name_en); ?>
                                                 </span>
                                             </td>
@@ -124,14 +126,19 @@ $transfer_docs = $pdo->query("SELECT dr.*, u.first_name, u.middle_name, u.last_n
                                                 <?php endif; ?>
                                             </td>
                                             <td style="padding:10px; border:1px solid #ddd;">
-                                                <?php 
-                                                    $statusClass = '';
-                                                    $st = $doc['status'];
-                                                    if($st == 'Pending') $statusClass = 'color: #856404; background-color: #fff3cd; padding: 3px 8px; border-radius: 4px; border: 1px solid #ffc107;';
-                                                    elseif($st == 'Forwarded') $statusClass = 'color: #0c5460; background-color: #d1ecf1; padding: 3px 8px; border-radius: 4px; border: 1px solid #bee5eb;';
-                                                    elseif($st == 'Pending Transcript') $statusClass = 'color: #383d41; background-color: #e2e3e5; padding: 3px 8px; border-radius: 4px; border: 1px solid #d6d8db;';
-                                                    elseif($st == 'Delivered') $statusClass = 'color: #155724; background-color: #d4edda; padding: 3px 8px; border-radius: 4px; border: 1px solid #c3e6cb;';
-                                                    elseif($st == 'Rejected') $statusClass = 'color: #721c24; background-color: #f8d7da; padding: 3px 8px; border-radius: 4px; border: 1px solid #f5c6cb;';
+                                                <?php
+                                                $statusClass = '';
+                                                $st = $doc['status'];
+                                                if ($st == 'Pending')
+                                                    $statusClass = 'color: #856404; background-color: #fff3cd; padding: 3px 8px; border-radius: 4px; border: 1px solid #ffc107;';
+                                                elseif ($st == 'Forwarded')
+                                                    $statusClass = 'color: #0c5460; background-color: #d1ecf1; padding: 3px 8px; border-radius: 4px; border: 1px solid #bee5eb;';
+                                                elseif ($st == 'Pending Transcript')
+                                                    $statusClass = 'color: #383d41; background-color: #e2e3e5; padding: 3px 8px; border-radius: 4px; border: 1px solid #d6d8db;';
+                                                elseif ($st == 'Delivered')
+                                                    $statusClass = 'color: #155724; background-color: #d4edda; padding: 3px 8px; border-radius: 4px; border: 1px solid #c3e6cb;';
+                                                elseif ($st == 'Rejected')
+                                                    $statusClass = 'color: #721c24; background-color: #f8d7da; padding: 3px 8px; border-radius: 4px; border: 1px solid #f5c6cb;';
                                                 ?>
                                                 <span style="font-weight:bold; font-size:0.9em; <?php echo $statusClass; ?>">
                                                     <?php echo htmlspecialchars($st); ?>
@@ -139,31 +146,23 @@ $transfer_docs = $pdo->query("SELECT dr.*, u.first_name, u.middle_name, u.last_n
                                             </td>
                                             <td style="padding:10px; border:1px solid #ddd;">
                                                 <?php if ($st == 'Pending'): ?>
-                                                    <!-- Forward to Registrar Button -->
-                                                    <button type="button" class="btn-primary"
-                                                        style="padding:5px 10px; font-size:12px; margin-right:5px; cursor:pointer;"
-                                                        onclick="openReferralModal(<?php echo $doc['id']; ?>, '<?php echo addslashes($doc['first_name'] . ' ' . trim($doc['middle_name'] . ' ' . $doc['last_name'])); ?>', '<?php echo addslashes($doc['real_student_id']); ?>', '<?php echo addslashes($d_name_en); ?>')"
-                                                        data-en="Forward to Registrar" data-am="ወደ ሬጅስትራር ያስተላልፉ">
-                                                        <i class="fas fa-share"></i> Forward to Registrar</button>
+                                                    <!-- Process Document Link -->
+                                                    <a href="process_transfer.php?id=<?php echo $doc['id']; ?>" class="btn-primary"
+                                                        style="padding:5px 10px; font-size:12px; margin-right:5px; text-decoration:none; display:inline-block;"
+                                                        data-en="Process Document" data-am="ሰነድ አዘጋጅ">
+                                                        <i class="fas fa-file-signature"></i> Process Document</a>
                                                     <!-- Reject -->
-                                                    <form method="POST" style="display:inline;" id="rejectForm_<?php echo $doc['id']; ?>">
+                                                    <form method="POST" style="display:inline;"
+                                                        id="rejectForm_<?php echo $doc['id']; ?>">
                                                         <input type="hidden" name="request_id" value="<?php echo $doc['id']; ?>">
                                                         <input type="hidden" name="vp_action" value="reject">
+                                                        <input type="hidden" name="rejection_reason"
+                                                            id="rej_reason_<?php echo $doc['id']; ?>" value="">
                                                         <button type="button" class="btn-danger"
                                                             style="padding:5px 10px; font-size:12px; background:#dc3545; color:white; border:none; cursor:pointer;"
-                                                            onclick="this.style.display='none'; this.nextElementSibling.style.display='inline';"
-                                                            data-en="Reject" data-am="ውድቅ"><i class="fas fa-times"></i> Reject</button>
-                                                        <span style="display:none;">
-                                                            <span style="font-size:12px; color:#856404; font-weight:bold;"
-                                                                data-en="Reject?" data-am="ውድቅ?">Reject?</span>
-                                                            <button type="submit" class="btn-danger"
-                                                                style="padding:3px 8px; font-size:11px; background:#dc3545; color:white; border:none; margin-left:5px; cursor:pointer;"
-                                                                data-en="Yes" data-am="አዎ">Yes</button>
-                                                            <button type="button" class="btn-secondary"
-                                                                style="padding:3px 8px; font-size:11px; margin-left:3px; cursor:pointer;"
-                                                                onclick="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='inline';"
-                                                                data-en="No" data-am="አይ">No</button>
-                                                        </span>
+                                                            onclick="openRejectModal('<?php echo $doc['id']; ?>')" data-en="Reject"
+                                                            data-am="ውድቅ"><i class="fas fa-times"></i>
+                                                            Reject</button>
                                                     </form>
                                                 <?php else: ?>
                                                     <span style="color:#888; font-size:12px;" data-en="—" data-am="—">—</span>
@@ -180,54 +179,50 @@ $transfer_docs = $pdo->query("SELECT dr.*, u.first_name, u.middle_name, u.last_n
         </div>
         <?php include '../../includes/footer.php'; ?>
     </div>
-    <!-- Referral Modal -->
-    <div id="referralModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; overflow-y:auto;">
-        <div style="background:#fff; width:90%; max-width:600px; margin:50px auto; padding:30px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-            <div style="text-align:center; border-bottom:2px solid #0056b3; padding-bottom:15px; margin-bottom:25px;">
-                <h3 style="margin:0; font-size:24px; color:#0056b3;">Debre Markos University</h3>
-                <h4 style="margin:8px 0 0 0; font-size:18px; color:#333; font-weight:normal;">Office of the Academic Vice President</h4>
+    <!-- Reject Modal -->
+    <div id="rejectModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:20px; border-radius:8px; width:400px; max-width:90%;">
+            <h3 data-en="Rejection Reason" data-am="የውድቅ ማድረጊያ ምክንያት" style="margin-top:0; color:#dc3545;">Rejection
+                Reason</h3>
+            <p data-en="Please enter the reason for rejection (required):"
+                data-am="እባክዎ የውድቅ ማድረጊያ ምክን ያትዎን ይፃፉ (ግዴታ):">Please enter the reason for rejection (required):</p>
+            <textarea id="modalRejectionReason" rows="4"
+                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; margin-bottom:15px;"></textarea>
+            <div style="text-align:right;">
+                <button type="button" class="btn-secondary" onclick="closeRejectModal()" data-en="Cancel"
+                    data-am="ሰርዝ">Cancel</button>
+                <button type="button" class="btn-danger"
+                    style="background:#dc3545; color:white; border:none; margin-left:10px;"
+                    onclick="submitRejectModal()" data-en="Confirm Reject" data-am="ማረጋገጫ አረጋግጥ">Confirm Reject</button>
             </div>
-            <form method="POST">
-                <input type="hidden" name="request_id" id="modal_request_id">
-                <input type="hidden" name="vp_action" value="forward">
-                
-                <div style="margin-bottom:15px; text-align:right; font-family:'Times New Roman', Times, serif;">
-                    <strong>Date:</strong> <?php echo date('F d, Y'); ?>
-                </div>
-                
-                <div style="margin-bottom:25px; font-family:'Times New Roman', Times, serif; font-size:16px;">
-                    <strong>To:</strong> Registrar Head, DMU<br><br>
-                    <strong>Subject:</strong> <span style="text-decoration:underline;">Referral for Transfer-Out Clearance</span>
-                </div>
-                
-                <div style="margin-bottom:20px; line-height:1.6; font-family:'Times New Roman', Times, serif; font-size:16px;">
-                    This is to confirm that the student <strong><span id="modal_student_name"></span></strong> 
-                    (ID: <strong><span id="modal_student_id"></span></strong>) from the 
-                    <strong><span id="modal_dept"></span></strong> department has requested a transfer-out clearance.<br><br>
-                    Based on the attached documentation and initial review, I am formally referring this request to your office 
-                    to proceed with the transcript and documentation process.<br><br>
-                    <strong>Additional Remarks:</strong>
-                    <textarea name="referral_note" rows="5" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; margin-top:8px; font-family:inherit; font-size:15px; resize:vertical;" placeholder="Optional remarks..."></textarea>
-                </div>
-                
-                <div style="text-align:right; border-top:1px solid #ddd; padding-top:15px; margin-top:10px;">
-                    <button type="button" class="btn-secondary" onclick="closeReferralModal()" style="padding:10px 20px; margin-right:10px; font-size:14px; border:none; background:#6c757d; color:#fff; border-radius:6px; cursor:pointer;">Cancel</button>
-                    <button type="submit" class="btn-primary" style="padding:10px 20px; font-size:14px; border:none; background:#0056b3; color:#fff; border-radius:6px; cursor:pointer;"><i class="fas fa-paper-plane"></i> Submit Referral Letter</button>
-                </div>
-            </form>
         </div>
     </div>
 
     <script>
-        function openReferralModal(id, name, stu_id, dept) {
-            document.getElementById('modal_request_id').value = id;
-            document.getElementById('modal_student_name').textContent = name;
-            document.getElementById('modal_student_id').textContent = stu_id;
-            document.getElementById('modal_dept').textContent = dept;
-            document.getElementById('referralModal').style.display = 'block';
+        let currentRejectId = null;
+
+        function openRejectModal(id) {
+            currentRejectId = id;
+            document.getElementById('modalRejectionReason').value = '';
+            document.getElementById('rejectModal').style.display = 'flex';
         }
-        function closeReferralModal() {
-            document.getElementById('referralModal').style.display = 'none';
+
+        function closeRejectModal() {
+            currentRejectId = null;
+            document.getElementById('rejectModal').style.display = 'none';
+        }
+
+        function submitRejectModal() {
+            if (!currentRejectId) return;
+            const reason = document.getElementById('modalRejectionReason').value.trim();
+            if (reason === '') {
+                alert(localStorage.getItem('dmu_lang') === 'am' ? 'ምክንያት መጻፍ ግዴታ ነው!' : 'Rejection reason is required!');
+                return;
+            }
+
+            document.getElementById('rej_reason_' + currentRejectId).value = reason;
+            document.getElementById('rejectForm_' + currentRejectId).submit();
         }
     </script>
     <script src="../../assets/js/bilingual.js"></script>

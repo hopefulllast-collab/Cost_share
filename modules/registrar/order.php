@@ -39,12 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_cs_order'])) {
 
             $typeMap = [
                 'active' => 'active',
-                'withdrawal' => 'withdrawal', 
-                'dropout' => 'dropout', 
+                'withdrawal' => 'withdrawal',
+                'dropout' => 'dropout',
                 'complete dismissal' => 'complete dismissal',
                 'dismissal with readmission' => 'dismissal with readmission',
                 'death' => 'death',
-        'graduate' => 'Graduate',
+                'graduate' => 'Graduate',
                 'ethics' => 'ethics'
             ];
             $dbType = $typeMap[$reason] ?? 'other';
@@ -85,18 +85,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_transfer'])) {
         $dept_id = $_POST['department_id'];
         $year = $_POST['year'];
         $sem = $_POST['semester'];
-        $amount = $_POST['amount'];
+
+        // Handle file upload
+        $transcript_file = '';
+        if (isset($_FILES['transcript_file']) && $_FILES['transcript_file']['error'] == 0) {
+            $allowed = ['pdf', 'jpg', 'jpeg', 'png'];
+            $filename = $_FILES['transcript_file']['name'];
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed)) {
+                // Ensure upload directory exists
+                $upload_dir = '../../uploads/clearances/';
+                if (!is_dir($upload_dir))
+                    mkdir($upload_dir, 0777, true);
+
+                $new_filename = uniqid('transcript_') . '.' . $ext;
+                $destination = $upload_dir . $new_filename;
+                if (move_uploaded_file($_FILES['transcript_file']['tmp_name'], $destination)) {
+                    $transcript_file = $new_filename;
+                } else {
+                    throw new Exception("Failed to upload transcript file.");
+                }
+            } else {
+                throw new Exception("Invalid file type. Only PDF and images are allowed.");
+            }
+        } else {
+            throw new Exception("Transcript file is required.");
+        }
 
         $stmt = $pdo->prepare("INSERT INTO official_transcript 
-            (sender_id, recipient_role, request_type, first_name, middle_name, last_name, sex, student_id_str, department_id, batch, semester, cost_share_amount, description) 
-            VALUES (?, 'transcript_pro', 'transfer', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Transfer In Registration')");
-        $stmt->execute([$_SESSION['user_id'], $fname, $mname, $lname, $sex, $sid, $dept_id, $year, $sem, $amount]);
+            (sender_id, recipient_role, request_type, first_name, middle_name, last_name, sex, student_id_str, department_id, batch, semester, cost_share_amount, clearance_file, description) 
+            VALUES (?, 'transcript_pro', 'transfer', ?, ?, ?, ?, ?, ?, ?, ?, 0.00, ?, 'Transfer In Document')");
+        $stmt->execute([$_SESSION['user_id'], $fname, $mname, $lname, $sex, $sid, $dept_id, $year, $sem, $transcript_file]);
 
-        $_SESSION['flash_success'] = "<span data-en='Successfully sent transferred student order.' data-am='የተዘዋወረ ተማሪ ትእዛዝ በተሳካ ሁኔታ ተልኳል።'>Successfully sent transferred student order.</span>";
-        header("Location: " . $_SERVER['PHP_SELF']);
+        $_SESSION['flash_success'] = "<span data-en='Successfully sent transferred student order with file attached.' data-am='የተዘዋወረ ተማሪ ትእዛዝ ከነፋይሉ በተሳካ ሁኔታ ተልኳል።'>Successfully sent transferred student order with file attached.</span>";
+        header("Location: " . $_SERVER['PHP_SELF'] . "?target=transcript");
         exit();
-    } catch (PDOException $e) {
-        $error = "<span data-en='Error sending order: " . $e->getMessage() . "' data-am='ትእዛዝ በሚላክበት ጊዜ ስህተት: " . $e->getMessage() . "'>Error sending order: " . $e->getMessage() . "</span>";
+    } catch (Exception $e) {
+        $error = "<span data-en='Error: " . $e->getMessage() . "' data-am='ስህተት: " . $e->getMessage() . "'>Error: " . $e->getMessage() . "</span>";
     }
 }
 
@@ -106,17 +131,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['doc_action'])) {
     $req_id = $_POST['request_id'];
 
     if ($action == 'approve_doc') {
-        $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Pending Transcript' WHERE id = ?");
-        if ($stmt->execute([$req_id])) {
-            $_SESSION['flash_success'] = "<span data-en='Document request forwarded to Official Transcript Professional.' data-am='የሰነድ ጥያቄ ወደ ኦፊሴላዊ ትራንስክሪፕት ባለሙያ ተላልፏል።'>Document request forwarded to Official Transcript Professional.</span>";
+        // Determine request type
+        $check = $pdo->prepare("SELECT request_type FROM official_transcript WHERE id = ?");
+        $check->execute([$req_id]);
+        $r_type = $check->fetchColumn();
+
+        $new_status = ($r_type == 'Graduation') ? 'Pending Cost Share Pro' : 'Pending Transcript';
+        $r_msg_en = ($r_type == 'Graduation') ? 'Document request forwarded to Cost Sharing Professional.' : 'Document request forwarded to Official Transcript Professional.';
+        $r_msg_am = ($r_type == 'Graduation') ? 'የሰነድ ጥያቄ ወደ ወጪ መጋራት ባለሙያ ተላልፏል።' : 'የሰነድ ጥያቄ ወደ ኦፊሴላዊ ትራንስክሪፕት ባለሙያ ተላልፏል።';
+
+        $stmt = $pdo->prepare("UPDATE official_transcript SET status = ? WHERE id = ?");
+        if ($stmt->execute([$new_status, $req_id])) {
+            $_SESSION['flash_success'] = "<span data-en='{$r_msg_en}' data-am='{$r_msg_am}'>{$r_msg_en}</span>";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
         } else {
             $error = "<span data-en='Failed to update status.' data-am='ሁኔታውን ማዘመን አልተቻለም።'>Failed to update status.</span>";
         }
     } elseif ($action == 'reject_doc') {
-        $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Rejected' WHERE id = ?");
-        if ($stmt->execute([$req_id])) {
+        $reason = $_POST['rejection_reason'] ?? 'No reason provided';
+        $stmt = $pdo->prepare("UPDATE official_transcript SET status = 'Rejected', rejection_reason = ? WHERE id = ?");
+        if ($stmt->execute([$reason, $req_id])) {
             $_SESSION['flash_success'] = "<span data-en='Document request rejected successfully.' data-am='የሰነድ ጥያቄ በተሳካ ሁኔታ ውድቅ ተደርጓል።'>Document request rejected successfully.</span>";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
@@ -135,13 +170,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['doc_action'])) {
     }
 }
 
+// Determine active tab
+$target = $_GET['target'] ?? 'cost_sharing';
+
 // Fetch Pending Document Requests (exclude Transfer-Out, those go through Academic VP first)
-$pending_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student_id as real_student_id, d.name as dept_name 
-                             FROM official_transcript dr 
-                             JOIN students s ON dr.student_id = s.user_id 
-                             JOIN users u ON s.user_id = u.id 
-                             LEFT JOIN departments d ON s.department_id = d.id 
-                             WHERE dr.request_type NOT IN ('CostSharePaper', 'Transfer-Out') AND dr.status = 'Pending'")->fetchAll(PDO::FETCH_ASSOC);
+if ($target == 'cost_sharing') {
+    $pending_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student_id as real_student_id, d.name as dept_name 
+                                 FROM official_transcript dr 
+                                 JOIN students s ON dr.student_id = s.user_id 
+                                 JOIN users u ON s.user_id = u.id 
+                                 LEFT JOIN departments d ON s.department_id = d.id 
+                                 WHERE dr.request_type = 'Graduation' AND dr.status = 'Pending'")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $pending_docs = $pdo->query("SELECT dr.*, u.first_name, u.last_name, s.student_id as real_student_id, d.name as dept_name 
+                                 FROM official_transcript dr 
+                                 JOIN students s ON dr.student_id = s.user_id 
+                                 JOIN users u ON s.user_id = u.id 
+                                 LEFT JOIN departments d ON s.department_id = d.id 
+                                 WHERE dr.request_type NOT IN ('CostSharePaper', 'Transfer-Out', 'Graduation') AND dr.status = 'Pending'")->fetchAll(PDO::FETCH_ASSOC);
+}
 
 // Fetch VP-Forwarded Transfer-Out Requests
 $vp_forwarded_docs = $pdo->query("SELECT dr.*, u.first_name, u.middle_name, u.last_name, s.student_id as real_student_id, d.name as dept_name 
@@ -151,9 +198,6 @@ $vp_forwarded_docs = $pdo->query("SELECT dr.*, u.first_name, u.middle_name, u.la
                              LEFT JOIN departments d ON s.department_id = d.id 
                              WHERE dr.request_type = 'Transfer-Out' AND dr.status = 'Forwarded'
                              ORDER BY dr.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
-
-// Determine active tab
-$target = $_GET['target'] ?? 'cost_sharing';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -290,7 +334,9 @@ $target = $_GET['target'] ?? 'cost_sharing';
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Search result feedback */
@@ -307,8 +353,15 @@ $target = $_GET['target'] ?? 'cost_sharing';
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .search-feedback.found {
@@ -401,7 +454,8 @@ $target = $_GET['target'] ?? 'cost_sharing';
                         <!-- Student ID Search Box -->
                         <div class="search-box">
                             <div class="search-input-group">
-                                <label data-en="🔍 Search by Student ID" data-am="🔍 በተማሪ መታወቂያ ፈልግ">🔍 Search by Student ID</label>
+                                <label data-en="🔍 Search by Student ID" data-am="🔍 በተማሪ መታወቂያ ፈልግ">🔍 Search by
+                                    Student ID</label>
                                 <input type="text" id="cs_search_id" placeholder="Enter Student ID..."
                                     data-en-placeholder="Enter Student ID..." data-am-placeholder="የተማሪ መታወቂያ ያስገቡ...">
                             </div>
@@ -420,7 +474,8 @@ $target = $_GET['target'] ?? 'cost_sharing';
                                     <div>
                                         <label data-en="Student ID" data-am="የተማሪ መታወቂያ">Student ID</label>
                                         <input type="text" name="student_id" id="cs_student_id" required
-                                            placeholder="Student ID" readonly style="background:#f0f0f0; cursor:not-allowed;"
+                                            placeholder="Student ID" readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;"
                                             data-en-placeholder="Student ID" data-am-placeholder="የተማሪ መታወቂያ">
                                     </div>
                                     <div>
@@ -435,21 +490,22 @@ $target = $_GET['target'] ?? 'cost_sharing';
                                 <div class="form-group three-col"
                                     style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
                                     <div><label data-en="First Name" data-am="የመጀመሪያ ስም">First Name</label><input
-                                            type="text" name="first_name" id="cs_first_name" required placeholder="First Name"
-                                            readonly style="background:#f0f0f0;"
+                                            type="text" name="first_name" id="cs_first_name" required
+                                            placeholder="First Name" readonly style="background:#f0f0f0;"
                                             data-en-placeholder="First Name" data-am-placeholder="የመጀመሪያ ስም"></div>
                                     <div><label data-en="Middle Name" data-am="የአባት ስም">Middle Name</label><input
-                                            type="text" name="middle_name" id="cs_middle_name" required placeholder="Middle Name"
-                                            readonly style="background:#f0f0f0;"
+                                            type="text" name="middle_name" id="cs_middle_name" required
+                                            placeholder="Middle Name" readonly style="background:#f0f0f0;"
                                             data-en-placeholder="Middle Name" data-am-placeholder="የአባት ስም"></div>
-                                    <div><label data-en="Last Name" data-am="የአያት ስም">Last Name</label><input type="text"
-                                            name="last_name" id="cs_last_name" required placeholder="Last Name"
-                                            readonly style="background:#f0f0f0;"
+                                    <div><label data-en="Last Name" data-am="የአያት ስም">Last Name</label><input
+                                            type="text" name="last_name" id="cs_last_name" required
+                                            placeholder="Last Name" readonly style="background:#f0f0f0;"
                                             data-en-placeholder="Last Name" data-am-placeholder="የአያት ስም"></div>
                                 </div>
                                 <div class="form-group">
                                     <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
-                                    <select id="cs_department_id" disabled style="background:#f0f0f0; cursor:not-allowed;">
+                                    <select id="cs_department_id" disabled
+                                        style="background:#f0f0f0; cursor:not-allowed;">
                                         <option value="" data-en="Select Department" data-am="ትምህርት ክፍል ይምረጡ">Select
                                             Department</option>
                                         <?php foreach ($departments as $d):
@@ -467,16 +523,18 @@ $target = $_GET['target'] ?? 'cost_sharing';
                                 </div>
                                 <div class="form-group three-col"
                                     style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-                                    <div><label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label><input type="number" name="batch" id="cs_batch"
-                                            min="1" max="8" required readonly style="background:#f0f0f0; cursor:not-allowed;">
+                                    <div><label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label><input
+                                            type="number" name="batch" id="cs_batch" min="1" max="8" required readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;">
                                     </div>
                                     <div><label data-en="Semester" data-am="ሴሚስተር">Semester</label><input type="number"
-                                            name="semester" id="cs_semester" min="1" max="3" required readonly style="background:#f0f0f0; cursor:not-allowed;"></div>
+                                            name="semester" id="cs_semester" min="1" max="3" required readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;"></div>
                                     <div><label data-en="Academic Year" data-am="የትምህርት ዘመን">Academic Year</label><input
-                                            type="text" name="academic_year" id="cs_academic_year" placeholder="e.g. 2016" required
-                                            readonly style="background:#f0f0f0; cursor:not-allowed;"
-                                            data-en="e.g. 2016" data-en-placeholder="e.g. 2016"
-                                            data-am-placeholder="ለምሳሌ 2016"></div>
+                                            type="text" name="academic_year" id="cs_academic_year"
+                                            placeholder="e.g. 2016" required readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;" data-en="e.g. 2016"
+                                            data-en-placeholder="e.g. 2016" data-am-placeholder="ለምሳሌ 2016"></div>
                                 </div>
 
                                 <hr class="form-divider">
@@ -484,190 +542,92 @@ $target = $_GET['target'] ?? 'cost_sharing';
                                 <div class="form-group">
                                     <label data-en="Cause / Reason" data-am="ምክንያት">Cause / Reason</label>
                                     <select name="reason" required>
-                                        <option value="" data-en="Select Cause" data-am="ምክንያት ይምረጡ">Select Cause</option>
+                                        <option value="" data-en="Select Cause" data-am="ምክንያት ይምረጡ">Select Cause
+                                        </option>
                                         <option value="active" data-en="Active" data-am="ንቁ">Active</option>
-                                        <option value="withdrawal" data-en="Withdrawal" data-am="ያቋረጠ (Withdrawal)">Withdrawal</option>
-                                        <option value="dropout" data-en="Dropout" data-am="ያቋረጠ (Dropout)">Dropout</option>
-                                        <option value="complete dismissal" data-en="Complete Dismissal" data-am="ሙሉ ለሙሉ የተሰናበተ">Complete Dismissal</option>
-                                        <option value="dismissal with readmission" data-en="Dismissal with Readmission" data-am="መመለስ የሚቻል">Dismissal with Readmission</option>
+                                        <option value="withdrawal" data-en="Withdrawal" data-am="ያቋረጠ (Withdrawal)">
+                                            Withdrawal</option>
+                                        <option value="dropout" data-en="Dropout" data-am="ያቋረጠ (Dropout)">Dropout
+                                        </option>
+                                        <option value="complete dismissal" data-en="Complete Dismissal"
+                                            data-am="ሙሉ ለሙሉ የተሰናበተ">Complete Dismissal</option>
+                                        <option value="dismissal with readmission" data-en="Dismissal with Readmission"
+                                            data-am="መመለስ የሚቻል">Dismissal with Readmission</option>
                                         <option value="death" data-en="Death" data-am="ሞት">Death</option>
-                                    <option value="graduate" <?php echo (isset($_GET['status']) && $_GET['status'] == 'graduate') ? 'selected' : ''; ?> data-en="Graduate" data-am="????">Graduate</option>
+                                        <option value="graduate" <?php echo (isset($_GET['status']) && $_GET['status'] == 'graduate') ? 'selected' : ''; ?> data-en="Graduate"
+                                            data-am="????">Graduate</option>
                                         <option value="other" data-en="Other" data-am="ሌላ">Other</option>
                                     </select>
                                 </div>
-                                <button type="submit" name="send_cs_order" class="btn-primary" data-en="Send Student List"
-                                    data-am="የተማሪ ዝርዝር ላክ">Send Student List</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Accordion 2: Transcript -->
-                <button class="accordion <?php echo ($target == 'transcript') ? 'active' : ''; ?>">
-                    <span data-en="To Official Transcript Professional" data-am="ለኦፊሴላዊ ትራንስክሪፕት ባለሙያ">To Official
-                        Transcript Professional</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="panel" style="display: <?php echo ($target == 'transcript') ? 'block' : 'none'; ?>">
-                    <div class="sub-section" style="border-bottom: none;">
-                        <h3 data-en="Transfer In Request" data-am="የዝውውር ጥያቄ">Transfer In Request</h3>
-
-                        <!-- Student ID Search Box -->
-                        <div class="search-box">
-                            <div class="search-input-group">
-                                <label data-en="🔍 Search by Student ID" data-am="🔍 በተማሪ መታወቂያ ፈልግ">🔍 Search by Student ID</label>
-                                <input type="text" id="tr_search_id" placeholder="Enter Student ID..."
-                                    data-en-placeholder="Enter Student ID..." data-am-placeholder="የተማሪ መታወቂያ ያስገቡ...">
-                            </div>
-                            <button type="button" class="search-btn" id="tr_search_btn" onclick="searchStudent('tr')">
-                                <span class="spinner"></span>
-                                <i class="fas fa-search btn-text"></i>
-                                <span class="btn-text" data-en="Search" data-am="ፈልግ">Search</span>
-                            </button>
-                        </div>
-                        <div class="search-feedback" id="tr_feedback"></div>
-
-                        <form method="POST">
-                            <div class="form-fields-wrapper" id="tr_fields">
-                                <div class="form-group two-col"
-                                    style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                    <div>
-                                        <label data-en="Student ID" data-am="የተማሪ መታወቂያ">Student ID</label>
-                                        <input type="text" name="student_id" id="tr_student_id" required
-                                            placeholder="Student ID" readonly style="background:#f0f0f0; cursor:not-allowed;"
-                                            data-en-placeholder="Student ID" data-am-placeholder="የተማሪ መታወቂያ">
-                                    </div>
-                                    <div>
-                                        <label data-en="Sex" data-am="ጾታ">Sex</label>
-                                        <select id="tr_sex" disabled style="background:#f0f0f0; cursor:not-allowed;">
-                                            <option value="M" data-en="Male" data-am="ወንድ">Male</option>
-                                            <option value="F" data-en="Female" data-am="ሴት">Female</option>
-                                        </select>
-                                        <input type="hidden" name="sex" id="tr_sex_hidden" value="M">
-                                    </div>
-                                </div>
-                                <div class="form-group three-col"
-                                    style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-                                    <div><label data-en="First Name" data-am="የመጀመሪያ ስም">First Name</label><input
-                                            type="text" name="first_name" id="tr_first_name" required placeholder="First Name"
-                                            readonly style="background:#f0f0f0; cursor:not-allowed;"
-                                            data-en-placeholder="First Name" data-am-placeholder="የመጀመሪያ ስም"></div>
-                                    <div><label data-en="Middle Name" data-am="የአባት ስም">Middle Name</label><input
-                                            type="text" name="middle_name" id="tr_middle_name" required placeholder="Middle Name"
-                                            readonly style="background:#f0f0f0; cursor:not-allowed;"
-                                            data-en-placeholder="Middle Name" data-am-placeholder="የአባት ስም"></div>
-                                    <div><label data-en="Last Name" data-am="የአያት ስም">Last Name</label><input type="text"
-                                            name="last_name" id="tr_last_name" required placeholder="Last Name"
-                                            readonly style="background:#f0f0f0; cursor:not-allowed;"
-                                            data-en-placeholder="Last Name" data-am-placeholder="የአያት ስም"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
-                                    <select id="tr_department_id" disabled style="background:#f0f0f0; cursor:not-allowed;">
-                                        <option value="" data-en="Select Department" data-am="ትምህርት ክፍል ይምረጡ">Select
-                                            Department</option>
-                                        <?php foreach ($departments as $d):
-                                            $d_name_en = $d['name'];
-                                            $d_name_am = $academic_translations[$d_name_en] ?? $d_name_en;
-                                            ?>
-                                            <option value="<?php echo $d['id']; ?>"
-                                                data-en="<?php echo htmlspecialchars($d_name_en); ?>"
-                                                data-am="<?php echo htmlspecialchars($d_name_am); ?>">
-                                                <?php echo htmlspecialchars($d_name_en); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <input type="hidden" name="department_id" id="tr_department_id_hidden" value="">
-                                </div>
-                                <div class="form-group three-col"
-                                    style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-                                    <div><label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label><input
-                                            type="number" name="year" id="tr_year" min="1" max="8" required
-                                            readonly style="background:#f0f0f0; cursor:not-allowed;">
-                                    </div>
-                                    <div><label data-en="Semester" data-am="ሴሚስተር">Semester</label><input type="number"
-                                            name="semester" id="tr_semester" min="1" max="3" required
-                                            readonly style="background:#f0f0f0; cursor:not-allowed;"></div>
-                                    <div><label data-en="Cost Share Amount" data-am="የወጪ መጋራት መጠን">Cost Share
-                                            Amount</label><input type="number" step="0.01" name="amount" required
-                                            placeholder="Amount" data-en-placeholder="Amount" data-am-placeholder="መጠን">
-                                    </div>
-                                </div>
-                                <button type="submit" name="send_transfer" class="btn-primary" data-en="Send Transfer Order"
-                                    data-am="የዝውውር ትእዛዝ ላክ">Send Transfer Order</button>
+                                <button type="submit" name="send_cs_order" class="btn-primary"
+                                    data-en="Send Student List" data-am="የተማሪ ዝርዝር ላክ">Send Student List</button>
                             </div>
                         </form>
                     </div>
 
                     <!-- VP-Forwarded Transfer-Out Requests -->
                     <?php if (!empty($vp_forwarded_docs)): ?>
-                    <div class="sub-section" style="border-top: 2px solid #eee; margin-top: 10px;">
-                        <h3 data-en="Transfer-Out Requests (Forwarded by Academic VP)" data-am="የዝውውር ጥያቄዎች (በአካዳሚክ ም/ፕሬዝዳንት የተላለፉ)">Transfer-Out Requests (Forwarded by Academic VP)</h3>
-                        <table class="table" style="width:100%; border-collapse:collapse; margin-top:10px;">
-                            <thead>
-                                <tr style="background:#f9f9f9; text-align:left;">
-                                    <th style="padding:10px; border:1px solid #ddd;" data-en="Student ID" data-am="የተማሪ መታወቂያ">Student ID</th>
-                                    <th style="padding:10px; border:1px solid #ddd;" data-en="Name" data-am="ስም">Name</th>
-                                    <th style="padding:10px; border:1px solid #ddd;" data-en="Department" data-am="ትምህርት ክፍል">Department</th>
-                                    <th style="padding:10px; border:1px solid #ddd;" data-en="Clearance" data-am="ክሊራንስ">Clearance</th>
-                                    <th style="padding:10px; border:1px solid #ddd;" data-en="Action" data-am="እርምጃ">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($vp_forwarded_docs as $vdoc): ?>
-                                    <tr>
-                                        <td style="padding:10px; border:1px solid #ddd;">
-                                            <?php echo htmlspecialchars($vdoc['real_student_id']); ?>
-                                        </td>
-                                        <td style="padding:10px; border:1px solid #ddd;">
-                                            <?php echo htmlspecialchars($vdoc['first_name'] . ' ' . trim(($vdoc['middle_name'] ?? '') . ' ' . $vdoc['last_name'])); ?>
-                                        </td>
-                                        <td style="padding:10px; border:1px solid #ddd;">
-                                            <?php 
+                        <div class="sub-section" style="border-top: 2px solid #eee; margin-top: 10px;">
+                            <h3 data-en="Transfer-Out Requests (Forwarded by Academic VP)"
+                                data-am="የዝውውር ጥያቄዎች (በአካዳሚክ ም/ፕሬዝዳንት የተላለፉ)">Transfer-Out Requests (Forwarded by Academic
+                                VP)</h3>
+                            <table class="table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                                <thead>
+                                    <tr style="background:#f9f9f9; text-align:left;">
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Student ID"
+                                            data-am="የተማሪ መታወቂያ">Student ID</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Name" data-am="ስም">Name
+                                        </th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Department"
+                                            data-am="ትምህርት ክፍል">Department</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Clearance"
+                                            data-am="ክሊራንስ">Clearance</th>
+                                        <th style="padding:10px; border:1px solid #ddd;" data-en="Action" data-am="እርምጃ">
+                                            Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($vp_forwarded_docs as $vdoc): ?>
+                                        <tr>
+                                            <td style="padding:10px; border:1px solid #ddd;">
+                                                <?php echo htmlspecialchars($vdoc['real_student_id']); ?>
+                                            </td>
+                                            <td style="padding:10px; border:1px solid #ddd;">
+                                                <?php echo htmlspecialchars($vdoc['first_name'] . ' ' . trim(($vdoc['middle_name'] ?? '') . ' ' . $vdoc['last_name'])); ?>
+                                            </td>
+                                            <td style="padding:10px; border:1px solid #ddd;">
+                                                <?php
                                                 $vd_en = $vdoc['dept_name'] ?: 'N/A';
                                                 $vd_am = $academic_translations[$vd_en] ?? $vd_en;
-                                            ?>
-                                            <span data-en="<?php echo htmlspecialchars($vd_en); ?>" data-am="<?php echo htmlspecialchars($vd_am); ?>">
-                                                <?php echo htmlspecialchars($vd_en); ?>
-                                            </span>
-                                        </td>
-                                        <td style="padding:10px; border:1px solid #ddd;">
-                                            <?php if ($vdoc['clearance_file']): ?>
-                                                <a href="../../uploads/clearances/<?php echo $vdoc['clearance_file']; ?>"
-                                                    target="_blank" style="color:blue; text-decoration:underline;"
-                                                    data-en="View File" data-am="ፋይል ይመልከቱ">View File</a>
-                                            <?php else: ?>
-                                                <span data-en="N/A" data-am="የለም">N/A</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td style="padding:10px; border:1px solid #ddd;">
-                                            <button type="button" class="btn-secondary"
-                                                style="padding:5px 10px; font-size:12px; margin-right:5px; cursor:pointer;"
-                                                data-name="<?php echo htmlspecialchars($vdoc['first_name'] . ' ' . trim(($vdoc['middle_name'] ?? '') . ' ' . $vdoc['last_name'])); ?>"
-                                                data-sid="<?php echo htmlspecialchars($vdoc['real_student_id']); ?>"
-                                                data-dept="<?php echo htmlspecialchars($vd_en); ?>"
-                                                data-date="<?php echo date('F d, Y', strtotime($vdoc['created_at'])); ?>"
-                                                data-note="<?php echo htmlspecialchars($vdoc['description'] ?? ''); ?>"
-                                                onclick="openViewLetterModal(this)"
-                                                data-en="View Letter" data-am="ደብዳቤ ይመልከቱ">
-                                                <i class="fas fa-file-alt"></i> View Letter</button>
-                                            <form method="POST" style="display:inline;">
-                                                <input type="hidden" name="request_id" value="<?php echo $vdoc['id']; ?>">
-                                                <input type="hidden" name="doc_action" value="forward_transfer_to_transcript">
-                                                <button type="submit" class="btn-primary"
-                                                    style="padding:5px 10px; font-size:12px;"
-                                                    data-en="Forward to Transcript" data-am="ወደ ትራንስክሪፕት ያስተላልፉ">
-                                                    <i class="fas fa-share"></i> Forward to Transcript</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                                ?>
+                                                <span data-en="<?php echo htmlspecialchars($vd_en); ?>"
+                                                    data-am="<?php echo htmlspecialchars($vd_am); ?>">
+                                                    <?php echo htmlspecialchars($vd_en); ?>
+                                                </span>
+                                            </td>
+                                            <td style="padding:10px; border:1px solid #ddd;">
+                                                <?php if ($vdoc['clearance_file']): ?>
+                                                    <a href="../../uploads/clearances/<?php echo $vdoc['clearance_file']; ?>"
+                                                        target="_blank" style="color:blue; text-decoration:underline;"
+                                                        data-en="View File" data-am="ፋይል ይመልከቱ">View File</a>
+                                                <?php else: ?>
+                                                    <span data-en="N/A" data-am="የለም">N/A</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td style="padding:10px; border:1px solid #ddd;">
+                                                <!-- Process Document Link -->
+                                                <a href="process_transfer.php?id=<?php echo $vdoc['id']; ?>" class="btn-primary"
+                                                    style="padding:5px 10px; font-size:12px; margin-right:5px; text-decoration:none; display:inline-block;"
+                                                    data-en="Process Document" data-am="ሰነድ አዘጋጅ">
+                                                    <i class="fas fa-file-signature"></i> Process Document</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     <?php endif; ?>
                 </div>
-
                 <!-- Accordion 3: Student Document Requests -->
                 <button class="accordion <?php echo ($target == 'requests') ? 'active' : ''; ?>">
                     <span data-en="Student Document Requests" data-am="የተማሪ ሰነድ ጥያቄዎች">Student Document Requests</span>
@@ -719,33 +679,22 @@ $target = $_GET['target'] ?? 'cost_sharing';
                                                 <?php endif; ?>
                                             </td>
                                             <td style="padding:10px; border:1px solid #ddd;">
-                                                <form method="POST" style="display:inline; margin-right:5px;">
-                                                    <input type="hidden" name="request_id" value="<?php echo $doc['id']; ?>">
-                                                    <input type="hidden" name="doc_action" value="approve_doc">
-                                                    <button type="submit" class="btn-primary"
-                                                        style="padding:5px 10px; font-size:12px;"
-                                                        data-en="Forward to Transcript" data-am="ወደ ትራንስክሪፕት ያስተላልፉ">Forward to
-                                                        Transcript</button>
-                                                </form>
+                                                <!-- Process Document Link -->
+                                                <a href="process_request.php?id=<?php echo $doc['id']; ?>" class="btn-primary"
+                                                    style="padding:5px 10px; font-size:12px; margin-right:5px; text-decoration:none; display:inline-block;"
+                                                    data-en="Process Document" data-am="ሰነድ መርምር">
+                                                    <i class="fas fa-file-signature"></i> <span data-en="Process Request"
+                                                        data-am="ጥያቄ መርምር">Process Request</span></a>
                                                 <form method="POST" style="display:inline;"
                                                     id="rejectForm_<?php echo $doc['id']; ?>">
                                                     <input type="hidden" name="request_id" value="<?php echo $doc['id']; ?>">
                                                     <input type="hidden" name="doc_action" value="reject_doc">
+                                                    <input type="hidden" name="rejection_reason"
+                                                        id="rej_reason_<?php echo $doc['id']; ?>" value="">
                                                     <button type="button" class="btn-danger"
                                                         style="padding:5px 10px; font-size:12px; background: #dc3545; color: white; border: none;"
-                                                        onclick="this.style.display='none'; this.nextElementSibling.style.display='inline';"
-                                                        data-en="Reject" data-am="ውድቅ">Reject</button>
-                                                    <span style="display:none;">
-                                                        <span style="font-size:12px; color:#856404; font-weight:bold;"
-                                                            data-en="Reject?" data-am="ውድቅ?">Reject?</span>
-                                                        <button type="submit" class="btn-danger"
-                                                            style="padding:3px 8px; font-size:11px; background:#dc3545; color:white; border:none; margin-left:5px;"
-                                                            data-en="Yes" data-am="አዎ">Yes</button>
-                                                        <button type="button" class="btn-secondary"
-                                                            style="padding:3px 8px; font-size:11px; margin-left:3px;"
-                                                            onclick="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='inline';"
-                                                            data-en="No" data-am="አይ">No</button>
-                                                    </span>
+                                                        onclick="openRejectModal('<?php echo $doc['id']; ?>')" data-en="Reject"
+                                                        data-am="ውድቅ">Reject</button>
                                                 </form>
                                             </td>
                                         </tr>
@@ -755,88 +704,162 @@ $target = $_GET['target'] ?? 'cost_sharing';
                         <?php endif; ?>
                     </div>
                 </div>
+                <!-- Accordion 2: Transcript -->
+                <button class="accordion <?php echo ($target == 'transcript') ? 'active' : ''; ?>">
+                    <span data-en="To Official Transcript Professional" data-am="ለኦፊሴላዊ ትራንስክሪፕት ባለሙያ">To Official
+                        Transcript Professional</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="panel" style="display: <?php echo ($target == 'transcript') ? 'block' : 'none'; ?>">
+                    <div class="sub-section" style="border-bottom: none;">
+                        <h3 data-en="Transfer In Request" data-am="የዝውውር ጥያቄ">Transfer In Request</h3>
+
+                        <!-- Student ID Search Box -->
+                        <div class="search-box">
+                            <div class="search-input-group">
+                                <label data-en="🔍 Search by Student ID" data-am="🔍 በተማሪ መታወቂያ ፈልግ">🔍 Search by
+                                    Student ID</label>
+                                <input type="text" id="tr_search_id" placeholder="Enter Student ID..."
+                                    data-en-placeholder="Enter Student ID..." data-am-placeholder="የተማሪ መታወቂያ ያስገቡ...">
+                            </div>
+                            <button type="button" class="search-btn" id="tr_search_btn" onclick="searchStudent('tr')">
+                                <span class="spinner"></span>
+                                <i class="fas fa-search btn-text"></i>
+                                <span class="btn-text" data-en="Search" data-am="ፈልግ">Search</span>
+                            </button>
+                        </div>
+                        <div class="search-feedback" id="tr_feedback"></div>
+
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="form-fields-wrapper" id="tr_fields">
+                                <div class="form-group two-col"
+                                    style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                    <div>
+                                        <label data-en="Student ID" data-am="የተማሪ መታወቂያ">Student ID</label>
+                                        <input type="text" name="student_id" id="tr_student_id" required
+                                            placeholder="Student ID" readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;"
+                                            data-en-placeholder="Student ID" data-am-placeholder="የተማሪ መታወቂያ">
+                                    </div>
+                                    <div>
+                                        <label data-en="Sex" data-am="ጾታ">Sex</label>
+                                        <select id="tr_sex" disabled style="background:#f0f0f0; cursor:not-allowed;">
+                                            <option value="M" data-en="Male" data-am="ወንድ">Male</option>
+                                            <option value="F" data-en="Female" data-am="ሴት">Female</option>
+                                        </select>
+                                        <input type="hidden" name="sex" id="tr_sex_hidden" value="M">
+                                    </div>
+                                </div>
+                                <div class="form-group three-col"
+                                    style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                                    <div><label data-en="First Name" data-am="የመጀመሪያ ስም">First Name</label><input
+                                            type="text" name="first_name" id="tr_first_name" required
+                                            placeholder="First Name" readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;"
+                                            data-en-placeholder="First Name" data-am-placeholder="የመጀመሪያ ስም"></div>
+                                    <div><label data-en="Middle Name" data-am="የአባት ስም">Middle Name</label><input
+                                            type="text" name="middle_name" id="tr_middle_name" required
+                                            placeholder="Middle Name" readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;"
+                                            data-en-placeholder="Middle Name" data-am-placeholder="የአባት ስም"></div>
+                                    <div><label data-en="Last Name" data-am="የአያት ስም">Last Name</label><input
+                                            type="text" name="last_name" id="tr_last_name" required
+                                            placeholder="Last Name" readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;"
+                                            data-en-placeholder="Last Name" data-am-placeholder="የአያት ስም"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label data-en="Department" data-am="ትምህርት ክፍል">Department</label>
+                                    <select id="tr_department_id" disabled
+                                        style="background:#f0f0f0; cursor:not-allowed;">
+                                        <option value="" data-en="Select Department" data-am="ትምህርት ክፍል ይምረጡ">Select
+                                            Department</option>
+                                        <?php foreach ($departments as $d):
+                                            $d_name_en = $d['name'];
+                                            $d_name_am = $academic_translations[$d_name_en] ?? $d_name_en;
+                                            ?>
+                                            <option value="<?php echo $d['id']; ?>"
+                                                data-en="<?php echo htmlspecialchars($d_name_en); ?>"
+                                                data-am="<?php echo htmlspecialchars($d_name_am); ?>">
+                                                <?php echo htmlspecialchars($d_name_en); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <input type="hidden" name="department_id" id="tr_department_id_hidden" value="">
+                                </div>
+                                <div class="form-group three-col"
+                                    style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                                    <div><label data-en="Year of Study" data-am="የጥናት ዓመት">Year of Study</label><input
+                                            type="number" name="year" id="tr_year" min="1" max="8" required readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;">
+                                    </div>
+                                    <div><label data-en="Semester" data-am="ሴሚስተር">Semester</label><input type="number"
+                                            name="semester" id="tr_semester" min="1" max="3" required readonly
+                                            style="background:#f0f0f0; cursor:not-allowed;"></div>
+                                    <div><label data-en="Transcript File" data-am="የትራንስክሪፕት ፋይል">Transcript File
+                                        </label><input type="file" name="transcript_file" required
+                                            accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                </div>
+                                <button type="submit" name="send_transfer" class="btn-primary"
+                                    data-en="Send Transfer Order" data-am="የዝውውር ትእዛዝ ላክ">Send Transfer Order</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
             </div>
         </div>
         <?php include '../../includes/footer.php'; ?>
     </div>
-
-    <!-- View Letter Modal -->
-    <div id="viewLetterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; overflow-y:auto;">
-        <div style="background:#fff; width:90%; max-width:600px; margin:50px auto; padding:30px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-            <div style="text-align:center; border-bottom:2px solid #0056b3; padding-bottom:15px; margin-bottom:25px;">
-                <h3 style="margin:0; font-size:24px; color:#0056b3;">Debre Markos University</h3>
-                <h4 style="margin:8px 0 0 0; font-size:18px; color:#333; font-weight:normal;">Referral Letter</h4>
-            </div>
-            
-            <div id="modalLetterContent" style="margin-bottom:30px; line-height:1.6; font-family:'Times New Roman', Times, serif; font-size:16px;">
-                <!-- Letter content loads here -->
-            </div>
-            
-            <div style="text-align:right; border-top:1px solid #ddd; padding-top:15px; margin-top:10px;">
-                <button type="button" class="btn-secondary" onclick="closeViewLetterModal()" style="padding:10px 20px; font-size:14px; border:none; background:#6c757d; color:#fff; border-radius:6px; cursor:pointer;">Close</button>
-                <button type="button" class="btn-primary" onclick="printLetter()" style="padding:10px 20px; font-size:14px; border:none; background:#28a745; color:#fff; border-radius:6px; cursor:pointer; margin-left:10px;"><i class="fas fa-print"></i> Print</button>
+    <!-- Reject Modal -->
+    <div id="rejectModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:20px; border-radius:8px; width:400px; max-width:90%;">
+            <h3 data-en="Rejection Reason" data-am="የውድቅ ማድረጊያ ምክንያት" style="margin-top:0; color:#dc3545;">Rejection
+                Reason</h3>
+            <p data-en="Please enter the reason for rejection (required):"
+                data-am="እባክዎ የውድቅ ማድረጊያ ምክን ያትዎን ይፃፉ (ግዴታ):">Please enter the reason for rejection (required):</p>
+            <textarea id="modalRejectionReason" rows="4"
+                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; margin-bottom:15px;"></textarea>
+            <div style="text-align:right;">
+                <button type="button" class="btn-secondary" onclick="closeRejectModal()" data-en="Cancel"
+                    data-am="ሰርዝ">Cancel</button>
+                <button type="button" class="btn-danger"
+                    style="background:#dc3545; color:white; border:none; margin-left:10px;"
+                    onclick="submitRejectModal()" data-en="Confirm Reject" data-am="ማረጋገጫ አረጋግጥ">Confirm Reject</button>
             </div>
         </div>
     </div>
 
     <script>
-        function openViewLetterModal(btn) {
-            var name = btn.getAttribute('data-name');
-            var stu_id = btn.getAttribute('data-sid');
-            var dept = btn.getAttribute('data-dept');
-            var date = btn.getAttribute('data-date');
-            var noteContent = btn.getAttribute('data-note') || '';
-            var remarksSection = '';
-            
-            // If the note doesn't already contain the header from our old test
-            if (noteContent && !noteContent.includes("To: Registrar Head, DMU")) {
-                remarksSection = `
-                    <strong>Additional Remarks from Academic VP:</strong>
-                    <div style="margin-top:10px; padding:15px; background:#f9f9f9; border-left:4px solid #0056b3; white-space:pre-wrap;">${noteContent}</div>
-                `;
-            } else if (noteContent) {
-                // For old test data
-                remarksSection = `
-                    <strong>Remarks:</strong>
-                    <div style="margin-top:10px; padding:15px; background:#f9f9f9; border-left:4px solid #0056b3; white-space:pre-wrap;">${noteContent}</div>
-                `;
+        let currentRejectId = null;
+
+        function openRejectModal(id) {
+            currentRejectId = id;
+            document.getElementById('modalRejectionReason').value = '';
+            document.getElementById('rejectModal').style.display = 'flex';
+        }
+
+        function closeRejectModal() {
+            currentRejectId = null;
+            document.getElementById('rejectModal').style.display = 'none';
+        }
+
+        function submitRejectModal() {
+            if (!currentRejectId) return;
+            const reason = document.getElementById('modalRejectionReason').value.trim();
+            if (reason === '') {
+                alert(localStorage.getItem('dmu_lang') === 'am' ? 'ምክንያት መጻፍ ግዴታ ነው!' : 'Rejection reason is required!');
+                return;
             }
 
-            var fullHtml = `
-                <div style="margin-bottom:15px; text-align:right; font-family:'Times New Roman', Times, serif;">
-                    <strong>Date:</strong> ${date}
-                </div>
-                <div style="margin-bottom:25px; font-family:'Times New Roman', Times, serif; font-size:16px;">
-                    <strong>To:</strong> Registrar Head, DMU<br><br>
-                    <strong>Subject:</strong> <span style="text-decoration:underline;">Referral for Transfer-Out Clearance</span>
-                </div>
-                <div style="margin-bottom:20px; line-height:1.6; font-family:'Times New Roman', Times, serif; font-size:16px;">
-                    This is to confirm that the student <strong>${name}</strong> 
-                    (ID: <strong>${stu_id}</strong>) from the 
-                    <strong>${dept}</strong> department has requested a transfer-out clearance.<br><br>
-                    Based on the attached documentation and initial review, I am formally referring this request to your office 
-                    to proceed with the transcript and documentation process.<br><br>
-                    ${remarksSection}
-                </div>
-            `;
-            document.getElementById('modalLetterContent').innerHTML = fullHtml;
-            document.getElementById('viewLetterModal').style.display = 'block';
-        }
-        function closeViewLetterModal() {
-            document.getElementById('viewLetterModal').style.display = 'none';
-        }
-        function printLetter() {
-            var printContents = document.getElementById('modalLetterContent').innerHTML;
-            var originalContents = document.body.innerHTML;
-            document.body.innerHTML = '<div style="padding:40px; font-family:\'Times New Roman\', serif;">' + 
-                '<div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:20px;">' +
-                '<h2>Debre Markos University</h2><h3>Referral Letter</h3></div>' + 
-                printContents + '</div>';
-            window.print();
-            document.body.innerHTML = originalContents;
-            location.reload();
+            document.getElementById('rej_reason_' + currentRejectId).value = reason;
+            document.getElementById('rejectForm_' + currentRejectId).submit();
         }
     </script>
+
     <script>
         // Accordion Logic
         var acc = document.getElementsByClassName("accordion");
@@ -983,7 +1006,7 @@ $target = $_GET['target'] ?? 'cost_sharing';
                             document.getElementById(prefix + '_student_id').value = studentId;
                             // Make input fields editable for manual entry
                             var trFields = document.getElementById(prefix + '_fields');
-                            trFields.querySelectorAll('input:not([type="hidden"])').forEach(function(el) {
+                            trFields.querySelectorAll('input:not([type="hidden"])').forEach(function (el) {
                                 el.removeAttribute('readonly');
                                 el.style.background = '';
                                 el.style.cursor = '';

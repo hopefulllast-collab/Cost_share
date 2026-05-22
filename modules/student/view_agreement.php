@@ -7,7 +7,7 @@ require_once '../../includes/academic_translations.php';
 $user_id = $_SESSION['user_id'];
 
 // Fetch student info
-$student = $pdo->prepare("SELECT s.*, u.first_name, u.middle_name, u.last_name, d.name as dept_name, d.college
+$student = $pdo->prepare("SELECT s.*, u.first_name, u.middle_name, u.last_name, u.digital_signature, d.name as dept_name, d.college
                           FROM students s 
                           JOIN users u ON s.user_id = u.id 
                           LEFT JOIN departments d ON s.department_id = d.id 
@@ -494,7 +494,23 @@ if ($selected_id > 0) {
                                 <div class="signature-box">
                                     <span class="sig-label" data-en="Beneficiary's Signature" data-am="የተጠቃሚው ፊርማ">Beneficiary's Signature</span>
                                     <div class="sig-value">
-                                        <?php echo htmlspecialchars($agreement['signature_student'] ?? ''); ?>
+                                        <?php 
+                                        $student_sig = $std_info['digital_signature'] ?? '';
+                                        if (!empty($student_sig)) {
+                                            // Show student name
+                                            $std_name = trim(($std_info['first_name'] ?? '') . ' ' . ($std_info['middle_name'] ?? ''));
+                                            if (!empty($std_name)) {
+                                                echo '<p style="font-size:0.85em; color:#333; margin-bottom:5px; font-weight:600;">' . htmlspecialchars($std_name) . '</p>';
+                                            }
+                                            if (strpos($student_sig, 'data:image/') === 0) {
+                                                echo '<img src="' . $student_sig . '" alt="Student Signature" style="max-height:60px; max-width:100%;">';
+                                            } else {
+                                                echo '<img src="../../uploads/signatures/' . htmlspecialchars($student_sig) . '" alt="Student Signature" style="max-height:60px; max-width:100%;">';
+                                            }
+                                        } elseif (!empty($agreement['signature_student'])) {
+                                            echo htmlspecialchars($agreement['signature_student']);
+                                        }
+                                        ?>
                                     </div>
                                     <div class="sig-status sig-approved">
                                         <i class="fas fa-check"></i> <span data-en="Signed" data-am="ተፈርሟል">Signed</span>

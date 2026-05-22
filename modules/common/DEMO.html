@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMU Digital Stamp</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+        .stamp-container {
+            /* ማህተሙን ማሽከርከር ከፈለጉ ይህንን ይጠቀሙ */
+            /* transform: rotate(-5deg); */
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+    
+    <defs>
+        <clipPath id="logoClip">
+            <circle cx="150" cy="150" r="75" />
+        </clipPath>
+    </defs>
+
+    <!-- የውጭኛው ወፍራም ክብ -->
+    <circle cx="150" cy="150" r="140" stroke="#0033a0" stroke-width="6" fill="white" />
+    <!-- የውጭኛው ቀጭን ክብ -->
+    <circle cx="150" cy="150" r="132" stroke="#0033a0" stroke-width="2" fill="none" />
+    <!-- የውስጠኛው ክብ -->
+    <circle cx="150" cy="150" r="90" stroke="#0033a0" stroke-width="3" fill="none" />
+
+    <!-- ጽሁፉ የሚዞርባቸው የማይታዩ መስመሮች -->
+    <path id="topArc" d="M 40 150 A 110 110 0 0 1 260 150" fill="none" />
+    <path id="bottomArc" d="M 40 150 A 110 110 0 0 0 260 150" fill="none" />
+
+    <!-- በክቡ ዙሪያ የሚጻፍ ጽሁፍ -->
+    <text fill="#0033a0" font-weight="bold" font-size="22" font-family="Arial, sans-serif">
+        <textPath href="#topArc" startOffset="50%" text-anchor="middle">ደብረ ማርቆስ ዩኒቨርሲቲ</textPath>
+    </text>
+    <text fill="#0033a0" font-weight="bold" font-size="18" font-family="Arial, sans-serif">
+        <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">DMU COST SHARING SYSTEM</textPath>
+    </text>
+
+    <!-- የገባው ምስል (የተቆረጠው ሎጎ) -->
+    <image href="dmu_logo.png" x="75" y="75" width="150" height="150" clip-path="url(#logoClip)" opacity="0.5" />
+
+    <!-- ከሎጎው ስር -->
+    <text x="150" y="230" fill="#0033a0" font-weight="bold" font-size="11" text-anchor="middle" font-family="Arial, sans-serif">PROJECT DEMO</text>
+
+    <!-- ጌጣጌጥ ኮከቦች -->
+    <text x="25" y="158" fill="#0033a0" font-size="20" text-anchor="middle">★</text>
+    <text x="275" y="158" fill="#0033a0" font-size="20" text-anchor="middle">★</text>
+
+    <!-- ጎልቶ የሚታይ የውሃ ምልክት (Watermark) -->
+    <text x="150" y="165" fill="#ff0000" font-weight="900" font-size="40" text-anchor="middle" font-family="Arial, sans-serif" opacity="0.6" transform="rotate(-30 150 150)">
+        DEMO ONLY
+    </text>
+</svg>
+</body>
+</html>

@@ -39,8 +39,13 @@ if (!empty($_GET['sex'])) {
     $params[':sex'] = $_GET['sex'];
 }
 if (!empty($_GET['status'])) {
-    $where_clauses[] = "s.status = :status";
-    $params[':status'] = $_GET['status'];
+    if (strtolower($_GET['status']) == 'transfer-out') {
+        $where_clauses[] = "s.user_id IN (SELECT student_id FROM official_transcript WHERE request_type = 'Transfer-Out' AND status NOT IN ('Pending', 'Rejected'))";
+    } else {
+        $where_clauses[] = "s.status = :status";
+        $params[':status'] = $_GET['status'];
+        $where_clauses[] = "s.user_id NOT IN (SELECT student_id FROM official_transcript WHERE request_type = 'Transfer-Out' AND status NOT IN ('Pending', 'Rejected'))";
+    }
 }
 if (!empty($_GET['student_id'])) {
     $where_clauses[] = "s.student_id LIKE :sid";
@@ -58,6 +63,7 @@ $where_sql = implode(" AND ", $where_clauses);
 
 // Fetch Transactions
 $sql = "SELECT s.student_id, s.first_name, s.last_name, s.sex, s.batch, s.status,
+               (SELECT COUNT(*) FROM official_transcript ot WHERE ot.student_id = s.user_id AND ot.request_type = 'Transfer-Out' AND ot.status NOT IN ('Pending', 'Rejected')) as is_transfer_out,
                SUM(st.tuition_fee + st.food_expense + st.bed_expense + st.medication_expense) as total,
                COUNT(st.id) as agreement_count
         FROM cost_sharing_agreements st
@@ -228,13 +234,23 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <label data-en="Status" data-am="ሁኔታ">Status</label>
                                 <select name="status">
                                     <option value="" data-en="All Status" data-am="ሁሉም ሁኔታዎች">All Status</option>
-                                    <option value="active" <?php echo (isset($_GET['status']) && $_GET['status'] == 'active') ? 'selected' : ''; ?> data-en="Active" data-am="ንቁ">Active</option>
-                                    <option value="withdrawal" <?php echo (isset($_GET['status']) && $_GET['status'] == 'withdrawal') ? 'selected' : ''; ?> data-en="Withdrawal" data-am="ያቋረጠ (Withdrawal)">Withdrawal</option>
-                                    <option value="dropout" <?php echo (isset($_GET['status']) && $_GET['status'] == 'dropout') ? 'selected' : ''; ?> data-en="Dropout" data-am="ያቋረጠ (Dropout)">Dropout</option>
-                                    <option value="complete dismissal" <?php echo (isset($_GET['status']) && $_GET['status'] == 'complete dismissal') ? 'selected' : ''; ?> data-en="Complete Dismissal" data-am="ሙሉ ለሙሉ የተሰናበተ">Complete Dismissal</option>
-                                    <option value="dismissal with readmission" <?php echo (isset($_GET['status']) && $_GET['status'] == 'dismissal with readmission') ? 'selected' : ''; ?> data-en="Dismissal with Readmission" data-am="መመለስ የሚቻል">Dismissal with Readmission</option>
-                                    <option value="death" <?php echo (isset($_GET['status']) && $_GET['status'] == 'death') ? 'selected' : ''; ?> data-en="Death" data-am="ሞት">Death</option>
-                                    <option value="graduate" <?php echo (isset($_GET['status']) && $_GET['status'] == 'graduate') ? 'selected' : ''; ?> data-en="Graduate" data-am="????">Graduate</option>
+                                    <option value="active" <?php echo (isset($_GET['status']) && $_GET['status'] == 'active') ? 'selected' : ''; ?> data-en="Active" data-am="ንቁ">
+                                        Active</option>
+                                    <option value="withdrawal" <?php echo (isset($_GET['status']) && $_GET['status'] == 'withdrawal') ? 'selected' : ''; ?> data-en="Withdrawal"
+                                        data-am="ያቋረጠ (Withdrawal)">Withdrawal</option>
+                                    <option value="dropout" <?php echo (isset($_GET['status']) && $_GET['status'] == 'dropout') ? 'selected' : ''; ?> data-en="Dropout"
+                                        data-am="ያቋረጠ (Dropout)">Dropout</option>
+                                    <option value="complete dismissal" <?php echo (isset($_GET['status']) && $_GET['status'] == 'complete dismissal') ? 'selected' : ''; ?>
+                                        data-en="Complete Dismissal" data-am="ሙሉ ለሙሉ የተሰናበተ">Complete Dismissal</option>
+                                    <option value="dismissal with readmission" <?php echo (isset($_GET['status']) && $_GET['status'] == 'dismissal with readmission') ? 'selected' : ''; ?>
+                                        data-en="Dismissal with Readmission" data-am="መመለስ የሚቻል">Dismissal with
+                                        Readmission</option>
+                                    <option value="death" <?php echo (isset($_GET['status']) && $_GET['status'] == 'death') ? 'selected' : ''; ?> data-en="Death" data-am="ሞት">
+                                        Death</option>
+                                    <option value="graduate" <?php echo (isset($_GET['status']) && $_GET['status'] == 'graduate') ? 'selected' : ''; ?> data-en="Graduate"
+                                        data-am="????">Graduate</option>
+                                    <option value="transfer-out" <?php echo (isset($_GET['status']) && $_GET['status'] == 'transfer-out') ? 'selected' : ''; ?> data-en="Transfer-Out"
+                                        data-am="ዝውውር (Transfer-Out)">Transfer-Out</option>
                                 </select>
                             </div>
 
@@ -302,20 +318,26 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <td>
                                                 <?php
                                                 $status_map = [
-    'active' => 'ንቁ',
-    'withdrawal' => 'ያቋረጠ (Withdrawal)',
-    'dropout' => 'ያቋረጠ (Dropout)',
-    'complete dismissal' => 'ሙሉ ለሙሉ የተሰናበተ',
-    'dismissal with readmission' => 'መመለስ የሚቻል',
-    'death' => 'ሞት'
-];
-                                                $st_lower = strtolower($r['status']);
-                                                $st_am = $status_map[$st_lower] ?? $r['status'];
+                                                    'active' => 'ንቁ',
+                                                    'withdrawal' => 'ያቋረጠ (Withdrawal)',
+                                                    'dropout' => 'ያቋረጠ (Dropout)',
+                                                    'complete dismissal' => 'ሙሉ ለሙሉ የተሰናበተ',
+                                                    'dismissal with readmission' => 'መመለስ የሚቻል',
+                                                    'death' => 'ሞት'
+                                                ];
+                                                if (!empty($r['is_transfer_out'])) {
+                                                    $st_lower = 'transfer-out';
+                                                    $st_am = 'ዝውውር (Transfer-Out)';
+                                                    $disp_en = 'Transfer-Out';
+                                                } else {
+                                                    $st_lower = strtolower($r['status']);
+                                                    $st_am = $status_map[$st_lower] ?? $r['status'];
+                                                    $disp_en = ucfirst($r['status']);
+                                                }
                                                 ?>
                                                 <span class="status-badge status-<?php echo $st_lower; ?>"
-                                                    data-en="<?php echo ucfirst($r['status']); ?>"
-                                                    data-am="<?php echo $st_am; ?>">
-                                                    <?php echo ucfirst($r['status']); ?>
+                                                    data-en="<?php echo $disp_en; ?>" data-am="<?php echo $st_am; ?>">
+                                                    <?php echo $disp_en; ?>
                                                 </span>
                                             </td>
                                             <td><?php echo number_format($r['total'], 2); ?></td>
@@ -334,7 +356,7 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
         const myDeptId = "<?php echo $myDeptId; ?>";
         const selectedBatch = "<?php echo $_GET['batch'] ?? ''; ?>";
 
-                let currentSemesters = {};
+        let currentSemesters = {};
         const selectedSemester = "<?php echo $_GET['semester'] ?? ''; ?>";
 
         function loadBatches() {
@@ -361,7 +383,7 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 .then(result => {
                     const batches = result.batches || result;
                     currentSemesters = result.semesters || {};
-                    
+
                     if (batchSelect) {
                         batches.forEach(batch => {
                             const option = document.createElement('option');
@@ -376,10 +398,10 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             // check if form has year attribute instead of selectedBatch
                             const yearInput = document.getElementById('yearSelect');
                             if (yearInput && typeof selectedYear !== 'undefined' && batch == selectedYear) option.selected = true;
-                            
+
                             batchSelect.appendChild(option);
                         });
-                        
+
                         // Automatically load semesters if batch is already selected
                         if (typeof selectedBatch !== 'undefined' && selectedBatch) {
                             loadSemesters();
@@ -409,10 +431,10 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const batchSelect = document.getElementById('batchSelect') || document.getElementById('yearSelect');
             const semesterSelect = document.getElementById('semesterSelect');
             if (!semesterSelect) return;
-            
+
             const batch = batchSelect ? batchSelect.value : null;
             const currentLang = localStorage.getItem('dmu_lang') || 'en';
-            
+
             // clear it only if it's a filter, if it's required (form), maybe don't put 'All Sem'
             const isRequired = semesterSelect.hasAttribute('required');
             if (!isRequired) {
@@ -441,7 +463,7 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const batchSelect = document.getElementById('batchSelect');
             if (batchSelect) {
                 batchSelect.addEventListener('change', loadSemesters);

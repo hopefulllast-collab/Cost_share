@@ -37,6 +37,10 @@
             <li><a href="../../modules/department/report_cost_sharing.php"><i class="fas fa-chart-bar"></i> <span
                         data-en="Report Cost Share" data-am="የወጪ መጋራት ሪፖርት">Report Cost Share</span></a></li>
 
+            <li><a href="../../modules/department/check_agreement_status.php"><i class="fas fa-file-contract"></i> <span
+                        data-en="Check Cost Share Agreement" data-am="የተማሪዎችን የኮስት ሼር ውል ይመልከቱ">Check Cost Share
+                        Agreement</span></a></li>
+
             <li><a href="../../modules/department/update_account.php"><i class="fas fa-user-cog"></i> <span
                         data-en="Update Account" data-am="መለያ አዘምን">Update Account</span></a></li>
 
@@ -109,6 +113,8 @@
                         data-en="Verify Agreements" data-am="ውሎችን ያረጋግጡ">Verify Agreements</span></a></li>
             <li><a href="../../modules/cost_sharing/update_cost_share.php"><i class="fas fa-user-check"></i> <span
                         data-en="Manage Cost Share" data-am="የወጪ መጋራት አዘምን">Manage Cost Share</span></a></li>
+            <li><a href="../../modules/cost_sharing/issue_document.php"><i class="fas fa-file-signature"></i> <span
+                        data-en="Issue Document" data-am="ሰነድ አዘጋጅ">Issue Document</span></a></li>
             <li><a href="../../modules/cost_sharing/report_cost_share.php"><i class="fas fa-chart-line"></i> <span
                         data-en="Report Cost Share" data-am="የወጪ መጋራት ሪፖርት">Report Cost Share</span></a></li>
             <li><a href="../../modules/cost_sharing/view_student_list.php"><i class="fas fa-file-signature"></i> <span
@@ -119,6 +125,12 @@
                         data-am="ማስታወቂያዎች">Notices</span></a> </li>
             <li><a href="../../modules/cost_sharing/view_feedback.php"><i class="fas fa-comments"></i> <span
                         data-en="View Feedback" data-am="አስተያየቶችን ይመልከቱ">View Feedback</span></a></li>
+
+            <li><a href="../../modules/cost_sharing/check_agreement_status.php"><i class="fas fa-file-contract"></i> <span
+                        data-en="Check Cost Share Agreement" data-am="የተማሪዎችን የኮስት ሼር ውል ይመልከቱ">Check Cost Share
+                        Agreement</span></a></li>
+            <li><a href="../../modules/cost_sharing/record_transfer_cost.php"><i class="fas fa-edit"></i> <span
+                        data-en="Record Cost Share" data-am="የወጪ መጋራት መዝግብ">Record Cost Share</span></a></li>
 
             <li><a href="../../modules/cost_sharing/update_account.php"><i class="fas fa-user-cog"></i> <span
                         data-en="Update Account" data-am="መለያ አዘምን">Update Account</span></a></li>
@@ -152,6 +164,10 @@
                         data-am="አስተያየቶችን ይመልከቱ">View Feedback</span></a></li>
             <li><a href="audit_logs.php"><i class="fas fa-shield-alt"></i> <span data-en="Audit Logs" data-am="ኦዲት ሎግ">Audit
                         Logs</span></a></li>
+            <li><a href="check_agreement_status.php"><i class="fas fa-file-contract"></i> <span
+                        data-en="Check Cost Share Agreement" data-am="የተማሪዎችን የኮስት ሼር ውል ይመልከቱ">Check Cost Share
+                        Agreement</span></a></li>
+
             <li><a href="suspicious_activity.php"><i class="fas fa-exclamation-triangle"></i> <span
                         data-en="Suspicious Activity" data-am="አጠራጣሪ እንቅስቃሴ">Suspicious Activity</span></a></li>
 
@@ -163,6 +179,10 @@
                     <span data-en="Send Referral Letter" data-am="የማጣቀሻ ደብዳቤ ላክ">Send Referral Letter</span></a></li>
             <li><a href="../../modules/academic_vp/report_cost_share.php"><i class="fas fa-chart-line"></i> <span
                         data-en="Report Cost Share" data-am="የወጪ መጋራት ሪፖርት">Report Cost Share</span></a></li>
+            <li><a href="../../modules/academic_vp/check_agreement_status.php"><i class="fas fa-file-contract"></i> <span
+                        data-en="Check Cost Share Agreement" data-am="የተማሪዎችን የኮስት ሼር ውል ይመልከቱ">Check Cost Share
+                        Agreement</span></a></li>
+
             <li><a href="../../modules/academic_vp/update_account.php"><i class="fas fa-user-cog"></i> <span
                         data-en="Update Account" data-am="መለያ አዘምን">Update Account</span></a></li>
 

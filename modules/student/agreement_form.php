@@ -4,7 +4,7 @@ require_once '../../config/db_connect.php';
 checkAuth(['student']);
 
 $user_id = $_SESSION['user_id'];
-$student = $pdo->prepare("SELECT s.*, u.first_name, u.middle_name, u.last_name, d.name as dept_name, d.college, s.status_updated_at 
+$student = $pdo->prepare("SELECT s.*, u.first_name, u.middle_name, u.last_name, u.digital_signature, d.name as dept_name, d.college, s.status_updated_at 
                           FROM students s 
                           JOIN users u ON s.user_id = u.id 
                           LEFT JOIN departments d ON s.department_id = d.id 
@@ -149,9 +149,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_agreement'])) {
                             ?, ?, ?, ?, ?, ?, ?, ?, ?,
                             ?, ?, ?, ?, ?, ?, ?,
                             ?, ?, ?, ?, ?, ?, ?, ?)");
-                $sig_text = "Digitally Signed by: " . $std_info['first_name'] . " " . $std_info['last_name'] . " (ID: " . $std_info['student_id'] . ")";
+                $sig_data = $std_info['digital_signature'];
                 $stmt->execute([
-                    $user_id, $current_year, $current_sem, $sig_text,
+                    $user_id, $current_year, $current_sem, $sig_data,
                     $tuition, $food, $bed, $med,
                     $date_of_birth, $pob_region, $pob_zone, $pob_wereda, $pob_town, $pob_kebele, $pob_house, $pob_phone, $pob_pobox,
                     $mother_firstname, $mother_middlename, $mother_lastname, $mom_region, $mom_zone, $mom_wereda, $mom_town,
@@ -374,6 +374,17 @@ if (isset($_SESSION['agreement_success'])) {
                         </p>
                         <a href="dashboard.php" class="btn-primary mt-20" data-en="Back to Dashboard"
                             data-am="ወደ ዳሽቦርድ ይመለሱ">Back to Dashboard</a>
+                    </div>
+                <?php elseif (empty($std_info['digital_signature'])): ?>
+                    <div class="card" style="text-align: center; padding: 60px;">
+                        <i class="fas fa-signature fa-5x" style="color: #007bff; margin-bottom: 20px;"></i>
+                        <h2 data-en="Digital Signature Required" data-am="ዲጂታል ፊርማ ያስፈልጋል">Digital Signature Required</h2>
+                        <p data-en="Before signing the agreement, you must upload or draw your digital signature."
+                            data-am="ስምምነቱን ከመፈረምዎ በፊት ዲጂታል ፊርማዎን መጫን ወይም መሳል አለብዎት።" class="mb-20">
+                            Before signing the agreement, you must upload or draw your digital signature.
+                        </p>
+                        <a href="../common/update_profile.php" class="btn-primary mt-20" data-en="Go to Update Profile"
+                            data-am="ወደ መለያ ማዘመኛ ይሂዱ">Go to Update Profile</a>
                     </div>
                 <?php else: ?>
                     <form method="POST" id="agreementForm">
@@ -715,6 +726,7 @@ if (isset($_SESSION['agreement_success'])) {
                                     <td><?php echo htmlspecialchars($med_label); ?></td>
                                     <td><input type="text" name="med_expense" value="<?php echo number_format($med_val, 2); ?>" readonly></td>
                                 </tr>
+
                                 <tr style="background: #e9ecef;">
                                     <td colspan="2" style="text-align: right;"><strong data-en="TOTAL ESTIMATED COST"
                                             data-am="ጠቅላላ የተገመተ ወጪ">TOTAL ESTIMATED COST</strong></td>
@@ -741,13 +753,17 @@ if (isset($_SESSION['agreement_success'])) {
                                     </label>
                                 </div>
                                 <div class="form-row" style="margin-top: 20px;">
-                                    <label style="font-size: 1.1em; font-weight: bold; color: #d9534f;">
-                                        <input type="checkbox" name="beneficiary_signature_check" value="1" required
-                                            style="transform: scale(1.5); margin-right: 10px;">
-                                        <span data-en="Beneficiary's Signature (I have read and agreed to the above terms)"
-                                            data-am="የተጠቃሚው ፊርማ (ከላይ የተገለጹትን ሁኔታዎች አንብቤ ተስማምቻለሁ)">Beneficiary's Signature (I
-                                            have read and agreed to the above terms)</span>
-                                    </label>
+                                    <div style="flex:1;">
+                                        <p style="font-size: 1.1em; font-weight: bold; color: #d9534f; margin-bottom: 10px;" data-en="Beneficiary's Signature" data-am="የተጠቃሚው ፊርማ">Beneficiary's Signature</p>
+                                        <p style="font-size: 0.85em; color: #333; margin-bottom: 5px; font-weight: 600;"><?php echo htmlspecialchars($std_info['first_name'] . ' ' . $std_info['middle_name']); ?></p>
+                                        <div style="border-bottom: 2px solid #000; display: inline-block; padding-bottom: 5px; min-width: 200px; text-align: center;">
+                                            <?php if (strpos($std_info['digital_signature'], 'data:image/') === 0): ?>
+                                                <img src="<?php echo htmlspecialchars($std_info['digital_signature']); ?>" alt="Student Signature" style="max-height: 60px;">
+                                            <?php else: ?>
+                                                <img src="../../uploads/signatures/<?php echo htmlspecialchars($std_info['digital_signature']); ?>" alt="Student Signature" style="max-height: 60px;">
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
 
                                     <div style="margin-left: auto;">
                                         <label data-en="Date:" data-am="ቀን:">Date:</label>

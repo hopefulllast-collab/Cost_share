@@ -21,21 +21,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
     $phone = trim($_POST['phone']);
     $email = trim($_POST['email']);
 
-    // Auto-generate username (First Name)
-    $username = strtolower($fname);
-    // Handle duplicate usernames if any (simple append logic could be added, but per req: use firstname)
-    // Note: Req says "taking the first name as a username". 
-    // A more robust system would handle duplicates, but we'll stick to req.
+    // Auto-generate username
+    if ($role == 'student') {
+        // For students: first_name + 3 random alphanumeric chars
+        $random_suffix = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, 3);
+        $username = strtolower($fname) . $random_suffix;
+    } else {
+        $username = strtolower($fname);
+    }
 
     // Password Logic
     if ($role == 'student') {
         $student_id = trim($_POST['student_id']);
         $password_raw = $student_id; // Default password for students is their ID
     } else {
-        // For staff, require password
-        $password_raw = $_POST['password'] ?? '';
-        if (empty($password_raw)) {
-            $error = "<span data-en='Password is required for staff accounts.' data-am='ለስታፍ ሰራተኞች የይለፍ ቃል አስፈላጊ ነው።'>Password is required for staff accounts.</span>";
+        // For staff: auto-generate a random 8-character password
+        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+        $password_raw = '';
+        for ($i = 0; $i < 8; $i++) {
+            $password_raw .= $chars[random_int(0, strlen($chars) - 1)];
         }
     }
 
@@ -55,6 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
             }
             if (!$error && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = "<span data-en='Invalid email format.' data-am='ትክክለኛ ያልሆነ ኢሜል።'>Invalid email format.</span>";
+            }
+            // Check for duplicate email
+            if (!$error && !empty($email)) {
+                $stmt_email = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+                $stmt_email->execute([$email]);
+                if ($stmt_email->fetchColumn() > 0) {
+                    $error = "<span data-en='This email is already registered in the system.' data-am='ይህ ኢሜል ቀድሞ ተመዝግቧል።'>This email is already registered in the system.</span>";
+                }
             }
         }
 
@@ -190,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                 }
             }
 
-            $_SESSION["flash_success"] = "<span data-en='Account created successfully!' data-am='መለያ በተሳካ ሁኔታ ተፈጥሯል!'>Account created successfully!</span> Username: $username" . $email_status_msg;
+            $_SESSION["flash_success"] = "<span data-en='Account created successfully!' data-am='መለያ በተሳካ ሁኔታ ተፈጥሯል!'>Account created successfully!</span>" . $email_status_msg;
             header("Location: " . $_SERVER["PHP_SELF"]);
             exit();
         } catch (Exception $e) {
@@ -338,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
         <div class="layout-body">
             <?php include '../../includes/sidebar.php'; ?>
             <div class="main-content">
-              <!--  <div class="top-bar">
+                <!--  <div class="top-bar">
                     <h2 data-en="Create Account" data-am="áˆ˜áˆˆá‹« ááŒ áˆ­">Create Account</h2>
                 </div>-->
 
@@ -347,31 +359,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                 <?php if ($msg)
                     echo "<div class='success-msg'>$msg</div>"; ?>
 
-                <?php if (!empty($_SESSION['created_accounts'])): ?>
+                <?php if (!empty($_SESSION['skipped_students'])): ?>
                     <div class="card"
-                        style="margin-bottom: 20px; background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px;">
+                        style="margin-bottom: 20px; background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
                         <div
                             style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                             <div>
-                                <strong style="font-size: 15px;">
+                                <strong style="font-size: 15px; color: #856404;">
                                     <span
-                                        data-en="<?php echo count($_SESSION['created_accounts']); ?> account(s) ready for download"
-                                        data-am="<?php echo count($_SESSION['created_accounts']); ?> መለያ(ዎች) ለመውረድ ዝግጁ ነው።">
-                                        <?php echo count($_SESSION['created_accounts']); ?> account(s) ready for download
+                                        data-en="<?php echo count($_SESSION['skipped_students']); ?> student(s) skipped due to email duplication."
+                                        data-am="<?php echo count($_SESSION['skipped_students']); ?> ተማሪ(ዎች) በኢሜይል ድግግሞሽ ምክንያት ተዘለዋል።">
+                                        <?php echo count($_SESSION['skipped_students']); ?> student(s) skipped due to email
+                                        duplication.
                                     </span>
                                 </strong>
-                                <p style="margin: 5px 0 0; font-size: 13px; color: #555;">
-                                    <span data-en="Download includes username and password for each account."
-                                        data-am="ማውረድ ለእያንዳንዱ መለያ የተጠቃሚ ስም እና የይለፍ ቃል ያካትታል።">
-                                        Download includes username and password for each account.
+                                <p style="margin: 5px 0 0; font-size: 13px; color: #856404;">
+                                    <span
+                                        data-en="These accounts were NOT created. Download the CSV list of these students."
+                                        data-am="እነዚህ መለያዎች አልተፈጠሩም። የእነዚህን ተማሪዎች ዝርዝር በCSV ያውርዱ።">
+                                        These accounts were NOT created. Download the CSV list of these students.
                                     </span>
                                 </p>
                             </div>
                             <div style="display: flex; gap: 10px;">
-                                <a href="download_created_accounts_csv.php" class="btn-primary"
-                                    style="color:#fff; background-color:#2e7d32; padding: 8px 20px; text-decoration: none; border-radius: 4px; font-size: 14px;"
+                                <a href="download_skipped_students_csv.php" class="btn-primary"
+                                    style="color:#fff; background-color:#ffc107; border: none; padding: 8px 20px; text-decoration: none; border-radius: 4px; font-size: 14px; text-shadow: 0 1px 1px rgba(0,0,0,0.2);"
                                     data-en="Download CSV" data-am="CSV ያውርዱ።">â¬‡ Download CSV</a>
-                                <a href="download_created_accounts_csv.php?clear=1" class="btn-secondary"
+                                <a href="download_skipped_students_csv.php?clear=1" class="btn-secondary"
                                     style="color:#fff; background-color:#757575; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 13px;"
                                     data-en="Clear List" data-am="ዝርዝር ያጽዱ።"
                                     onclick="event.preventDefault(); var dest = this.href; Swal.fire({title: 'Are you sure?', text: 'Are you sure you want to clear the list without downloading?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, clear it!'}).then((result) => { if (result.isConfirmed) { window.location.href = dest; } });">Clear
@@ -398,7 +412,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                                     value="cost_sharing_pro">Cost Sharing Professional</option>
                                 <option data-en="Official Transcript Professional" data-am="ኦፊሲላዊ ትራንስክሪፕት ባለሙያ"
                                     value="transcript_pro">Official Transcript Professional</option>
-                                <option data-en="Academic Vice President" data-am="አካደሚክ ምክትል ፕሬዚዳንት" value="academic_vp">
+                                <option data-en="Academic Vice President" data-am="አካደሚክ ምክትል ፕሬዚዳንት"
+                                    value="academic_vp">
                                     Academic Vice President</option>
                             </select>
                         </div>
@@ -457,21 +472,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
                                 <input type="email" name="email" id="emailInput" placeholder="example@email.com"
                                     data-en="example@email.com" data-am="example@email.com"
                                     data-en-placeholder="example@email.com" data-am-placeholder="example@email.com"
-                                    required>
+                                    required oninput="checkEmailDuplicate(this.value)">
+                                <div id="emailFeedback"
+                                    style="display:none; margin-top:5px; font-size:13px; font-weight:500;"></div>
                             </div>
                         </div>
 
-                        <!-- Password Field (For Non-Students) -->
+                        <!-- Password Info -->
                         <div class="form-group" id="passwordGroup">
-                            <label data-en="Password" data-am="ይለፍ ቃል">Password</label>
-                            <input type="password" name="password" id="passwordInput" placeholder="Enter password"
-                                data-en="Enter password" data-am="ይለፍ ቃል አስገባ" data-en-placeholder="Enter password"
-                                data-am-placeholder="ይለፍ ቃል አስገባ">
-                            <small data-en="CAUTION: Remember For students, the password will be their Student ID."
-                                data-am="ያስታዉሱ ለተማሪዎች ይለፍ ቃል የተማሪ መለያ ቁጥራቸው ነው።"
-                                style="color: red; font-weight: bold; font-size: 12px; display:block; margin-top:5px;">CAUTION:
-                                Remember
-                                For students, the password will be their Student ID.</small>
+                            <div id="passwordInfoStaff"
+                                style="display:none; padding: 10px 15px; background: #e3f2fd; border-left: 4px solid #1565c0; border-radius: 4px; margin-top: 5px;">
+                                <small style="color: #0d47a1; font-weight: 600; font-size: 13px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span data-en="A secure random password will be auto-generated for this account."
+                                        data-am="ለዚህ መለያ የደህንነት ይለፍ ቃል በራስ-ሰር ይመነጫል።">A secure random password will be
+                                        auto-generated for this account.</span>
+                                </small>
+                            </div>
+                            <div id="passwordInfoStudent"
+                                style="display:none; padding: 10px 15px; background: #fff3e0; border-left: 4px solid #e65100; border-radius: 4px; margin-top: 5px;">
+                                <small style="color: #e65100; font-weight: 600; font-size: 13px;">
+                                    <i class="fas fa-key"></i>
+                                    <span data-en="For students, the default password is their Student ID."
+                                        data-am="ለተማሪዎች የመጀመሪያ ይለፍ ቃል የተማሪ መለያ ቁጥራቸው ነው።">For students, the default
+                                        password is their Student ID.</span>
+                                </small>
+                            </div>
                         </div>
 
                         <!-- Student Specific -->
@@ -550,6 +576,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
     </div>
 
     <script>
+        let emailCheckTimer = null;
+        function checkEmailDuplicate(email) {
+            const feedback = document.getElementById('emailFeedback');
+            clearTimeout(emailCheckTimer);
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                feedback.style.display = 'none';
+                return;
+            }
+            emailCheckTimer = setTimeout(() => {
+                fetch('../../api/check_email.php?email=' + encodeURIComponent(email))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.exists) {
+                            feedback.style.display = 'block';
+                            feedback.style.color = '#dc3545';
+                            feedback.style.background = '#f8d7da';
+                            feedback.style.padding = '6px 10px';
+                            feedback.style.borderRadius = '4px';
+                            const lang = localStorage.getItem('dmu_lang');
+                            feedback.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' +
+                                (lang === 'am' ? 'ይህ ኢሜል ቀድሞ ተመዝግቧል!' : 'This email is already registered!');
+                        } else {
+                            feedback.style.display = 'block';
+                            feedback.style.color = '#28a745';
+                            feedback.style.background = '#d4edda';
+                            feedback.style.padding = '6px 10px';
+                            feedback.style.borderRadius = '4px';
+                            const lang = localStorage.getItem('dmu_lang');
+                            feedback.innerHTML = '<i class="fas fa-check-circle"></i> ' +
+                                (lang === 'am' ? 'ይህ ኢሜል ይገኛል!' : 'Email is available!');
+                        }
+                    })
+                    .catch(() => { feedback.style.display = 'none'; });
+            }, 500);
+        }
+
         function toggleFields() {
             const role = document.getElementById('roleSelect').value;
             const studentFields = document.getElementById('studentFields');
@@ -559,23 +621,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
             const phoneInput = document.getElementById('phoneInput');
             const emailInput = document.getElementById('emailInput');
 
-            // Handle Password Field visibility
+            // Handle Password info visibility
+            const infoStaff = document.getElementById('passwordInfoStaff');
+            const infoStudent = document.getElementById('passwordInfoStudent');
             if (role === 'student') {
-                passwordGroup.classList.add('hidden');
-                passwordInput.removeAttribute('required');
+                infoStaff.style.display = 'none';
+                infoStudent.style.display = 'block';
 
                 // Keep contact group visible, phone is optional but email is required
                 contactGroup.classList.remove('hidden');
                 phoneInput.removeAttribute('required');
                 emailInput.setAttribute('required', 'required');
-            } else {
-                passwordGroup.classList.remove('hidden');
-                passwordInput.setAttribute('required', 'required');
+            } else if (role) {
+                infoStaff.style.display = 'block';
+                infoStudent.style.display = 'none';
 
                 // Show Phone/Email for staff and make required
                 contactGroup.classList.remove('hidden');
                 phoneInput.setAttribute('required', 'required');
                 emailInput.setAttribute('required', 'required');
+            } else {
+                infoStaff.style.display = 'none';
+                infoStudent.style.display = 'none';
             }
 
             // Academic Year Required Logic (Only for Students)

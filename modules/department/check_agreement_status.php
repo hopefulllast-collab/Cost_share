@@ -135,23 +135,6 @@ if ($status_filter == 'all' || $status_filter == 'unsigned') {
     $stmt = $pdo->prepare($sql_missing);
     $stmt->execute(array_merge($params, $sub_params));
     $missing_students = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Handle CSV Export
-    if (isset($_GET['export_unsigned']) && $_GET['export_unsigned'] == '1') {
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename=Unsigned_Students_' . date('Y-m-d') . '.csv');
-        $output = fopen('php://output', 'w');
-        // Output UTF-8 BOM
-        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        fputcsv($output, ['Student ID', 'Full Name', 'Department', 'Year of Study']);
-        foreach ($missing_students as $s) {
-            $name = trim($s['first_name'] . ' ' . $s['middle_name'] . ' ' . $s['last_name']);
-            $dept = $s['dept_name'] ?? 'N/A';
-            fputcsv($output, [$s['student_id'], $name, $dept, $s['batch']]);
-        }
-        fclose($output);
-        exit();
-    }
 }
 
 // 4. Signed List (Only fetch if filter allows)
@@ -376,19 +359,7 @@ if ($status_filter == 'all' || $status_filter == 'signed') {
                 <?php if ($status_filter == 'all' || $status_filter == 'unsigned'): ?>
                     <!-- List of Unsigned Students -->
                     <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 data-en="Students Who Have Not Signed" data-am="ያልፈረሙ ተማሪዎች">Students Who Have Not Signed
-                            </h3>
-                            <?php if (!empty($missing_students)):
-                                $qs = $_GET;
-                                $qs['export_unsigned'] = 1;
-                                $export_url = '?' . http_build_query($qs);
-                                ?>
-                                <a href="<?php echo htmlspecialchars($export_url); ?>" class="btn-primary"
-                                    style="padding: 5px 15px; font-size: 14px; text-decoration: none;" data-en="Export CSV"
-                                    data-am="CSV አውርድ"><i class="fas fa-file-csv"></i> Export CSV</a>
-                            <?php endif; ?>
-                        </div>
+                        <h3 data-en="Students Who Have Not Signed" data-am="ያልፈረሙ ተማሪዎች">Students Who Have Not Signed</h3>
                         <?php if (empty($missing_students)): ?>
                             <p style="padding: 12px 15px; margin-bottom: 20px; border-radius: 6px; border-left: 4px solid #28a745; background-color: #d4edda; color: #155724; font-weight: 500;"
                                 data-en="There are no unsigned students." data-am="ያልፈረሙ ተማሪዎች የሉም።">There are no unsigned

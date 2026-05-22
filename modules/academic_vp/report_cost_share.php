@@ -50,18 +50,23 @@ if (!empty($_GET['sex'])) {
     }
 }
 if (!empty($_GET['status'])) {
-    $status_db_map = [
-        'active' => 'Active',
-        'withdrawal' => 'Withdrawal',
-        'dropout' => 'Dropout',
-        'complete dismissal' => 'Complete Dismissal',
-        'dismissal with readmission' => 'Dismissal with Readmission',
-        'death' => 'Death',
-        'graduate' => 'Graduate'
-    ];
-    $status_val = $status_db_map[strtolower($_GET['status'])] ?? $_GET['status'];
-    $where_clauses[] = "s.status = :status";
-    $params[':status'] = $status_val;
+    if (strtolower($_GET['status']) == 'transfer-out') {
+        $where_clauses[] = "s.user_id IN (SELECT student_id FROM official_transcript WHERE request_type = 'Transfer-Out' AND status NOT IN ('Pending', 'Rejected'))";
+    } else {
+        $status_db_map = [
+            'active' => 'Active',
+            'withdrawal' => 'Withdrawal',
+            'dropout' => 'Dropout',
+            'complete dismissal' => 'Complete Dismissal',
+            'dismissal with readmission' => 'Dismissal with Readmission',
+            'death' => 'Death',
+            'graduate' => 'Graduate'
+        ];
+        $status_val = $status_db_map[strtolower($_GET['status'])] ?? $_GET['status'];
+        $where_clauses[] = "s.status = :status";
+        $params[':status'] = $status_val;
+        $where_clauses[] = "s.user_id NOT IN (SELECT student_id FROM official_transcript WHERE request_type = 'Transfer-Out' AND status NOT IN ('Pending', 'Rejected'))";
+    }
 }
 if (!empty($_GET['student_id'])) {
     $where_clauses[] = "s.student_id LIKE :sid";
@@ -79,6 +84,7 @@ $where_sql = implode(" AND ", $where_clauses);
 
 // Fetch Transactions
 $sql = "SELECT s.student_id, s.first_name, s.last_name, s.sex, s.batch, s.status, d.name as dept_name,
+               (SELECT COUNT(*) FROM official_transcript ot WHERE ot.student_id = s.user_id AND ot.request_type = 'Transfer-Out' AND ot.status NOT IN ('Pending', 'Rejected')) as is_transfer_out,
                SUM(st.tuition_fee) as tuition_fee, SUM(st.food_expense) as food_expense, 
                SUM(st.bed_expense) as bed_expense, SUM(st.medication_expense) as medication_expense,
                SUM(st.tuition_fee + st.food_expense + st.bed_expense + st.medication_expense) as total
@@ -234,6 +240,7 @@ $status_map = [
                                     <option value="dismissal with readmission" <?php echo (isset($_GET['status']) && $_GET['status'] == 'dismissal with readmission') ? 'selected' : ''; ?> data-en="Dismissal with Readmission" data-am="መመለስ የሚቻል">Dismissal with Readmission</option>
                                     <option value="death" <?php echo (isset($_GET['status']) && $_GET['status'] == 'death') ? 'selected' : ''; ?> data-en="Death" data-am="ሞት">Death</option>
                                     <option value="graduate" <?php echo (isset($_GET['status']) && $_GET['status'] == 'graduate') ? 'selected' : ''; ?> data-en="Graduate" data-am="????">Graduate</option>
+                                    <option value="transfer-out" <?php echo (isset($_GET['status']) && $_GET['status'] == 'transfer-out') ? 'selected' : ''; ?> data-en="Transfer-Out" data-am="ዝውውር (Transfer-Out)">Transfer-Out</option>
                                 </select>
                             </div>
 
@@ -298,10 +305,21 @@ $status_map = [
                                         </td>
                                         <td><?php echo htmlspecialchars($r['batch']); ?></td>
                                         <td>
-                                            <span class="status-badge status-<?php echo strtolower($r['status']); ?>"
-                                                data-en="<?php echo ucfirst($r['status']); ?>"
-                                                data-am="<?php echo $status_map[strtolower($r['status'])] ?? ucfirst($r['status']); ?>">
-                                                <?php echo ucfirst($r['status']); ?>
+                                            <?php
+                                            if (!empty($r['is_transfer_out'])) {
+                                                $disp_class = 'transfer-out';
+                                                $disp_en = 'Transfer-Out';
+                                                $disp_am = 'ዝውውር (Transfer-Out)';
+                                            } else {
+                                                $disp_class = strtolower($r['status']);
+                                                $disp_en = ucfirst($r['status']);
+                                                $disp_am = $status_map[strtolower($r['status'])] ?? ucfirst($r['status']);
+                                            }
+                                            ?>
+                                            <span class="status-badge status-<?php echo $disp_class; ?>"
+                                                data-en="<?php echo $disp_en; ?>"
+                                                data-am="<?php echo $disp_am; ?>">
+                                                <?php echo $disp_en; ?>
                                             </span>
                                         </td>
                                         <td><?php echo number_format($r['total'], 2); ?></td>
