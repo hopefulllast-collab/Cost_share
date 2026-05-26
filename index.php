@@ -113,6 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-en="Debre Markos University - Cost Sharing" data-am="ደብረ ማርቆስ ዩኒቨርሲቲ - ወጪ መጋራት">Debre Markos University
         - Cost Sharing</title>
+    <link rel="icon" type="image/png" href="assets/images/dmulogo.png">
     <link rel="stylesheet" href="assets/css/index.css?v=11">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link
